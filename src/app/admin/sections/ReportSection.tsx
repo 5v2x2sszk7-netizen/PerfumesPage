@@ -1,6 +1,7 @@
 import type { Perfume } from "@/types/perfume"
 import type { SaleRecord } from "@/lib/admin/types"
 import { formatMoney } from "@/lib/admin/utils"
+import { AdminPanel } from "@/components/ui/Surface"
 
 type Props = {
   perfumes: Perfume[]
@@ -116,8 +117,7 @@ export function ReportSection({ perfumes, sales }: Props) {
   const topPerfume = salesByPerfume[0] ?? null
 
   return (
-    <section className="rounded-luxe-xl bg-ink-50/60 p-3 ring-1 ring-inset ring-black/8 sm:p-5">
-      <div className="rounded-3xl border border-black/8 bg-white p-6">
+    <AdminPanel>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1">
             <p className="text-xs tracking-section text-ink-500">INFORME</p>
@@ -221,7 +221,6 @@ export function ReportSection({ perfumes, sales }: Props) {
             </div>
           </div>
         </div>
-      </div>
-    </section>
+    </AdminPanel>
   )
 }

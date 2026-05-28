@@ -38,6 +38,7 @@ export function LazyReveal({
   style?: CSSProperties
 }) {
   const ref = useRef<HTMLDivElement | null>(null)
+  const [mounted, setMounted] = useState(false)
   const [visible, setVisible] = useState(false)
 
   const mergedStyle = useMemo(() => {
@@ -52,8 +53,14 @@ export function LazyReveal({
     const observer = getLazyRevealObserver()
     if (!observer) return
 
+    const rect = el.getBoundingClientRect()
+    const inView = rect.top < window.innerHeight * 0.92 && rect.bottom > 0
     lazyRevealCallbacks.set(el, () => setVisible(true))
-    observer.observe(el)
+    queueMicrotask(() => {
+      if (inView) setVisible(true)
+      setMounted(true)
+    })
+    if (!inView) observer.observe(el)
     return () => {
       lazyRevealCallbacks.delete(el)
       observer.unobserve(el)
@@ -61,7 +68,11 @@ export function LazyReveal({
   }, [])
 
   return (
-    <div ref={ref} className={cn("reveal", visible ? "is-visible" : "", className)} style={mergedStyle}>
+    <div
+      ref={ref}
+      className={cn(mounted ? "reveal" : "", mounted && visible ? "is-visible" : "", className)}
+      style={mergedStyle}
+    >
       {children}
     </div>
   )

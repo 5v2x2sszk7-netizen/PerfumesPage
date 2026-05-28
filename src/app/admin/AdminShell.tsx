@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button"
 import { Pill } from "@/components/ui/Pill"
+import { AdminPanel } from "@/components/ui/Surface"
 import type { AdminSection } from "@/lib/admin/types"
 
 type Props = {
@@ -14,8 +15,7 @@ type Props = {
 
 export function AdminShell({ busy, error, section, onRefresh, onLogout, onSelectSection, onStartForm }: Props) {
   return (
-    <section className="rounded-luxe-xl bg-ink-50/60 p-3 ring-1 ring-inset ring-black/8 sm:p-5">
-      <div className="rounded-3xl border border-black/8 bg-white p-6">
+    <AdminPanel>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1">
             <p className="text-xs tracking-section text-ink-500">ADMIN</p>
@@ -59,7 +59,6 @@ export function AdminShell({ busy, error, section, onRefresh, onLogout, onSelect
             Reseñas
           </Pill>
         </div>
-      </div>
-    </section>
+    </AdminPanel>
   )
 }

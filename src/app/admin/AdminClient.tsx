@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import type { Dispatch, SetStateAction } from "react"
 import type { Perfume } from "@/types/perfume"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/admin/api"
@@ -19,40 +20,12 @@ import { useAdminData } from "@/lib/admin/hooks/useAdminData"
 import { useDraftValidation } from "@/lib/admin/hooks/useDraftValidation"
 import { useUploads } from "@/lib/admin/hooks/useUploads"
 
-export function AdminClient() {
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const reviewFileInputRef = useRef<HTMLInputElement | null>(null)
-  const router = useRouter()
-  const [draft, setDraft] = useState<Draft>(emptyDraft)
-  const [reviewDraft, setReviewDraft] = useState<ReviewDraft>(emptyReviewDraft)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+function useAdminUiState() {
   const [deleteTarget, setDeleteTarget] = useState<Perfume | null>(null)
   const [sellTarget, setSellTarget] = useState<Perfume | null>(null)
   const [deleteReviewTarget, setDeleteReviewTarget] = useState<Review | null>(null)
   const [sellQty, setSellQty] = useState(1)
   const [section, setSection] = useState<AdminSection>("products")
-
-  const { perfumes, suggestions, sales, reviews, refresh, reset: resetAdminData } = useAdminData({ setBusy, setError })
-  const {
-    uploading,
-    uploadedPath,
-    selectedFileName,
-    localPreviewUrl,
-    reviewUploading,
-    reviewUploadedPath,
-    reviewSelectedFileName,
-    reviewLocalPreviewUrl,
-    onUpload,
-    onUploadReview,
-    resetProductUpload,
-    resetReviewUpload
-  } = useUploads({ setBusy, setError, setDraft, setReviewDraft })
-  const { isEditing, canSubmit, missingFields, finance, brandSuggestions, nameSuggestions } = useDraftValidation({
-    draft,
-    perfumes,
-    suggestions
-  })
 
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -66,7 +39,64 @@ export function AdminClient() {
     localStorage.setItem("admin_section", section)
   }, [section])
 
-  async function onSave() {
+  const onDelete = useCallback((perfume: Perfume) => setDeleteTarget(perfume), [])
+  const onSell = useCallback((perfume: Perfume) => {
+    setSellTarget(perfume)
+    setSellQty(1)
+  }, [])
+  const onDeleteReview = useCallback((review: Review) => setDeleteReviewTarget(review), [])
+
+  return {
+    section,
+    setSection,
+    deleteTarget,
+    setDeleteTarget,
+    sellTarget,
+    setSellTarget,
+    deleteReviewTarget,
+    setDeleteReviewTarget,
+    sellQty,
+    setSellQty,
+    onDelete,
+    onSell,
+    onDeleteReview
+  }
+}
+
+function useAdminActions(opts: {
+  draft: Draft
+  setDraft: Dispatch<SetStateAction<Draft>>
+  reviewDraft: ReviewDraft
+  setReviewDraft: Dispatch<SetStateAction<ReviewDraft>>
+  canSubmit: boolean
+  isEditing: boolean
+  setBusy: Dispatch<SetStateAction<boolean>>
+  setError: Dispatch<SetStateAction<string | null>>
+  refresh: () => Promise<void>
+  resetAdminData: () => void
+  resetProductUpload: () => void
+  resetReviewUpload: () => void
+  router: ReturnType<typeof useRouter>
+  ui: ReturnType<typeof useAdminUiState>
+}) {
+  const {
+    draft,
+    setDraft,
+    reviewDraft,
+    setReviewDraft,
+    canSubmit,
+    isEditing,
+    setBusy,
+    setError,
+    refresh,
+    resetAdminData,
+    resetProductUpload,
+    resetReviewUpload,
+    router,
+    ui
+  } = opts
+
+  const onSave = useCallback(async () => {
     if (!canSubmit) return
     setBusy(true)
     setError(null)
@@ -108,15 +138,15 @@ export function AdminClient() {
       setDraft(emptyDraft)
       resetProductUpload()
       await refresh()
-      setSection("products")
+      ui.setSection("products")
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error")
     } finally {
       setBusy(false)
     }
-  }
+  }, [canSubmit, draft, isEditing, refresh, resetProductUpload, setBusy, setDraft, setError, ui])
 
-  async function onCreateReview() {
+  const onCreateReview = useCallback(async () => {
     const customerName = reviewDraft.customerName.trim()
     const text = reviewDraft.text.trim()
     const ratingNum = Number(reviewDraft.rating)
@@ -138,106 +168,97 @@ export function AdminClient() {
       setReviewDraft(emptyReviewDraft)
       resetReviewUpload()
       await refresh()
-      setSection("reviews")
+      ui.setSection("reviews")
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error")
     } finally {
       setBusy(false)
     }
-  }
+  }, [refresh, resetReviewUpload, reviewDraft, setBusy, setError, setReviewDraft, ui])
 
-  function onDelete(perfume: Perfume) {
-    setDeleteTarget(perfume)
-  }
-
-  function onDeleteReview(review: Review) {
-    setDeleteReviewTarget(review)
-  }
-
-  async function confirmDelete() {
-    if (!deleteTarget) return
-    const id = deleteTarget.id
+  const confirmDelete = useCallback(async () => {
+    if (!ui.deleteTarget) return
+    const id = ui.deleteTarget.id
     setBusy(true)
     setError(null)
     try {
       await api(`/api/admin/products/${encodeURIComponent(id)}`, { method: "DELETE" })
       await refresh()
       if (draft.id === id) setDraft(emptyDraft)
-      setDeleteTarget(null)
+      ui.setDeleteTarget(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error")
     } finally {
       setBusy(false)
     }
-  }
+  }, [draft.id, refresh, setBusy, setDraft, setError, ui])
 
-  async function confirmDeleteReview() {
-    if (!deleteReviewTarget) return
-    const id = deleteReviewTarget.id
+  const confirmDeleteReview = useCallback(async () => {
+    if (!ui.deleteReviewTarget) return
+    const id = ui.deleteReviewTarget.id
     setBusy(true)
     setError(null)
     try {
       await api(`/api/admin/reviews/${encodeURIComponent(id)}`, { method: "DELETE" })
       await refresh()
-      setDeleteReviewTarget(null)
+      ui.setDeleteReviewTarget(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error")
     } finally {
       setBusy(false)
     }
-  }
+  }, [refresh, setBusy, setError, ui])
 
-  function onSell(perfume: Perfume) {
-    setSellTarget(perfume)
-    setSellQty(1)
-  }
-
-  async function confirmSell() {
-    if (!sellTarget) return
-    const currentStock = Math.max(0, Math.floor(sellTarget.stock ?? 0))
-    const qty = Math.min(currentStock, Math.max(1, Math.floor(sellQty)))
+  const confirmSell = useCallback(async () => {
+    if (!ui.sellTarget) return
+    const currentStock = Math.max(0, Math.floor(ui.sellTarget.stock ?? 0))
+    const qty = Math.min(currentStock, Math.max(1, Math.floor(ui.sellQty)))
     const nextStock = Math.max(0, currentStock - qty)
     setBusy(true)
     setError(null)
     try {
-      const nextSold = Math.max(0, Math.floor((sellTarget.sold ?? 0) + qty))
-      await api(`/api/admin/products/${encodeURIComponent(sellTarget.id)}`, {
+      const nextSold = Math.max(0, Math.floor((ui.sellTarget.sold ?? 0) + qty))
+      await api(`/api/admin/products/${encodeURIComponent(ui.sellTarget.id)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "X-Perfimes-Action": "sell" },
         body: JSON.stringify({ stock: nextStock, sold: nextSold })
       })
-      setSellTarget(null)
+      const soldId = ui.sellTarget.id
+      ui.setSellTarget(null)
       await refresh()
-      if (draft.id === sellTarget.id) setDraft(emptyDraft)
+      if (draft.id === soldId) setDraft(emptyDraft)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error")
     } finally {
       setBusy(false)
     }
-  }
+  }, [draft.id, refresh, setBusy, setDraft, setError, ui])
 
-  function onEdit(p: Perfume) {
-    resetProductUpload()
-    setDraft({
-      id: p.id,
-      name: p.name,
-      brand: p.brand,
-      category: p.category,
-      description: p.description,
-      sizeMl: String(p.sizeMl),
-      price: String(p.price),
-      cost: String(p.cost ?? 0),
-      stock: String(p.stock ?? (p.availability === "out_of_stock" ? 0 : 1)),
-      availability: p.availability,
-      imageSrc: p.imageSrc,
-      notesTop: toNotesCsv(p.notes?.top),
-      notesHeart: toNotesCsv(p.notes?.heart),
-      notesBase: toNotesCsv(p.notes?.base)
-    })
-    setSection("form")
-  }
+  const onEdit = useCallback(
+    (p: Perfume) => {
+      resetProductUpload()
+      setDraft({
+        id: p.id,
+        name: p.name,
+        brand: p.brand,
+        category: p.category,
+        description: p.description,
+        sizeMl: String(p.sizeMl),
+        price: String(p.price),
+        cost: String(p.cost ?? 0),
+        stock: String(p.stock ?? (p.availability === "out_of_stock" ? 0 : 1)),
+        availability: p.availability,
+        imageSrc: p.imageSrc,
+        notesTop: toNotesCsv(p.notes?.top),
+        notesHeart: toNotesCsv(p.notes?.heart),
+        notesBase: toNotesCsv(p.notes?.base)
+      })
+      ui.setSection("form")
+    },
+    [resetProductUpload, setDraft, ui]
+  )
 
-  function onLogout() {
+  const onLogout = useCallback(() => {
     fetch("/api/admin/logout", { method: "POST" }).finally(() => {
       resetAdminData()
       setDraft(emptyDraft)
@@ -246,46 +267,102 @@ export function AdminClient() {
       resetReviewUpload()
       router.replace("/admin/login")
     })
-  }
+  }, [resetAdminData, resetProductUpload, resetReviewUpload, router, setDraft, setReviewDraft])
+
+  const onStartForm = useCallback(() => {
+    setDraft(emptyDraft)
+    resetProductUpload()
+    ui.setSection("form")
+  }, [resetProductUpload, setDraft, ui])
+
+  return { onSave, onCreateReview, confirmDelete, confirmDeleteReview, confirmSell, onEdit, onLogout, onStartForm }
+}
+
+export function AdminClient() {
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const reviewFileInputRef = useRef<HTMLInputElement | null>(null)
+  const router = useRouter()
+  const [draft, setDraft] = useState<Draft>(emptyDraft)
+  const [reviewDraft, setReviewDraft] = useState<ReviewDraft>(emptyReviewDraft)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const ui = useAdminUiState()
+
+  const { perfumes, suggestions, sales, reviews, refresh, reset: resetAdminData } = useAdminData({
+    setBusy,
+    setError
+  })
+  const {
+    uploading,
+    uploadedPath,
+    selectedFileName,
+    localPreviewUrl,
+    reviewUploading,
+    reviewUploadedPath,
+    reviewSelectedFileName,
+    reviewLocalPreviewUrl,
+    onUpload,
+    onUploadReview,
+    resetProductUpload,
+    resetReviewUpload
+  } = useUploads({ setBusy, setError, setDraft, setReviewDraft })
+  const { isEditing, canSubmit, missingFields, finance, brandSuggestions, nameSuggestions } = useDraftValidation({
+    draft,
+    perfumes,
+    suggestions
+  })
+
+  const actions = useAdminActions({
+    draft,
+    setDraft,
+    reviewDraft,
+    setReviewDraft,
+    canSubmit,
+    isEditing,
+    setBusy,
+    setError,
+    refresh,
+    resetAdminData,
+    resetProductUpload,
+    resetReviewUpload,
+    router,
+    ui
+  })
 
   return (
     <div className="space-y-10 sm:space-y-12">
       <SellModal
-        sellTarget={sellTarget}
+        sellTarget={ui.sellTarget}
         busy={busy}
-        sellQty={sellQty}
-        setSellQty={setSellQty}
-        onClose={() => setSellTarget(null)}
-        onConfirm={confirmSell}
+        sellQty={ui.sellQty}
+        setSellQty={ui.setSellQty}
+        onClose={() => ui.setSellTarget(null)}
+        onConfirm={actions.confirmSell}
       />
       <DeleteProductModal
-        deleteTarget={deleteTarget}
+        deleteTarget={ui.deleteTarget}
         busy={busy}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
+        onClose={() => ui.setDeleteTarget(null)}
+        onConfirm={actions.confirmDelete}
       />
       <DeleteReviewModal
-        deleteReviewTarget={deleteReviewTarget}
+        deleteReviewTarget={ui.deleteReviewTarget}
         busy={busy}
-        onClose={() => setDeleteReviewTarget(null)}
-        onConfirm={confirmDeleteReview}
+        onClose={() => ui.setDeleteReviewTarget(null)}
+        onConfirm={actions.confirmDeleteReview}
       />
       <AdminShell
         busy={busy}
         error={error}
-        section={section}
+        section={ui.section}
         onRefresh={refresh}
-        onLogout={onLogout}
-        onSelectSection={setSection}
-        onStartForm={() => {
-          setDraft(emptyDraft)
-          resetProductUpload()
-          setSection("form")
-        }}
+        onLogout={actions.onLogout}
+        onSelectSection={ui.setSection}
+        onStartForm={actions.onStartForm}
       />
 
-      {section === "report" ? <ReportSection perfumes={perfumes} sales={sales} /> : null}
-      {section === "reviews" ? (
+      {ui.section === "report" ? <ReportSection perfumes={perfumes} sales={sales} /> : null}
+      {ui.section === "reviews" ? (
         <ReviewsSection
           reviews={reviews}
           reviewDraft={reviewDraft}
@@ -297,11 +374,11 @@ export function AdminClient() {
           reviewLocalPreviewUrl={reviewLocalPreviewUrl}
           reviewFileInputRef={reviewFileInputRef}
           onUploadReview={onUploadReview}
-          onCreateReview={onCreateReview}
-          onDeleteReview={onDeleteReview}
+          onCreateReview={actions.onCreateReview}
+          onDeleteReview={ui.onDeleteReview}
         />
       ) : null}
-      {section === "form" ? (
+      {ui.section === "form" ? (
         <ProductFormSection
           draft={draft}
           setDraft={setDraft}
@@ -318,12 +395,18 @@ export function AdminClient() {
           brandSuggestions={brandSuggestions}
           nameSuggestions={nameSuggestions}
           onUpload={onUpload}
-          onSave={onSave}
+          onSave={actions.onSave}
           onCancelEdit={() => setDraft(emptyDraft)}
         />
       ) : null}
-      {section === "products" ? (
-        <ProductsSection perfumes={perfumes} busy={busy} onEdit={onEdit} onSell={onSell} onDelete={onDelete} />
+      {ui.section === "products" ? (
+        <ProductsSection
+          perfumes={perfumes}
+          busy={busy}
+          onEdit={actions.onEdit}
+          onSell={ui.onSell}
+          onDelete={ui.onDelete}
+        />
       ) : null}
     </div>
   )

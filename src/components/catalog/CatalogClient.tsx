@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button"
 import { Surface } from "@/components/ui/Surface"
 import { LazyReveal } from "@/components/ui/LazyReveal"
 import { Pill } from "@/components/ui/Pill"
-import { cn } from "@/lib/cn"
+import { cn, focusRing } from "@/lib/cn"
 import { availabilityLabel } from "@/lib/whatsapp"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -56,30 +56,12 @@ function compareAvailability(a: Perfume["availability"], b: Perfume["availabilit
   return rank[a] - rank[b]
 }
 
-export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-
-  const q = searchParams.get("q") ?? ""
-  const category = parseCategory(searchParams.get("category"))
-  const brand = searchParams.get("brand") ?? ""
-  const availability = searchParams.get("availability") ?? ""
-  const sort = parseSortKey(searchParams.get("sort"))
+function useCatalogPreferences(
+  searchParams: ReturnType<typeof useSearchParams>,
+  replaceQuery: (mut: (next: URLSearchParams) => void) => void
+) {
   const view = parseViewMode(searchParams.get("view"))
-  const hasActiveFilters = Boolean(q.trim() || brand || availability || sort !== "recommended")
-
-  const [isFilterOpen, setIsFilterOpen] = useState(() => hasActiveFilters)
-
-  const replaceQuery = useCallback(
-    (mut: (next: URLSearchParams) => void) => {
-      const next = new URLSearchParams(searchParams.toString())
-      mut(next)
-      const qs = next.toString()
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
-    },
-    [router, pathname, searchParams]
-  )
+  const category = parseCategory(searchParams.get("category"))
 
   useEffect(() => {
     const storedViewRaw = localStorage.getItem("catalog_view")
@@ -106,6 +88,33 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
   useEffect(() => {
     localStorage.setItem("catalog_category", category)
   }, [category])
+
+  return { view, category }
+}
+
+export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const replaceQuery = useCallback(
+    (mut: (next: URLSearchParams) => void) => {
+      const next = new URLSearchParams(searchParams.toString())
+      mut(next)
+      const qs = next.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    },
+    [router, pathname, searchParams]
+  )
+
+  const q = searchParams.get("q") ?? ""
+  const { view, category } = useCatalogPreferences(searchParams, replaceQuery)
+  const brand = searchParams.get("brand") ?? ""
+  const availability = searchParams.get("availability") ?? ""
+  const sort = parseSortKey(searchParams.get("sort"))
+  const hasActiveFilters = Boolean(q.trim() || brand || availability || sort !== "recommended")
+
+  const [isFilterOpen, setIsFilterOpen] = useState(() => hasActiveFilters)
 
   const brands = useMemo(() => {
     const base = perfumes.filter((p) => p.category === category)
@@ -214,7 +223,8 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
           type="button"
           onClick={() => setIsFilterOpen((v) => !v)}
           className={cn(
-            "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink-50/70 px-5 text-sm font-medium tracking-wide text-ink-950 ring-1 ring-inset ring-black/8 transition-luxe duration-700 ease-luxe hover:-translate-y-0.5 hover:bg-white focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1] sm:w-auto",
+            "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink-50/70 px-5 text-sm font-medium tracking-wide text-ink-950 ring-1 ring-inset ring-black/8 transition-luxe duration-700 ease-luxe hover:-translate-y-0.5 hover:bg-white sm:w-auto",
+            focusRing,
             hasActiveFilters ? "ring-antiqueGold/22 shadow-pill-active" : ""
           )}
           aria-expanded={isFilterOpen}
@@ -228,25 +238,15 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
           >
-            <path
-              d="M3 5h18M6 12h12M10 19h4"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
+            <path d="M3 5h18M6 12h12M10 19h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
           {isFilterOpen ? "Cerrar filtros" : "Filtros"}
-          {hasActiveFilters ? (
-            <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-antiqueGold" />
-          ) : null}
+          {hasActiveFilters ? <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-antiqueGold" /> : null}
         </button>
       </Surface>
 
       {isFilterOpen ? (
-        <Surface
-          id="catalog-filters"
-          className="mt-4 p-4 sm:p-5"
-        >
+        <Surface id="catalog-filters" className="mt-4 p-4 sm:p-5">
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
             <div className="grid gap-3 md:grid-cols-3">
               <div className="grid gap-1.5">
@@ -297,10 +297,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
                 </Select>
               </div>
               <div className="grid gap-1.5">
-                <Label
-                  htmlFor="availability"
-                  className="text-ui-xs tracking-ui text-ink-600"
-                >
+                <Label htmlFor="availability" className="text-ui-xs tracking-ui text-ink-600">
                   Disponibilidad
                 </Label>
                 <Select
@@ -363,7 +360,8 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
                       })
                     }}
                     className={cn(
-                      "inline-flex h-10 w-10 items-center justify-center rounded-full ring-1 ring-inset transition duration-500 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]",
+                      "inline-flex h-10 w-10 items-center justify-center rounded-full ring-1 ring-inset transition duration-500 ease-luxe",
+                      focusRing,
                       view === "grid"
                         ? "bg-ink-950 text-white ring-white/10"
                         : "bg-ink-50/70 text-ink-950 ring-black/8 hover:bg-white"
@@ -385,7 +383,8 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
                       })
                     }}
                     className={cn(
-                      "inline-flex h-10 w-10 items-center justify-center rounded-full ring-1 ring-inset transition duration-500 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]",
+                      "inline-flex h-10 w-10 items-center justify-center rounded-full ring-1 ring-inset transition duration-500 ease-luxe",
+                      focusRing,
                       view === "list"
                         ? "bg-ink-950 text-white ring-white/10"
                         : "bg-ink-50/70 text-ink-950 ring-black/8 hover:bg-white"
@@ -402,9 +401,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
               </div>
 
               <div className="flex items-center gap-3">
-                {showCount ? (
-                  <p className="text-lg font-semibold text-ink-950 sm:hidden">{countLabel}</p>
-                ) : null}
+                {showCount ? <p className="text-lg font-semibold text-ink-950 sm:hidden">{countLabel}</p> : null}
                 {hasActiveFilters ? (
                   <Button
                     type="button"
@@ -437,12 +434,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
             ))}
           </div>
         ) : (
-          <div
-            className={cn(
-              "mt-8 grid gap-6",
-              view === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
-            )}
-          >
+          <div className={cn("mt-8 grid gap-6", view === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1")}>
             {ordered.map((p, idx) => (
               <LazyReveal key={p.id} delayMs={Math.min(idx, 12) * 55} className="w-full">
                 <PerfumeCard perfume={p} />
@@ -468,9 +460,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
           <div className="relative grid gap-3">
             <p className="text-ui-xs font-medium tracking-kicker text-ink-500">COLECCIÓN</p>
             <p className="font-display text-2xl text-ink-950">
-              {hasActiveFilters
-                ? "No hay fragancias disponibles con esta selección."
-                : "Estamos actualizando esta colección."}
+              {hasActiveFilters ? "No hay fragancias disponibles con esta selección." : "Estamos actualizando esta colección."}
             </p>
             <p className="max-w-2xl text-sm leading-relaxed text-ink-700">
               {hasActiveFilters

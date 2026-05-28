@@ -1,6 +1,7 @@
 import type { Perfume } from "@/types/perfume"
 import { Button } from "@/components/ui/Button"
 import { formatMoney } from "@/lib/admin/utils"
+import { AdminPanel } from "@/components/ui/Surface"
 
 type Props = {
   perfumes: Perfume[]
@@ -12,8 +13,7 @@ type Props = {
 
 export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Props) {
   return (
-    <section className="rounded-luxe-xl bg-ink-50/60 p-3 ring-1 ring-inset ring-black/8 sm:p-5">
-      <div className="rounded-3xl border border-black/8 bg-white p-6">
+    <AdminPanel>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="font-display text-2xl text-ink-950">Productos</h2>
           <p className="text-sm text-ink-600">{perfumes.length} perfumes</p>
@@ -69,7 +69,6 @@ export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Pr
             </div>
           ))}
         </div>
-      </div>
-    </section>
+    </AdminPanel>
   )
 }

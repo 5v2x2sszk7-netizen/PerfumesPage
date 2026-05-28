@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/cn"
 import type { ReactNode } from "react"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 
 type Props = {
   open: boolean
@@ -15,6 +15,13 @@ type Props = {
   contentClassName?: string
 }
 
+function getFocusable(container: HTMLElement) {
+  const selector =
+    'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])'
+  const list = Array.from(container.querySelectorAll<HTMLElement>(selector))
+  return list.filter((el) => !el.hasAttribute("disabled") && el.tabIndex !== -1 && el.getClientRects().length > 0)
+}
+
 export function ModalShell({
   open,
   onClose,
@@ -25,6 +32,9 @@ export function ModalShell({
   overlayClassName,
   contentClassName = "w-full",
 }: Props) {
+  const contentRef = useRef<HTMLDivElement | null>(null)
+  const restoreFocusRef = useRef<HTMLElement | null>(null)
+
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -35,9 +45,51 @@ export function ModalShell({
   }, [open])
 
   useEffect(() => {
-    if (!open || !closeOnEscape) return
+    if (!open) return
+    restoreFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    queueMicrotask(() => {
+      const root = contentRef.current
+      if (!root) return
+      const focusables = getFocusable(root)
+      const first = focusables[0]
+      if (first) first.focus()
+      else root.focus()
+    })
+    return () => {
+      restoreFocusRef.current?.focus?.()
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose()
+      if (e.key === "Escape" && closeOnEscape) {
+        onClose()
+        return
+      }
+      if (e.key !== "Tab") return
+      const root = contentRef.current
+      if (!root) return
+      const focusables = getFocusable(root)
+      if (!focusables.length) {
+        e.preventDefault()
+        root.focus()
+        return
+      }
+      const first = focusables[0]!
+      const last = focusables[focusables.length - 1]!
+      const active = document.activeElement
+      if (e.shiftKey) {
+        if (active === first || !root.contains(active)) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else {
+        if (active === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
@@ -59,7 +111,9 @@ export function ModalShell({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className={contentClassName}>{children}</div>
+      <div ref={contentRef} className={contentClassName} tabIndex={-1}>
+        {children}
+      </div>
     </div>
   )
 }

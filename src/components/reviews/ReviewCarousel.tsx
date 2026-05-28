@@ -133,7 +133,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
                 <div className="group relative mx-auto w-full max-w-review-media overflow-hidden rounded-2xl bg-sage-50 shadow-review-media ring-1 ring-black/8 transition-shadow duration-700 ease-out hover:shadow-review-media-hover md:max-w-review-media">
                   <div className="pointer-events-none absolute inset-0 bg-review-media-shine" />
                   <div className="p-4">
-                    <div className="relative aspect-[4/3] w-full max-h-[260px] overflow-hidden rounded-2xl bg-white/35 sm:max-h-[300px]">
+                    <div className="relative aspect-[4/3] w-full max-h-review-media overflow-hidden rounded-2xl bg-white/35 sm:max-h-review-media-sm">
                       <ZoomableImage
                         src={item.src}
                         alt={item.alt}

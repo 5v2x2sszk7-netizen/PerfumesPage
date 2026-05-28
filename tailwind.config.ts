@@ -40,6 +40,15 @@ export default {
         glass: "0.78",
         "glass-scrolled": "0.72"
       },
+      height: {
+        "home-hero": "420px",
+        "home-hero-sm": "520px",
+        "home-hero-lg": "680px"
+      },
+      maxHeight: {
+        "review-media": "260px",
+        "review-media-sm": "300px"
+      },
       fontFamily: {
         display: ["var(--font-display)"],
         body: ["var(--font-body)"]

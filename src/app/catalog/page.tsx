@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { Container } from "@/components/ui/Container"
-import { CatalogClient } from "@/app/catalog/CatalogClient"
+import { CatalogClient } from "@/components/catalog/CatalogClient"
 import { readPerfumes } from "@/lib/perfumeStore"
 
 export const revalidate = 60

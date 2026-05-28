@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     return jsonError("Unauthorized", 401)
   }
 
-  const value = createAdminSessionValue(expected)
+  const value = await createAdminSessionValue(expected)
   const res = jsonOk({})
   res.cookies.set(adminCookieName, value, {
     httpOnly: true,

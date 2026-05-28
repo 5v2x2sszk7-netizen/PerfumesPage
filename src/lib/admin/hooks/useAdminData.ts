@@ -16,21 +16,28 @@ export function useAdminData({
   const [sales, setSales] = useState<SaleRecord[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async ({ signal }: { signal?: AbortSignal } = {}) => {
+    if (signal?.aborted) return
     setBusy(true)
     setError(null)
     try {
+      const ts = Date.now()
       const [productsData, reviewsData] = await Promise.all([
-        api<{ perfumes: Perfume[]; suggestions?: Suggestions; sales?: SaleRecord[] }>(`/api/admin/products?_ts=${Date.now()}`),
-        api<{ reviews: Review[] }>(`/api/admin/reviews?_ts=${Date.now()}`)
+        api<{ perfumes: Perfume[]; suggestions?: Suggestions; sales?: SaleRecord[] }>(`/api/admin/products?_ts=${ts}`, {
+          signal
+        }),
+        api<{ reviews: Review[] }>(`/api/admin/reviews?_ts=${ts}`, { signal })
       ])
+      if (signal?.aborted) return
       setPerfumes(productsData.perfumes)
       setSuggestions(productsData.suggestions ?? null)
       setSales(Array.isArray(productsData.sales) ? productsData.sales : [])
       setReviews(Array.isArray(reviewsData.reviews) ? reviewsData.reviews : [])
     } catch (e) {
+      if (signal?.aborted) return
       setError(e instanceof Error ? e.message : "Error")
     } finally {
+      if (signal?.aborted) return
       setBusy(false)
     }
   }, [setBusy, setError])
@@ -43,13 +50,13 @@ export function useAdminData({
   }, [])
 
   useEffect(() => {
-    let cancelled = false
+    const controller = new AbortController()
     queueMicrotask(() => {
-      if (cancelled) return
-      void refresh()
+      if (controller.signal.aborted) return
+      void refresh({ signal: controller.signal })
     })
     return () => {
-      cancelled = true
+      controller.abort()
     }
   }, [refresh])
 

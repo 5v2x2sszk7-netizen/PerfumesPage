@@ -136,12 +136,7 @@ export function SpecialOrderForm() {
       </div>
 
       <div className="mt-2 flex justify-center border-t border-black/6 pt-5 sm:justify-end">
-        <Button
-          type="submit"
-          disabled={!canSubmit}
-          variant="gold"
-          className="w-full hover:shadow-cta-hover sm:w-auto"
-        >
+        <Button type="submit" disabled={!canSubmit} variant="gold" className="w-full hover:shadow-cta-hover sm:w-auto">
           Enviar solicitud por WhatsApp
         </Button>
       </div>

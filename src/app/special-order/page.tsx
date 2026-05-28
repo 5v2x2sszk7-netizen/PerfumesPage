@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { Container } from "@/components/ui/Container"
-import { SpecialOrderForm } from "@/app/special-order/SpecialOrderForm"
+import { SpecialOrderForm } from "@/components/specialOrder/SpecialOrderForm"
 
 export const metadata: Metadata = {
   title: "Pedidos especiales",

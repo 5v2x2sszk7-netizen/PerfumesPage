@@ -24,8 +24,3 @@ export function jsonNoStoreOk<T extends Record<string, unknown>>(data: T, init?:
   const headers = mergeHeaders(init?.headers, { "Cache-Control": "no-store, max-age=0" })
   return NextResponse.json({ ok: true, ...data }, { ...init, headers })
 }
-
-export function jsonNoStoreError(message: string, status = 400, init?: ResponseInit) {
-  const headers = mergeHeaders(init?.headers, { "Cache-Control": "no-store, max-age=0" })
-  return NextResponse.json({ ok: false, error: message }, { ...init, status, headers })
-}

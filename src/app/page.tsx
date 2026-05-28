@@ -11,6 +11,7 @@ import { LazyReveal } from "@/components/ui/LazyReveal"
 import { Surface } from "@/components/ui/Surface"
 import { formatCustomerDisplayName, getInitials } from "@/lib/text"
 import type { Perfume } from "@/types/perfume"
+import type { CSSProperties } from "react"
 
 export const revalidate = 60
 
@@ -27,8 +28,13 @@ function formatReviewSnippet(text: string) {
 type Review = Awaited<ReturnType<typeof readReviews>>[number]
 
 function HeroSection() {
+  const noiseStyle = {
+    ["--noise-size" as never]: "280px 280px",
+    ["--noise-opacity" as never]: "0.045"
+  } satisfies CSSProperties
+
   return (
-    <section className="relative h-[420px] overflow-hidden border-b border-black/6 bg-white sm:h-[520px] lg:h-[680px]">
+    <section className="relative h-home-hero overflow-hidden border-b border-black/6 bg-white sm:h-home-hero-sm lg:h-home-hero-lg">
       <Image
         src="/images/MaloParfumsHome.jpg"
         alt="MALO Parfums"
@@ -42,14 +48,7 @@ function HeroSection() {
       <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-3 opacity-50 mix-blend-overlay" />
       <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-4 opacity-32 mix-blend-soft-light" />
       <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-5" />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.045] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27160%27%20height%3D%27160%27%3E%3Cfilter%20id%3D%27n%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.85%27%20numOctaves%3D%274%27%20stitchTiles%3D%27stitch%27/%3E%3C/filter%3E%3Crect%20width%3D%27160%27%20height%3D%27160%27%20filter%3D%27url(%23n)%27%20opacity%3D%270.35%27/%3E%3C/svg%3E\")",
-          backgroundSize: "280px 280px"
-        }}
-      />
+      <div className="pointer-events-none absolute inset-0 noise-overlay mix-blend-overlay" style={noiseStyle} />
     </section>
   )
 }
@@ -109,6 +108,30 @@ function FeaturedSection({ featured }: { featured: Perfume[] }) {
 }
 
 function ServiceSection() {
+  const steps = [
+    {
+      number: "01",
+      kicker: "EXPERIENCIA",
+      title: "Compra asistida",
+      body: "Recomendaciones, equivalencias y disponibilidad real antes de confirmar.",
+      className: "group border-t border-black/6 pt-6"
+    },
+    {
+      number: "02",
+      kicker: "CONFIANZA",
+      title: "Transparencia",
+      body: "Tamaño, precio y estatus con lenguaje claro. Sin promesas vacías.",
+      className: "group border-t border-black/6 pt-6 sm:pl-6 lg:translate-y-2"
+    },
+    {
+      number: "03",
+      kicker: "CATÁLOGO",
+      title: "Pedidos especiales",
+      body: "Si no está listado, lo buscamos: disponibilidad, opción y cotización.",
+      className: "group border-t border-black/6 pt-6 sm:pl-10 lg:translate-y-4"
+    }
+  ] as const
+
   return (
     <section className="bg-transparent">
       <Container className="pt-12 pb-16">
@@ -127,50 +150,20 @@ function ServiceSection() {
           </LazyReveal>
 
           <div className="grid gap-8 lg:col-span-7 lg:gap-10">
-            <LazyReveal delayMs={120}>
-              <div className="group border-t border-black/6 pt-6">
-                <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
-                  <p className="font-display text-4xl font-light leading-none text-black/35">01</p>
-                  <div className="space-y-2">
-                    <p className="text-xs tracking-section text-ink-500">EXPERIENCIA</p>
-                    <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Compra asistida</h3>
-                    <p className="text-sm leading-[1.85] text-ink-700">
-                      Recomendaciones, equivalencias y disponibilidad real antes de confirmar.
-                    </p>
+            {steps.map((step, idx) => (
+              <LazyReveal key={step.number} delayMs={120 + idx * 80}>
+                <div className={step.className}>
+                  <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
+                    <p className="font-display text-4xl font-light leading-none text-black/35">{step.number}</p>
+                    <div className="space-y-2">
+                      <p className="text-xs tracking-section text-ink-500">{step.kicker}</p>
+                      <h3 className="font-display text-2xl leading-[0.95] text-ink-950">{step.title}</h3>
+                      <p className="text-sm leading-[1.85] text-ink-700">{step.body}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </LazyReveal>
-
-            <LazyReveal delayMs={200}>
-              <div className="group border-t border-black/6 pt-6 sm:pl-6 lg:translate-y-2">
-                <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
-                  <p className="font-display text-4xl font-light leading-none text-black/35">02</p>
-                  <div className="space-y-2">
-                    <p className="text-xs tracking-section text-ink-500">CONFIANZA</p>
-                    <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Transparencia</h3>
-                    <p className="text-sm leading-[1.85] text-ink-700">
-                      Tamaño, precio y estatus con lenguaje claro. Sin promesas vacías.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </LazyReveal>
-
-            <LazyReveal delayMs={280}>
-              <div className="group border-t border-black/6 pt-6 sm:pl-10 lg:translate-y-4">
-                <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
-                  <p className="font-display text-4xl font-light leading-none text-black/35">03</p>
-                  <div className="space-y-2">
-                    <p className="text-xs tracking-section text-ink-500">CATÁLOGO</p>
-                    <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Pedidos especiales</h3>
-                    <p className="text-sm leading-[1.85] text-ink-700">
-                      Si no está listado, lo buscamos: disponibilidad, opción y cotización.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </LazyReveal>
+              </LazyReveal>
+            ))}
           </div>
         </div>
       </Container>
