@@ -196,7 +196,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
                 className={cn(
                   "inline-flex h-10 items-center justify-center rounded-full px-5 text-[12.5px] font-medium tracking-[0.18em] ring-1 ring-inset transition-luxe-wide duration-700 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]",
                   category === "niche"
-                    ? "bg-white text-ink-950 ring-antiqueGold/28 shadow-[0_18px_55px_rgba(0,0,0,0.06)]"
+                    ? "bg-white text-ink-950 ring-antiqueGold/28 shadow-pill-active"
                     : "bg-ink-50/70 text-ink-700 ring-black/8 hover:bg-white"
                 )}
                 aria-pressed={category === "niche"}
@@ -214,7 +214,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
                 className={cn(
                   "inline-flex h-10 items-center justify-center rounded-full px-5 text-[12.5px] font-medium tracking-[0.18em] ring-1 ring-inset transition-luxe-wide duration-700 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]",
                   category === "designer"
-                    ? "bg-white text-ink-950 ring-antiqueGold/28 shadow-[0_18px_55px_rgba(0,0,0,0.06)]"
+                    ? "bg-white text-ink-950 ring-antiqueGold/28 shadow-pill-active"
                     : "bg-ink-50/70 text-ink-700 ring-black/8 hover:bg-white"
                 )}
                 aria-pressed={category === "designer"}
@@ -234,7 +234,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
           onClick={() => setIsFilterOpen((v) => !v)}
           className={cn(
             "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink-50/70 px-5 text-sm font-medium tracking-wide text-ink-950 ring-1 ring-inset ring-black/8 transition-luxe duration-700 ease-luxe hover:-translate-y-0.5 hover:bg-white focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1] sm:w-auto",
-            hasActiveFilters ? "ring-antiqueGold/22 shadow-[0_18px_55px_rgba(0,0,0,0.06)]" : ""
+            hasActiveFilters ? "ring-antiqueGold/22 shadow-pill-active" : ""
           )}
           aria-expanded={isFilterOpen}
           aria-controls="catalog-filters"

@@ -2,6 +2,7 @@ import type { Perfume } from "@/types/perfume"
 import { Button, ButtonGhost } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Field"
 import { formatMoney } from "@/lib/admin/utils"
+import { Surface } from "@/components/ui/Surface"
 
 type Props = {
   sellTarget: Perfume | null
@@ -24,7 +25,7 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-[0_30px_90px_rgba(0,0,0,0.30)] ring-1 ring-inset ring-black/8">
+      <Surface variant="modal" radius="xl" className="w-full max-w-md p-6">
         <p className="text-xs tracking-[0.25em] text-ink-500">CONFIRMAR</p>
         <h2 className="mt-2 font-display text-2xl text-ink-950">Confirmar venta</h2>
         <p className="mt-3 text-sm text-ink-700">
@@ -94,12 +95,12 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
             onClick={onConfirm}
             disabled={busy || Math.floor(sellQty) < 1 || Math.floor(sellQty) > Math.floor(sellTarget.stock ?? 0)}
             variant="gold"
-            className="w-full hover:shadow-[0_14px_34px_rgba(0,0,0,0.18)] sm:w-auto"
+            className="w-full hover:shadow-cta-hover sm:w-auto"
           >
             Confirmar pago
           </Button>
         </div>
-      </div>
+      </Surface>
     </div>
   )
 }

@@ -1,5 +1,4 @@
 import type { Perfume } from "@/types/perfume"
-import { ensureFsWritesAllowed } from "@/lib/persistence"
 import { dataFilePath, readJsonArray, writeJson } from "@/lib/storage/jsonFile"
 
 const perfumesPath = dataFilePath("perfumes.json")
@@ -30,6 +29,5 @@ export async function readPerfumes(): Promise<Perfume[]> {
 }
 
 export async function writePerfumes(perfumes: Perfume[]) {
-  ensureFsWritesAllowed("data")
   await writeJson(perfumesPath, perfumes.map(normalizePerfume))
 }

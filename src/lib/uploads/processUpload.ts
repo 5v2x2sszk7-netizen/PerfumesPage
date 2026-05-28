@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import fs from "node:fs/promises"
 import path from "node:path"
 import sharp from "sharp"
 import { slugify } from "@/lib/slug"
-import { ensureFsWritesAllowed, isPersistenceNotConfiguredError } from "@/lib/persistence"
+import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { checkRateLimit } from "@/lib/rateLimit"
+import { getStorageDriver } from "@/lib/storage/driver"
 
 type RateLimitConfig = {
   keyPrefix: string
@@ -57,21 +57,13 @@ export async function processUpload(req: Request, opts: ProcessUploadOptions) {
 
   const baseName = slugify(path.basename(originalName, ext)) || opts.baseNameFallback
   const fileName = `${Date.now()}-${baseName}.webp`
-  const uploadDir = path.join(process.cwd(), "public", "uploads", opts.uploadSubdir ?? "")
+  const uploadSubdir = opts.uploadSubdir ? `uploads/${opts.uploadSubdir}` : "uploads"
+  const storageKey = `${uploadSubdir}/${fileName}`
 
-  try {
-    ensureFsWritesAllowed("uploads")
-    await fs.mkdir(uploadDir, { recursive: true })
-  } catch (e) {
-    if (isPersistenceNotConfiguredError(e)) {
-      return NextResponse.json({ error: e.message }, { status: 501 })
-    }
-    return NextResponse.json({ error: "Upload not available" }, { status: 500 })
-  }
-
+  let outputBuffer: Buffer
   try {
     const inputBuffer = Buffer.from(await file.arrayBuffer())
-    const outputBuffer = await sharp(inputBuffer)
+    outputBuffer = await sharp(inputBuffer)
       .rotate()
       .resize({
         width: opts.maxDim,
@@ -81,10 +73,19 @@ export async function processUpload(req: Request, opts: ProcessUploadOptions) {
       })
       .webp({ quality: opts.quality })
       .toBuffer()
-
-    await fs.writeFile(path.join(uploadDir, fileName), outputBuffer)
   } catch {
     return NextResponse.json({ error: "Could not process image" }, { status: 400 })
+  }
+
+  try {
+    await getStorageDriver().writeBytes(storageKey, new Uint8Array(outputBuffer), {
+      contentType: "image/webp"
+    })
+  } catch (e) {
+    if (isPersistenceNotConfiguredError(e)) {
+      return NextResponse.json({ error: e.message }, { status: 501 })
+    }
+    return NextResponse.json({ error: "Upload not available" }, { status: 500 })
   }
 
   const publicPath = opts.uploadSubdir ? `/uploads/${opts.uploadSubdir}/${fileName}` : `/uploads/${fileName}`

@@ -1,5 +1,6 @@
 import type { Perfume } from "@/types/perfume"
 import { ButtonGhost } from "@/components/ui/Button"
+import { Surface } from "@/components/ui/Surface"
 
 type Props = {
   deleteTarget: Perfume | null
@@ -20,7 +21,7 @@ export function DeleteProductModal({ deleteTarget, busy, onClose, onConfirm }: P
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-[0_30px_90px_rgba(0,0,0,0.30)] ring-1 ring-inset ring-black/8">
+      <Surface variant="modal" radius="xl" className="w-full max-w-md p-6">
         <p className="text-xs tracking-[0.25em] text-ink-500">CONFIRMAR</p>
         <h2 className="mt-2 font-display text-2xl text-ink-950">Eliminar producto</h2>
         <p className="mt-3 text-sm text-ink-700">
@@ -44,7 +45,7 @@ export function DeleteProductModal({ deleteTarget, busy, onClose, onConfirm }: P
             Eliminar
           </ButtonGhost>
         </div>
-      </div>
+      </Surface>
     </div>
   )
 }

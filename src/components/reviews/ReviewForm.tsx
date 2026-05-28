@@ -248,7 +248,7 @@ export function ReviewForm() {
               />
               <label
                 htmlFor="review-delivery-photo"
-                className={`inline-flex h-11 w-full min-w-[160px] cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-antiqueGold px-5 text-sm font-medium tracking-wide text-white shadow-sm ring-1 ring-black/8 transition hover:bg-antiqueGoldDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] hover:shadow-[0_14px_34px_rgba(0,0,0,0.18)] sm:w-auto ${
+                className={`inline-flex h-11 w-full min-w-[160px] cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-antiqueGold px-5 text-sm font-medium tracking-wide text-white shadow-sm ring-1 ring-black/8 transition hover:bg-antiqueGoldDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] hover:shadow-cta-hover sm:w-auto ${
                   uploading || status === "submitting" ? "pointer-events-none opacity-50" : ""
                 }`}
               >
@@ -320,7 +320,7 @@ export function ReviewForm() {
           onClick={onSubmit}
           disabled={!canSubmit}
           variant="gold"
-          className="hover:shadow-[0_14px_34px_rgba(0,0,0,0.18)] disabled:cursor-not-allowed disabled:bg-antiqueGoldMuted disabled:text-neutral-600 disabled:hover:bg-antiqueGoldMuted disabled:hover:shadow-none"
+          className="hover:shadow-cta-hover disabled:cursor-not-allowed disabled:bg-antiqueGoldMuted disabled:text-neutral-600 disabled:hover:bg-antiqueGoldMuted disabled:hover:shadow-none"
         >
           Enviar reseña
         </Button>

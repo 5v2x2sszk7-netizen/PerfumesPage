@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn"
 import type { ComponentPropsWithoutRef } from "react"
 
-type SurfaceVariant = "glass" | "solid"
+type SurfaceVariant = "glass" | "solid" | "modal"
 type SurfaceRadius = "md" | "lg" | "xl" | "luxe" | "luxe-lg" | "luxe-xl"
 
 function radiusClass(radius: SurfaceRadius) {
@@ -15,6 +15,7 @@ function radiusClass(radius: SurfaceRadius) {
 
 function variantClass(variant: SurfaceVariant) {
   if (variant === "solid") return "bg-white"
+  if (variant === "modal") return "bg-white shadow-modal"
   return "bg-white/70"
 }
 

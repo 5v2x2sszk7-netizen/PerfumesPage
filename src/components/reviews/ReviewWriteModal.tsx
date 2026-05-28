@@ -23,7 +23,7 @@ export function ReviewWriteModal() {
         type="button"
         onClick={() => setOpen(true)}
         variant="soft"
-        className="bg-white/70 px-6 py-3 text-ink-800 shadow-sm backdrop-blur hover:bg-white/85 hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
+        className="bg-white/70 px-6 py-3 text-ink-800 shadow-sm backdrop-blur hover:bg-white/85 hover:shadow-soft-hover"
       >
         <span className="text-base leading-none">★</span>
         Compartir experiencia
@@ -40,7 +40,7 @@ export function ReviewWriteModal() {
         >
           <div className="my-6 w-full max-w-3xl">
             <Surface variant="glass" radius="luxe-xl" className="bg-ink-50/60 p-3">
-              <div className="relative max-h-[90vh] overflow-y-auto rounded-3xl border border-black/8 bg-white px-6 pb-6 pt-5 shadow-[0_30px_90px_rgba(0,0,0,0.25)]">
+              <div className="relative max-h-[90vh] overflow-y-auto rounded-3xl border border-black/8 bg-white px-6 pb-6 pt-5 shadow-modal-soft">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
                     <p className="text-xs tracking-[0.25em] text-ink-500">OPINIÓN</p>

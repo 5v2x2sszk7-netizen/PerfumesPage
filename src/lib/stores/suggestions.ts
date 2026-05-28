@@ -1,4 +1,3 @@
-import { ensureFsWritesAllowed } from "@/lib/persistence"
 import { dataFilePath, readJson, writeJson } from "@/lib/storage/jsonFile"
 import { readPerfumes } from "@/lib/stores/perfumes"
 import { normalizeKey } from "@/lib/text"
@@ -59,7 +58,6 @@ export async function readSuggestions(): Promise<PerfumeSuggestions> {
 }
 
 export async function writeSuggestions(suggestions: PerfumeSuggestions) {
-  ensureFsWritesAllowed("data")
   await writeJson(suggestionsPath, suggestions)
 }
 

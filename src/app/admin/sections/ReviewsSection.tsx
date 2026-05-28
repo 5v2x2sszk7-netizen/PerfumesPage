@@ -87,7 +87,7 @@ export function ReviewsSection({
                   <label
                     htmlFor="admin-review-image-file"
                     className={
-                      "inline-flex h-11 w-full min-w-[160px] cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-antiqueGold px-5 text-sm font-medium tracking-wide text-white shadow-sm ring-1 ring-black/8 transition hover:bg-antiqueGoldDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] hover:shadow-[0_14px_34px_rgba(0,0,0,0.18)] sm:w-auto " +
+                      "inline-flex h-11 w-full min-w-[160px] cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-antiqueGold px-5 text-sm font-medium tracking-wide text-white shadow-sm ring-1 ring-black/8 transition hover:bg-antiqueGoldDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] hover:shadow-cta-hover sm:w-auto " +
                       (busy ? "pointer-events-none opacity-50 " : "") +
                       (reviewUploadedPath ? "hover:opacity-95" : "hover:opacity-95")
                     }
@@ -137,7 +137,7 @@ export function ReviewsSection({
                 onClick={onCreateReview}
                 disabled={busy || !reviewDraft.customerName.trim() || !reviewDraft.text.trim()}
                 variant="gold"
-                className="w-full hover:shadow-[0_14px_34px_rgba(0,0,0,0.18)] sm:w-auto"
+                className="w-full hover:shadow-cta-hover sm:w-auto"
               >
                 Guardar reseña
               </Button>

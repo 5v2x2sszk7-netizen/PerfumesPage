@@ -57,11 +57,11 @@ export default async function HomePage() {
           className="object-cover object-center"
           sizes="100vw"
         />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(140%_110%_at_50%_38%,rgba(16,24,52,0.14),rgba(0,0,0,0.40)_62%,rgba(0,0,0,0.66)_100%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(88%_70%_at_50%_46%,rgba(255,255,255,0.06),transparent_62%)] opacity-45 mix-blend-soft-light" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_55%_at_58%_56%,rgba(184,155,94,0.10),transparent_62%)] opacity-50 mix-blend-overlay" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.00)_54%,rgba(255,255,255,0.06)_100%)] opacity-32 mix-blend-soft-light" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(92%_72%_at_50%_44%,transparent_64%,rgba(0,0,0,0.26)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-1" />
+        <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-2 opacity-45 mix-blend-soft-light" />
+        <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-3 opacity-50 mix-blend-overlay" />
+        <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-4 opacity-32 mix-blend-soft-light" />
+        <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-5" />
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.045] mix-blend-overlay"
           style={{
@@ -83,11 +83,11 @@ export default async function HomePage() {
               <LazyReveal key={p.id} className="w-full" delayMs={idx * 120}>
                 <Link
                   href={`/catalog/${p.slug}`}
-                  className="group relative block w-full max-w-[360px] [transform:translateZ(0)] overflow-hidden rounded-2xl bg-white p-3 no-underline ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:ring-black/10 hover:shadow-[0_0_0_1px_rgba(184,155,94,0.12),0_34px_120px_rgba(0,0,0,0.10)] motion-safe:hover:-translate-y-0.5 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                  className="group relative block w-full max-w-[360px] [transform:translateZ(0)] overflow-hidden rounded-2xl bg-white p-3 no-underline ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:ring-black/10 hover:shadow-home-featured-hover motion-safe:hover:-translate-y-0.5 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                 >
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_0%,rgba(184,155,94,0.10),transparent_60%)] opacity-0 transition-opacity duration-luxe-slow ease-luxe group-hover:opacity-100" />
+                  <div className="pointer-events-none absolute inset-0 bg-home-featured-hover-glow opacity-0 transition-opacity duration-luxe-slow ease-luxe group-hover:opacity-100" />
                   <div className="relative aspect-[5/6] overflow-hidden rounded-xl bg-ink-50 ring-1 ring-inset ring-black/8">
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(65%_55%_at_50%_30%,rgba(184,155,94,0.16),transparent_70%)] opacity-80" />
+                    <div className="pointer-events-none absolute inset-0 bg-home-featured-media-glow opacity-80" />
                     <Image
                       src={p.imageSrc}
                       alt={`${p.name} de ${p.brand}`}
@@ -112,14 +112,14 @@ export default async function HomePage() {
             <ButtonLink
               href="/catalog"
               variant="soft"
-              className="bg-ink-50/80 text-ink-950 ring-black/10 shadow-sm hover:bg-white hover:shadow-[0_16px_44px_rgba(0,0,0,0.06)]"
+              className="bg-ink-50/80 text-ink-950 ring-black/10 shadow-sm hover:bg-white hover:shadow-home-soft-hover"
             >
               Ver todo
             </ButtonLink>
             </div>
           </div>
         </Container>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(247,245,241,1)_100%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-home-section-bottom-fade" />
       </section>
 
       <section className="bg-transparent">
@@ -212,7 +212,7 @@ export default async function HomePage() {
 
             {carouselItems.length ? (
               <Surface variant="solid" radius="luxe-xl" className="relative overflow-hidden shadow-sheet">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_70%_at_50%_18%,rgba(184,155,94,0.10),transparent_62%),linear-gradient(180deg,rgba(10,10,10,0.02),transparent_40%)]" />
+                <div className="pointer-events-none absolute inset-0 bg-home-reviews-surface" />
                 <div className="relative">
                   <ReviewCarousel items={carouselItems} />
                 </div>
@@ -242,7 +242,7 @@ export default async function HomePage() {
                 ).slice(0, 5)
                 return (
                   <LazyReveal key={r.id} delayMs={Math.min(idx, 8) * 55} className="w-full">
-                    <div className="group w-full rounded-3xl border border-black/8 bg-white px-6 py-6 transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-[0_22px_55px_rgba(0,0,0,0.08)] sm:px-7 sm:py-7">
+                    <div className="group w-full rounded-3xl border border-black/8 bg-white px-6 py-6 transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-review-hover sm:px-7 sm:py-7">
                     <div className="grid gap-4 md:grid-cols-[240px_1fr] md:gap-8">
                       <div className="space-y-1">
                         <div className="flex items-center gap-3">
@@ -314,7 +314,7 @@ export default async function HomePage() {
                                             index: imageIdx
                                           }}
                                           wrapperClassName={
-                                            "group relative shrink-0 snap-start overflow-hidden rounded-2xl border border-black/8 bg-white flex-shrink-0 transition-shadow duration-700 ease-out hover:shadow-[0_18px_55px_rgba(0,0,0,0.14)] " +
+                                            "group relative shrink-0 snap-start overflow-hidden rounded-2xl border border-black/8 bg-white flex-shrink-0 transition-shadow duration-700 ease-out hover:shadow-thumb-hover " +
                                             itemClass
                                           }
                                           frameClassName="relative aspect-[16/9] w-full bg-ink-50"

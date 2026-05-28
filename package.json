@@ -6,7 +6,10 @@
     "dev": "next dev --webpack -H 0.0.0.0 -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "maintenance:backup": "node scripts/maintenance.mjs backup",
+    "maintenance:backup:uploads": "node scripts/maintenance.mjs backup --uploads",
+    "maintenance:restore": "node scripts/maintenance.mjs restore"
   },
   "keywords": [],
   "author": "",

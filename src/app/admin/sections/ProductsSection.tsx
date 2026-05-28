@@ -49,7 +49,7 @@ export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Pr
                 <Button
                   type="button"
                   variant="gold"
-                  className="hover:shadow-[0_14px_34px_rgba(0,0,0,0.18)]"
+                  className="hover:shadow-cta-hover"
                   onClick={() => onSell(p)}
                   disabled={busy || p.stock <= 0}
                 >

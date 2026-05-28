@@ -31,8 +31,8 @@ export function Header() {
         "sticky top-0 z-50",
         "transition-luxe-header duration-luxe ease-luxe",
         scrolled
-          ? "border-b border-black/6 bg-[rgba(255,255,255,0.72)] shadow-[0_12px_46px_rgba(0,0,0,0.032)] backdrop-blur-sm"
-          : "border-b border-transparent bg-[rgba(255,255,255,0.78)] shadow-none backdrop-blur-0"
+          ? "border-b border-black/6 bg-glass-header-scrolled shadow-header backdrop-blur-sm"
+          : "border-b border-transparent bg-glass-header-top shadow-none backdrop-blur-0"
       ].join(" ")}
     >
       <Container className="flex h-14 items-center justify-between">
@@ -65,7 +65,7 @@ export function Header() {
         <Link
           href="/catalog"
           prefetch={false}
-          className="rounded-full bg-ink-950 px-4 py-2 text-sm font-[450] tracking-[0.18em] text-white shadow-[0_10px_26px_rgba(0,0,0,0.10)] transition-luxe duration-700 ease-luxe hover:-translate-y-0.5 hover:bg-ink-900 hover:shadow-[0_16px_44px_rgba(0,0,0,0.12)] active:translate-y-0 md:hidden"
+          className="rounded-full bg-ink-950 px-4 py-2 text-sm font-[450] tracking-[0.18em] text-white shadow-header-cta transition-luxe duration-700 ease-luxe hover:-translate-y-0.5 hover:bg-ink-900 hover:shadow-header-cta-hover active:translate-y-0 md:hidden"
         >
           Ver catálogo
         </Link>

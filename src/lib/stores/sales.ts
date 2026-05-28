@@ -1,5 +1,4 @@
 import crypto from "node:crypto"
-import { ensureFsWritesAllowed } from "@/lib/persistence"
 import { dataFilePath, readJsonArrayResult, writeJson } from "@/lib/storage/jsonFile"
 
 export type SaleRecord = {
@@ -62,7 +61,6 @@ export async function readSales(): Promise<SaleRecord[]> {
 }
 
 export async function writeSales(sales: SaleRecord[]) {
-  ensureFsWritesAllowed("data")
   await writeJson(salesPath, sales)
 }
 

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { ZoomableImage } from "@/components/reviews/ZoomableImage"
 import { getInitials } from "@/lib/text"
+import { Badge } from "@/components/ui/Badge"
 
 export type ReviewCarouselItem = {
   src: string
@@ -99,12 +100,16 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
               (visibleItems.length ? (visibleItems[i] ? "is-visible " : "") : i === 0 ? "is-visible " : "")
             }
           >
-            <div className="group grid gap-6 rounded-2xl bg-paper-50 p-8 transition-shadow duration-300 hover:shadow-[0_22px_55px_rgba(0,0,0,0.08)] md:grid-cols-[1.2fr_0.8fr] md:items-center">
+            <div className="group grid gap-6 rounded-2xl bg-paper-50 p-8 transition-shadow duration-300 hover:shadow-review-hover md:grid-cols-[1.2fr_0.8fr] md:items-center">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white px-4 py-1.5 text-xs font-medium tracking-wide text-ink-950">
+                  <Badge
+                    size="sm"
+                    blur={false}
+                    className="gap-2 border border-black/8 px-4 py-1.5 text-xs font-medium tracking-wide text-ink-950 ring-0"
+                  >
                     ✓ Compra verificada
-                  </span>
+                  </Badge>
                 </div>
                 <div className="mt-4 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/8 bg-white text-sm font-semibold text-ink-950">
@@ -125,8 +130,8 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
               </div>
 
               <div className="w-full">
-                <div className="group relative mx-auto w-full max-w-[300px] overflow-hidden rounded-2xl bg-sage-50 shadow-[0_18px_50px_rgba(0,0,0,0.10)] ring-1 ring-black/8 transition-shadow duration-700 ease-out hover:shadow-[0_28px_75px_rgba(0,0,0,0.14)] md:max-w-[300px]">
-                  <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.55),transparent_42%)]" />
+                <div className="group relative mx-auto w-full max-w-[300px] overflow-hidden rounded-2xl bg-sage-50 shadow-review-media ring-1 ring-black/8 transition-shadow duration-700 ease-out hover:shadow-review-media-hover md:max-w-[300px]">
+                  <div className="pointer-events-none absolute inset-0 bg-review-media-shine" />
                   <div className="p-4">
                     <div className="relative aspect-[4/3] w-full max-h-[260px] overflow-hidden rounded-2xl bg-white/35 sm:max-h-[300px]">
                       <ZoomableImage

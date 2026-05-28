@@ -140,7 +140,7 @@ export function SpecialOrderForm() {
           type="submit"
           disabled={!canSubmit}
           variant="gold"
-          className="w-full hover:shadow-[0_14px_34px_rgba(0,0,0,0.18)] sm:w-auto"
+          className="w-full hover:shadow-cta-hover sm:w-auto"
         >
           Enviar solicitud por WhatsApp
         </Button>

@@ -1,6 +1,3 @@
-"use client"
-
-import { useMemo } from "react"
 import type { Perfume } from "@/types/perfume"
 import type { SaleRecord } from "@/lib/admin/types"
 import { formatMoney } from "@/lib/admin/utils"
@@ -10,111 +7,111 @@ type Props = {
   sales: SaleRecord[]
 }
 
-export function ReportSection({ perfumes, sales }: Props) {
-  const report = useMemo(() => {
-    const salesTotals = sales.reduce(
-      (acc, s) => {
-        const qty = Math.max(0, Math.floor(s.qty ?? 0))
-        if (qty <= 0) return acc
-        const price = Number.isFinite(s.unitPrice) ? Math.max(0, s.unitPrice) : 0
-        const cost = Number.isFinite(s.unitCost) ? Math.max(0, s.unitCost) : 0
-        acc.soldUnits += qty
-        acc.revenue += price * qty
-        acc.cost += cost * qty
-        acc.profit += (price - cost) * qty
-        return acc
-      },
-      {
-        soldUnits: 0,
-        revenue: 0,
-        cost: 0,
-        profit: 0
-      }
-    )
-
-    const inventoryTotals = perfumes.reduce(
-      (acc, p) => {
-        const stock = Math.max(0, Math.floor(p.stock ?? 0))
-        const profitPer = p.price - p.cost
-        acc.inventoryUnits += stock
-        acc.inventoryValue += stock * p.cost
-        acc.potentialProfit += stock * profitPer
-        return acc
-      },
-      {
-        inventoryUnits: 0,
-        inventoryValue: 0,
-        potentialProfit: 0
-      }
-    )
-
-    const margin = salesTotals.revenue > 0 ? salesTotals.profit / salesTotals.revenue : 0
-    return { ...salesTotals, ...inventoryTotals, margin }
-  }, [perfumes, sales])
-
-  const perfumeById = useMemo(() => {
-    return new Map(perfumes.map((p) => [p.id, p] as const))
-  }, [perfumes])
-
-  const salesByPerfume = useMemo(() => {
-    const collator = new Intl.Collator("es", { sensitivity: "base" })
-    const map = new Map<
-      string,
-      {
-        id: string
-        brand: string
-        name: string
-        sizeMl: number
-        soldUnits: number
-        revenue: number
-        cost: number
-        profit: number
-      }
-    >()
-
-    for (const s of sales) {
+function buildReport(perfumes: Perfume[], sales: SaleRecord[]) {
+  const salesTotals = sales.reduce(
+    (acc, s) => {
       const qty = Math.max(0, Math.floor(s.qty ?? 0))
-      if (qty <= 0) continue
-      const key = s.perfumeId
-      if (!key) continue
-
+      if (qty <= 0) return acc
       const price = Number.isFinite(s.unitPrice) ? Math.max(0, s.unitPrice) : 0
       const cost = Number.isFinite(s.unitCost) ? Math.max(0, s.unitCost) : 0
-      const existing = map.get(key)
-      if (!existing) {
-        const current = perfumeById.get(key)
-        map.set(key, {
-          id: key,
-          brand: current?.brand ?? s.brand,
-          name: current?.name ?? s.name,
-          sizeMl: current?.sizeMl ?? s.sizeMl,
-          soldUnits: qty,
-          revenue: price * qty,
-          cost: cost * qty,
-          profit: (price - cost) * qty
-        })
-      } else {
-        existing.soldUnits += qty
-        existing.revenue += price * qty
-        existing.cost += cost * qty
-        existing.profit += (price - cost) * qty
-        const current = perfumeById.get(key)
-        if (current) {
-          existing.brand = current.brand
-          existing.name = current.name
-          existing.sizeMl = current.sizeMl
-        }
+      acc.soldUnits += qty
+      acc.revenue += price * qty
+      acc.cost += cost * qty
+      acc.profit += (price - cost) * qty
+      return acc
+    },
+    {
+      soldUnits: 0,
+      revenue: 0,
+      cost: 0,
+      profit: 0
+    }
+  )
+
+  const inventoryTotals = perfumes.reduce(
+    (acc, p) => {
+      const stock = Math.max(0, Math.floor(p.stock ?? 0))
+      const profitPer = p.price - p.cost
+      acc.inventoryUnits += stock
+      acc.inventoryValue += stock * p.cost
+      acc.potentialProfit += stock * profitPer
+      return acc
+    },
+    {
+      inventoryUnits: 0,
+      inventoryValue: 0,
+      potentialProfit: 0
+    }
+  )
+
+  const margin = salesTotals.revenue > 0 ? salesTotals.profit / salesTotals.revenue : 0
+  return { ...salesTotals, ...inventoryTotals, margin }
+}
+
+function buildSalesByPerfume(perfumes: Perfume[], sales: SaleRecord[]) {
+  const perfumeById = new Map(perfumes.map((p) => [p.id, p] as const))
+  const collator = new Intl.Collator("es", { sensitivity: "base" })
+  const map = new Map<
+    string,
+    {
+      id: string
+      brand: string
+      name: string
+      sizeMl: number
+      soldUnits: number
+      revenue: number
+      cost: number
+      profit: number
+    }
+  >()
+
+  for (const s of sales) {
+    const qty = Math.max(0, Math.floor(s.qty ?? 0))
+    if (qty <= 0) continue
+    const key = s.perfumeId
+    if (!key) continue
+
+    const price = Number.isFinite(s.unitPrice) ? Math.max(0, s.unitPrice) : 0
+    const cost = Number.isFinite(s.unitCost) ? Math.max(0, s.unitCost) : 0
+    const existing = map.get(key)
+    if (!existing) {
+      const current = perfumeById.get(key)
+      map.set(key, {
+        id: key,
+        brand: current?.brand ?? s.brand,
+        name: current?.name ?? s.name,
+        sizeMl: current?.sizeMl ?? s.sizeMl,
+        soldUnits: qty,
+        revenue: price * qty,
+        cost: cost * qty,
+        profit: (price - cost) * qty
+      })
+    } else {
+      existing.soldUnits += qty
+      existing.revenue += price * qty
+      existing.cost += cost * qty
+      existing.profit += (price - cost) * qty
+      const current = perfumeById.get(key)
+      if (current) {
+        existing.brand = current.brand
+        existing.name = current.name
+        existing.sizeMl = current.sizeMl
       }
     }
+  }
 
-    return Array.from(map.values()).sort((a, b) => {
-      if (b.soldUnits !== a.soldUnits) return b.soldUnits - a.soldUnits
-      if (b.revenue !== a.revenue) return b.revenue - a.revenue
-      const brandCmp = collator.compare(a.brand, b.brand)
-      if (brandCmp !== 0) return brandCmp
-      return collator.compare(a.name, b.name)
-    })
-  }, [perfumeById, sales])
+  return Array.from(map.values()).sort((a, b) => {
+    if (b.soldUnits !== a.soldUnits) return b.soldUnits - a.soldUnits
+    if (b.revenue !== a.revenue) return b.revenue - a.revenue
+    const brandCmp = collator.compare(a.brand, b.brand)
+    if (brandCmp !== 0) return brandCmp
+    return collator.compare(a.name, b.name)
+  })
+}
+
+export function ReportSection({ perfumes, sales }: Props) {
+  const report = buildReport(perfumes, sales)
+  const salesByPerfume = buildSalesByPerfume(perfumes, sales)
 
   const topPerfume = salesByPerfume[0] ?? null
 

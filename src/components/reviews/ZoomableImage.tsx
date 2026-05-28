@@ -278,7 +278,7 @@ export function ZoomableImage({
                 }}
               >
                 <div
-                  className="group relative h-[86vh] overflow-hidden rounded-luxe-dialog border border-whiteA-4 bg-inkModal shadow-[0_70px_240px_rgba(0,0,0,0.42)] sm:h-[88vh]"
+                  className="group relative h-[86vh] overflow-hidden rounded-luxe-dialog border border-whiteA-4 bg-inkModal shadow-zoom-modal sm:h-[88vh]"
                   style={
                     glowRgb
                       ? ({
@@ -319,7 +319,7 @@ export function ZoomableImage({
 
                   <div className="pointer-events-none absolute inset-0 bg-zoom-vignette-1" />
 
-                  <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_84px_rgba(0,0,0,0.18)]" />
+                  <div className="pointer-events-none absolute inset-0 shadow-zoom-inset" />
                   <div className="pointer-events-none absolute inset-0 bg-zoom-vignette-2" />
                   <div
                     className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-overlay"
@@ -354,7 +354,7 @@ export function ZoomableImage({
                         type="button"
                         onClick={() => setActiveIndex((prevIdx) => (prevIdx - 1 + total) % total)}
                         aria-label="Anterior"
-                        className="absolute left-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/8 text-2xl font-thin text-white/90 ring-1 ring-white/14 backdrop-blur-md opacity-30 transition duration-300 ease-luxe hover:bg-white/12 hover:opacity-58 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.16),0_0_28px_rgba(255,255,255,0.06),0_18px_55px_rgba(0,0,0,0.40)] hover:scale-[1.015] active:scale-[0.99] md:inline-flex md:opacity-30 md:group-hover:opacity-44 md:group-hover:hover:opacity-58"
+                        className="absolute left-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/8 text-2xl font-thin text-white/90 ring-1 ring-white/14 backdrop-blur-md opacity-30 transition duration-300 ease-luxe hover:bg-white/12 hover:opacity-58 hover:shadow-zoom-nav-hover hover:scale-[1.015] active:scale-[0.99] md:inline-flex md:opacity-30 md:group-hover:opacity-44 md:group-hover:hover:opacity-58"
                       >
                         ‹
                       </button>
@@ -362,7 +362,7 @@ export function ZoomableImage({
                         type="button"
                         onClick={() => setActiveIndex((prevIdx) => (prevIdx + 1) % total)}
                         aria-label="Siguiente"
-                        className="absolute right-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/8 text-2xl font-thin text-white/90 ring-1 ring-white/14 backdrop-blur-md opacity-30 transition duration-300 ease-luxe hover:bg-white/12 hover:opacity-58 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.16),0_0_28px_rgba(255,255,255,0.06),0_18px_55px_rgba(0,0,0,0.40)] hover:scale-[1.015] active:scale-[0.99] md:inline-flex md:opacity-30 md:group-hover:opacity-44 md:group-hover:hover:opacity-58"
+                        className="absolute right-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/8 text-2xl font-thin text-white/90 ring-1 ring-white/14 backdrop-blur-md opacity-30 transition duration-300 ease-luxe hover:bg-white/12 hover:opacity-58 hover:shadow-zoom-nav-hover hover:scale-[1.015] active:scale-[0.99] md:inline-flex md:opacity-30 md:group-hover:opacity-44 md:group-hover:hover:opacity-58"
                       >
                         ›
                       </button>
