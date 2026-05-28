@@ -1,5 +1,5 @@
 import type { Perfume } from "@/types/perfume"
-import { Button, ButtonGhost } from "@/components/ui/Button"
+import { Button } from "@/components/ui/Button"
 import { formatMoney } from "@/lib/admin/utils"
 
 type Props = {
@@ -38,14 +38,15 @@ export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Pr
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <ButtonGhost
+                <Button
                   type="button"
+                  variant="ghost"
                   className="rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
                   onClick={() => onEdit(p)}
                   disabled={busy}
                 >
                   Editar
-                </ButtonGhost>
+                </Button>
                 <Button
                   type="button"
                   variant="gold"
@@ -55,14 +56,15 @@ export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Pr
                 >
                   Confirmar pago
                 </Button>
-                <ButtonGhost
+                <Button
                   type="button"
+                  variant="ghost"
                   className="rounded-xl border border-red-200 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
                   onClick={() => onDelete(p)}
                   disabled={busy}
                 >
                   Eliminar
-                </ButtonGhost>
+                </Button>
               </div>
             </div>
           ))}

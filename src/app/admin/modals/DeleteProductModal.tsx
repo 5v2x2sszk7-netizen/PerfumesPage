@@ -1,5 +1,5 @@
 import type { Perfume } from "@/types/perfume"
-import { ButtonGhost } from "@/components/ui/Button"
+import { Button } from "@/components/ui/Button"
 import { ModalShell } from "@/components/ui/ModalShell"
 import { Surface } from "@/components/ui/Surface"
 
@@ -22,22 +22,24 @@ export function DeleteProductModal({ deleteTarget, busy, onClose, onConfirm }: P
           ¿Seguro que quieres eliminar “{deleteTarget.name}” ({deleteTarget.brand})?
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <ButtonGhost
+          <Button
             type="button"
+            variant="ghost"
             className="w-full rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
             onClick={onClose}
             disabled={busy}
           >
             Cancelar
-          </ButtonGhost>
-          <ButtonGhost
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 hover:bg-red-100 sm:w-auto"
             onClick={onConfirm}
             disabled={busy}
           >
             Eliminar
-          </ButtonGhost>
+          </Button>
         </div>
       </Surface>
     </ModalShell>

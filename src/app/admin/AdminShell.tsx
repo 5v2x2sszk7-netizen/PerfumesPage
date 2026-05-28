@@ -1,4 +1,4 @@
-import { ButtonGhost } from "@/components/ui/Button"
+import { Button } from "@/components/ui/Button"
 import { Pill } from "@/components/ui/Pill"
 import type { AdminSection } from "@/lib/admin/types"
 
@@ -22,22 +22,24 @@ export function AdminShell({ busy, error, section, onRefresh, onLogout, onSelect
             <h1 className="font-display text-3xl text-ink-950">Panel</h1>
           </div>
           <div className="flex items-center gap-2">
-            <ButtonGhost
+            <Button
               type="button"
+              variant="ghost"
               className="rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
               onClick={onRefresh}
               disabled={busy}
             >
               Recargar
-            </ButtonGhost>
-            <ButtonGhost
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               className="rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
               onClick={onLogout}
               disabled={busy}
             >
               Salir
-            </ButtonGhost>
+            </Button>
           </div>
         </div>
 

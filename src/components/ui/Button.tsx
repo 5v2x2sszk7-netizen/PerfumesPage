@@ -1,11 +1,14 @@
-import { cn } from "@/lib/cn"
+import { cn, focusRing } from "@/lib/cn"
 import Link from "next/link"
 import type { ComponentPropsWithoutRef } from "react"
 
 type ButtonVariant = "primary" | "ghost" | "soft" | "gold"
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium tracking-wide transition focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-50"
+  cn(
+    "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium tracking-wide transition disabled:opacity-50",
+    focusRing
+  )
 
 function variantClasses(variant: ButtonVariant) {
   if (variant === "ghost") return "bg-transparent text-ink-950 hover:bg-ink-100 active:bg-ink-200"
@@ -19,23 +22,6 @@ function variantClasses(variant: ButtonVariant) {
 export function Button({
   className,
   variant = "primary",
-  ...props
-}: ComponentPropsWithoutRef<"button"> & { className?: string; variant?: ButtonVariant }) {
-  return (
-    <button
-      className={cn(
-        base,
-        variantClasses(variant),
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-export function ButtonGhost({
-  className,
-  variant = "ghost",
   ...props
 }: ComponentPropsWithoutRef<"button"> & { className?: string; variant?: ButtonVariant }) {
   return (

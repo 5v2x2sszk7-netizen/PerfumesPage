@@ -10,6 +10,7 @@ import { ZoomableImage } from "@/components/reviews/ZoomableImage"
 import { LazyReveal } from "@/components/ui/LazyReveal"
 import { Surface } from "@/components/ui/Surface"
 import { formatCustomerDisplayName, getInitials } from "@/lib/text"
+import type { Perfume } from "@/types/perfume"
 
 export const revalidate = 60
 
@@ -23,64 +24,45 @@ function formatReviewSnippet(text: string) {
   return base.length > 220 ? `${base.slice(0, 220).trimEnd()}…` : base
 }
 
-export default async function HomePage() {
-  const perfumes = (await readPerfumes()).filter((p) => (p.stock ?? 0) > 0)
-  const featured = perfumes.slice(0, 3)
-  const reviews = await readReviews()
-  const carouselItems = reviews
-    .filter((r) => Boolean(r.imageSrc))
-    .slice(0, 12)
-    .map((r) => ({
-      src: r.imageSrc!,
-      alt: `Reseña de ${r.customerName}`,
-      customerName: r.customerName,
-      rating: r.rating,
-      text:
-        r.text.length > 180
-          ? `${r.text.slice(0, 180).trimEnd()}…`
-          : r.text
-    }))
-  const ratedReviews = reviews.filter((r) => typeof r.rating === "number" && r.rating > 0)
-  const ratingCount = ratedReviews.length
-  const avgRating = ratingCount
-    ? ratedReviews.reduce((acc, r) => acc + (r.rating ?? 0), 0) / ratingCount
-    : 0
-  const avgRatingLabel = avgRating ? avgRating.toFixed(1) : ""
-  const roundedStars = Math.max(0, Math.min(5, Math.round(avgRating)))
+type Review = Awaited<ReturnType<typeof readReviews>>[number]
 
+function HeroSection() {
   return (
-    <div>
-      <section className="relative h-[420px] overflow-hidden border-b border-black/6 bg-white sm:h-[520px] lg:h-[680px]">
-        <Image
-          src="/images/MaloParfumsHome.jpg"
-          alt="MALO Parfums"
-          fill
-          priority
-          className="object-cover object-center"
-          sizes="100vw"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-1" />
-        <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-2 opacity-45 mix-blend-soft-light" />
-        <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-3 opacity-50 mix-blend-overlay" />
-        <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-4 opacity-32 mix-blend-soft-light" />
-        <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-5" />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.045] mix-blend-overlay"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27160%27%20height%3D%27160%27%3E%3Cfilter%20id%3D%27n%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.85%27%20numOctaves%3D%274%27%20stitchTiles%3D%27stitch%27/%3E%3C/filter%3E%3Crect%20width%3D%27160%27%20height%3D%27160%27%20filter%3D%27url(%23n)%27%20opacity%3D%270.35%27/%3E%3C/svg%3E\")",
-            backgroundSize: "280px 280px"
-          }}
-        />
-      </section>
+    <section className="relative h-[420px] overflow-hidden border-b border-black/6 bg-white sm:h-[520px] lg:h-[680px]">
+      <Image
+        src="/images/MaloParfumsHome.jpg"
+        alt="MALO Parfums"
+        fill
+        priority
+        className="object-cover object-center"
+        sizes="100vw"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-1" />
+      <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-2 opacity-45 mix-blend-soft-light" />
+      <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-3 opacity-50 mix-blend-overlay" />
+      <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-4 opacity-32 mix-blend-soft-light" />
+      <div className="pointer-events-none absolute inset-0 bg-home-hero-overlay-5" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.045] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27160%27%20height%3D%27160%27%3E%3Cfilter%20id%3D%27n%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.85%27%20numOctaves%3D%274%27%20stitchTiles%3D%27stitch%27/%3E%3C/filter%3E%3Crect%20width%3D%27160%27%20height%3D%27160%27%20filter%3D%27url(%23n)%27%20opacity%3D%270.35%27/%3E%3C/svg%3E\")",
+          backgroundSize: "280px 280px"
+        }}
+      />
+    </section>
+  )
+}
 
-      <section className="relative bg-white">
-        <Container className="pt-14 pb-16 sm:pt-16 sm:pb-20">
-          <div className="max-w-home-hero">
-            <p className="text-xs tracking-brand text-ink-500">AGREGADOS RECIENTEMENTE</p>
-            <h2 className="mt-4 font-display text-2xl leading-[0.95] text-ink-950">Nuevas incorporaciones</h2>
+function FeaturedSection({ featured }: { featured: Perfume[] }) {
+  return (
+    <section className="relative bg-white">
+      <Container className="pt-14 pb-16 sm:pt-16 sm:pb-20">
+        <div className="max-w-home-hero">
+          <p className="text-xs tracking-brand text-ink-500">AGREGADOS RECIENTEMENTE</p>
+          <h2 className="mt-4 font-display text-2xl leading-[0.95] text-ink-950">Nuevas incorporaciones</h2>
 
-            <div className="mt-8 grid grid-cols-1 gap-4">
+          <div className="mt-8 grid grid-cols-1 gap-4">
             {featured.map((p, idx) => (
               <LazyReveal key={p.id} className="w-full" delayMs={idx * 120}>
                 <Link
@@ -108,9 +90,9 @@ export default async function HomePage() {
                 </Link>
               </LazyReveal>
             ))}
-            </div>
+          </div>
 
-            <div className="mt-8 flex justify-start">
+          <div className="mt-8 flex justify-start">
             <ButtonLink
               href="/catalog"
               variant="soft"
@@ -118,133 +100,156 @@ export default async function HomePage() {
             >
               Ver todo
             </ButtonLink>
-            </div>
           </div>
-        </Container>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-home-section-bottom-fade" />
-      </section>
+        </div>
+      </Container>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-home-section-bottom-fade" />
+    </section>
+  )
+}
 
-      <section className="bg-transparent">
-        <Container className="pt-12 pb-16">
-          <div className="grid gap-y-8 gap-x-12 lg:grid-cols-12 lg:items-start">
-            <LazyReveal delayMs={0} className="lg:col-span-5">
-              <div className="max-w-home-intro">
-                <p className="text-xs tracking-brand text-ink-500">SERVICIO</p>
-                <h2 className="mt-4 font-display text-3xl leading-[0.95] text-ink-950 sm:text-4xl">
-                  Menos catálogo infinito. Más curaduría.
-                </h2>
-                <p className="mt-7 text-sm leading-[1.85] text-ink-700">
-                  Un proceso breve, claro y personal: elegimos contigo, confirmamos stock real y
-                  cuidamos el detalle antes de cerrar por WhatsApp.
-                </p>
+function ServiceSection() {
+  return (
+    <section className="bg-transparent">
+      <Container className="pt-12 pb-16">
+        <div className="grid gap-y-8 gap-x-12 lg:grid-cols-12 lg:items-start">
+          <LazyReveal delayMs={0} className="lg:col-span-5">
+            <div className="max-w-home-intro">
+              <p className="text-xs tracking-brand text-ink-500">SERVICIO</p>
+              <h2 className="mt-4 font-display text-3xl leading-[0.95] text-ink-950 sm:text-4xl">
+                Menos catálogo infinito. Más curaduría.
+              </h2>
+              <p className="mt-7 text-sm leading-[1.85] text-ink-700">
+                Un proceso breve, claro y personal: elegimos contigo, confirmamos stock real y cuidamos el detalle antes
+                de cerrar por WhatsApp.
+              </p>
+            </div>
+          </LazyReveal>
+
+          <div className="grid gap-8 lg:col-span-7 lg:gap-10">
+            <LazyReveal delayMs={120}>
+              <div className="group border-t border-black/6 pt-6">
+                <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
+                  <p className="font-display text-4xl font-light leading-none text-black/35">01</p>
+                  <div className="space-y-2">
+                    <p className="text-xs tracking-section text-ink-500">EXPERIENCIA</p>
+                    <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Compra asistida</h3>
+                    <p className="text-sm leading-[1.85] text-ink-700">
+                      Recomendaciones, equivalencias y disponibilidad real antes de confirmar.
+                    </p>
+                  </div>
+                </div>
               </div>
             </LazyReveal>
 
-            <div className="grid gap-8 lg:col-span-7 lg:gap-10">
-              <LazyReveal delayMs={120}>
-                <div className="group border-t border-black/6 pt-6">
-                  <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
-                    <p className="font-display text-4xl font-light leading-none text-black/35">01</p>
-                    <div className="space-y-2">
-                      <p className="text-xs tracking-section text-ink-500">EXPERIENCIA</p>
-                      <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Compra asistida</h3>
-                      <p className="text-sm leading-[1.85] text-ink-700">
-                        Recomendaciones, equivalencias y disponibilidad real antes de confirmar.
-                      </p>
-                    </div>
+            <LazyReveal delayMs={200}>
+              <div className="group border-t border-black/6 pt-6 sm:pl-6 lg:translate-y-2">
+                <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
+                  <p className="font-display text-4xl font-light leading-none text-black/35">02</p>
+                  <div className="space-y-2">
+                    <p className="text-xs tracking-section text-ink-500">CONFIANZA</p>
+                    <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Transparencia</h3>
+                    <p className="text-sm leading-[1.85] text-ink-700">
+                      Tamaño, precio y estatus con lenguaje claro. Sin promesas vacías.
+                    </p>
                   </div>
                 </div>
-              </LazyReveal>
+              </div>
+            </LazyReveal>
 
-              <LazyReveal delayMs={200}>
-                <div className="group border-t border-black/6 pt-6 sm:pl-6 lg:translate-y-2">
-                  <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
-                    <p className="font-display text-4xl font-light leading-none text-black/35">02</p>
-                    <div className="space-y-2">
-                      <p className="text-xs tracking-section text-ink-500">CONFIANZA</p>
-                      <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Transparencia</h3>
-                      <p className="text-sm leading-[1.85] text-ink-700">
-                        Tamaño, precio y estatus con lenguaje claro. Sin promesas vacías.
-                      </p>
-                    </div>
+            <LazyReveal delayMs={280}>
+              <div className="group border-t border-black/6 pt-6 sm:pl-10 lg:translate-y-4">
+                <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
+                  <p className="font-display text-4xl font-light leading-none text-black/35">03</p>
+                  <div className="space-y-2">
+                    <p className="text-xs tracking-section text-ink-500">CATÁLOGO</p>
+                    <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Pedidos especiales</h3>
+                    <p className="text-sm leading-[1.85] text-ink-700">
+                      Si no está listado, lo buscamos: disponibilidad, opción y cotización.
+                    </p>
                   </div>
                 </div>
-              </LazyReveal>
-
-              <LazyReveal delayMs={280}>
-                <div className="group border-t border-black/6 pt-6 sm:pl-10 lg:translate-y-4">
-                  <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
-                    <p className="font-display text-4xl font-light leading-none text-black/35">03</p>
-                    <div className="space-y-2">
-                      <p className="text-xs tracking-section text-ink-500">CATÁLOGO</p>
-                      <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Pedidos especiales</h3>
-                      <p className="text-sm leading-[1.85] text-ink-700">
-                        Si no está listado, lo buscamos: disponibilidad, opción y cotización.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </LazyReveal>
-            </div>
+              </div>
+            </LazyReveal>
           </div>
-        </Container>
-      </section>
+        </div>
+      </Container>
+    </section>
+  )
+}
 
-      <section className="border-t border-black/6 bg-white">
-        <Container className="py-16 pt-24">
-          <div className="space-y-8">
-            <div className="mb-6">
-              <p className="text-xs tracking-section text-ink-500">RESEÑAS</p>
-              <h2 className="mt-3 font-display text-2xl leading-[0.95] text-ink-950">Lo que dicen nuestros clientes</h2>
-              {ratingCount ? (
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-1 text-base leading-none text-goldSoft">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <span key={i}>{i < roundedStars ? "★" : "☆"}</span>
-                    ))}
-                  </div>
-                  <p className="text-xs text-ink-600">
-                    {avgRatingLabel} <span className="text-ink-400">·</span> {ratingCount}{" "}
-                    {ratingCount === 1 ? "experiencia compartida" : "experiencias compartidas"}
-                  </p>
+function ReviewsSection({
+  reviews,
+  carouselItems,
+  ratingCount,
+  avgRatingLabel,
+  roundedStars
+}: {
+  reviews: Review[]
+  carouselItems: Array<{ src: string; alt: string; customerName: string; rating?: number; text: string }>
+  ratingCount: number
+  avgRatingLabel: string
+  roundedStars: number
+}) {
+  return (
+    <section className="border-t border-black/6 bg-white">
+      <Container className="py-16 pt-24">
+        <div className="space-y-8">
+          <div className="mb-6">
+            <p className="text-xs tracking-section text-ink-500">RESEÑAS</p>
+            <h2 className="mt-3 font-display text-2xl leading-[0.95] text-ink-950">Lo que dicen nuestros clientes</h2>
+            {ratingCount ? (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1 text-base leading-none text-goldSoft">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i}>{i < roundedStars ? "★" : "☆"}</span>
+                  ))}
                 </div>
-              ) : null}
-              <p className="mt-3 text-sm text-ink-700">Cuéntanos qué tan satisfech@ estás con tu compra en M A L O parfums</p>
-            </div>
-
-            {carouselItems.length ? (
-              <Surface variant="solid" radius="luxe-xl" className="relative overflow-hidden shadow-sheet">
-                <div className="pointer-events-none absolute inset-0 bg-home-reviews-surface" />
-                <div className="relative">
-                  <ReviewCarousel items={carouselItems} />
-                </div>
-              </Surface>
+                <p className="text-xs text-ink-600">
+                  {avgRatingLabel} <span className="text-ink-400">·</span> {ratingCount}{" "}
+                  {ratingCount === 1 ? "experiencia compartida" : "experiencias compartidas"}
+                </p>
+              </div>
             ) : null}
-            <div className="mt-10 mb-12 flex justify-start">
-              <ReviewWriteModal />
-            </div>
+            <p className="mt-3 text-sm text-ink-700">Cuéntanos qué tan satisfech@ estás con tu compra en M A L O parfums</p>
+          </div>
 
-            <div className="mt-2 grid gap-4">
-              {reviews.map((r, idx) => {
-                const starsValue = Math.max(0, Math.min(5, r.rating ?? 0))
-                const displayName = formatCustomerDisplayName(r.customerName)
-                const text = formatReviewSnippet(r.text)
-                const deliveryStatus =
-                  r.deliveryCondition === "perfect"
-                    ? "Llegó perfecto"
-                    : r.deliveryCondition === "box_damaged"
-                      ? "Caja dañada"
-                      : r.deliveryCondition === "leak"
-                        ? "Derrame / fuga"
-                        : r.deliveryCondition === "other"
-                          ? "Entrega con detalle"
-                          : ""
-                const deliveryImages = (
-                  r.deliveryImageSrcs?.length ? r.deliveryImageSrcs : r.deliveryImageSrc ? [r.deliveryImageSrc] : []
-                ).slice(0, 5)
-                return (
-                  <LazyReveal key={r.id} delayMs={Math.min(idx, 8) * 55} className="w-full">
-                    <div className="group w-full rounded-3xl border border-black/8 bg-white px-6 py-6 transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-review-hover sm:px-7 sm:py-7">
+          {carouselItems.length ? (
+            <Surface variant="solid" radius="luxe-xl" className="relative overflow-hidden shadow-sheet">
+              <div className="pointer-events-none absolute inset-0 bg-home-reviews-surface" />
+              <div className="relative">
+                <ReviewCarousel items={carouselItems} />
+              </div>
+            </Surface>
+          ) : null}
+          <div className="mt-10 mb-12 flex justify-start">
+            <ReviewWriteModal />
+          </div>
+
+          <div className="mt-2 grid gap-4">
+            {reviews.map((r, idx) => {
+              const starsValue = Math.max(0, Math.min(5, r.rating ?? 0))
+              const displayName = formatCustomerDisplayName(r.customerName)
+              const text = formatReviewSnippet(r.text)
+              const deliveryStatus =
+                r.deliveryCondition === "perfect"
+                  ? "Llegó perfecto"
+                  : r.deliveryCondition === "box_damaged"
+                    ? "Caja dañada"
+                    : r.deliveryCondition === "leak"
+                      ? "Derrame / fuga"
+                      : r.deliveryCondition === "other"
+                        ? "Entrega con detalle"
+                        : ""
+              const deliveryImages = (
+                r.deliveryImageSrcs?.length ? r.deliveryImageSrcs : r.deliveryImageSrc ? [r.deliveryImageSrc] : []
+              ).slice(0, 5)
+              const dateLabel = new Date(r.at).toLocaleDateString("es-MX")
+              const metaLabel = `${displayName} • ${dateLabel} • Entrega confirmada`
+
+              return (
+                <LazyReveal key={r.id} delayMs={Math.min(idx, 8) * 55} className="w-full">
+                  <div className="group w-full rounded-3xl border border-black/8 bg-white px-6 py-6 transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-review-hover sm:px-7 sm:py-7">
                     <div className="grid gap-4 md:grid-cols-[240px_1fr] md:gap-8">
                       <div className="space-y-1">
                         <div className="flex items-center gap-3">
@@ -254,7 +259,7 @@ export default async function HomePage() {
                           <div className="min-w-0">
                             <p className="truncate font-display text-lg font-semibold text-ink-950">{displayName}</p>
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-neutral-400">
-                              <span>{new Date(r.at).toLocaleDateString("es-MX")}</span>
+                              <span>{dateLabel}</span>
                               {r.rating ? (
                                 <span className="flex items-center gap-1 text-ui-md leading-none text-goldSoft">
                                   {Array.from({ length: 5 }).map((_, i) => (
@@ -269,9 +274,7 @@ export default async function HomePage() {
 
                       <div className="min-w-0 pt-1">
                         <div className="space-y-2">
-                          {text ? (
-                            <p className="whitespace-pre-wrap text-base text-ink-800">{text}</p>
-                          ) : null}
+                          {text ? <p className="whitespace-pre-wrap text-base text-ink-800">{text}</p> : null}
 
                           {r.deliveryCondition || r.deliveryNotes || deliveryImages.length ? (
                             <div className="space-y-2">
@@ -306,12 +309,12 @@ export default async function HomePage() {
                                               ? "(max-width: 768px) 90vw, 520px"
                                               : "(max-width: 768px) 55vw, 184px"
                                           }
-                                          meta={`${displayName} • ${new Date(r.at).toLocaleDateString("es-MX")} • Entrega confirmada`}
+                                          meta={metaLabel}
                                           gallery={{
                                             items: deliveryImages.map((s) => ({
                                               src: s,
                                               alt: "Foto de cómo llegó el producto",
-                                              meta: `${displayName} • ${new Date(r.at).toLocaleDateString("es-MX")} • Entrega confirmada`
+                                              meta: metaLabel
                                             })),
                                             index: imageIdx
                                           }}
@@ -333,14 +336,54 @@ export default async function HomePage() {
                         </div>
                       </div>
                     </div>
-                    </div>
-                  </LazyReveal>
-                )
-              })}
-            </div>
+                  </div>
+                </LazyReveal>
+              )
+            })}
           </div>
-        </Container>
-      </section>
+        </div>
+      </Container>
+    </section>
+  )
+}
+
+export default async function HomePage() {
+  const perfumes = (await readPerfumes()).filter((p) => (p.stock ?? 0) > 0)
+  const featured = perfumes.slice(0, 3)
+  const reviews = await readReviews()
+  const carouselItems = reviews
+    .filter((r) => Boolean(r.imageSrc))
+    .slice(0, 12)
+    .map((r) => ({
+      src: r.imageSrc!,
+      alt: `Reseña de ${r.customerName}`,
+      customerName: r.customerName,
+      rating: r.rating,
+      text:
+        r.text.length > 180
+          ? `${r.text.slice(0, 180).trimEnd()}…`
+          : r.text
+    }))
+  const ratedReviews = reviews.filter((r) => typeof r.rating === "number" && r.rating > 0)
+  const ratingCount = ratedReviews.length
+  const avgRating = ratingCount
+    ? ratedReviews.reduce((acc, r) => acc + (r.rating ?? 0), 0) / ratingCount
+    : 0
+  const avgRatingLabel = avgRating ? avgRating.toFixed(1) : ""
+  const roundedStars = Math.max(0, Math.min(5, Math.round(avgRating)))
+
+  return (
+    <div>
+      <HeroSection />
+      <FeaturedSection featured={featured} />
+      <ServiceSection />
+      <ReviewsSection
+        reviews={reviews}
+        carouselItems={carouselItems}
+        ratingCount={ratingCount}
+        avgRatingLabel={avgRatingLabel}
+        roundedStars={roundedStars}
+      />
     </div>
   )
 }

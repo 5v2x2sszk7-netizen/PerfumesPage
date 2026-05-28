@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Button, ButtonGhost } from "@/components/ui/Button"
+import { Button } from "@/components/ui/Button"
 import { ReviewForm } from "@/components/reviews/ReviewForm"
 import { ModalShell } from "@/components/ui/ModalShell"
 import { Surface } from "@/components/ui/Surface"
@@ -36,14 +36,15 @@ export function ReviewWriteModal() {
                   <h2 className="font-display text-2xl text-ink-950">Escribe tu reseña</h2>
                 </div>
               </div>
-              <ButtonGhost
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => setOpen(false)}
                 className="absolute right-4 top-4 h-11 w-11 border border-black/8 bg-white px-0 hover:bg-ink-50"
                 aria-label="Cerrar"
               >
                 ✕
-              </ButtonGhost>
+              </Button>
 
               <div className="mt-4">
                 <ReviewForm />

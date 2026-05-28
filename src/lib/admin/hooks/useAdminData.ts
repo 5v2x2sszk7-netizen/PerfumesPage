@@ -25,7 +25,7 @@ export function useAdminData({
         api<{ reviews: Review[] }>(`/api/admin/reviews?_ts=${Date.now()}`)
       ])
       setPerfumes(productsData.perfumes)
-      if (productsData.suggestions) setSuggestions(productsData.suggestions)
+      setSuggestions(productsData.suggestions ?? null)
       setSales(Array.isArray(productsData.sales) ? productsData.sales : [])
       setReviews(Array.isArray(reviewsData.reviews) ? reviewsData.reviews : [])
     } catch (e) {
@@ -43,10 +43,14 @@ export function useAdminData({
   }, [])
 
   useEffect(() => {
-    const t = window.setTimeout(() => {
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
       void refresh()
-    }, 0)
-    return () => window.clearTimeout(t)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [refresh])
 
   return { perfumes, suggestions, sales, reviews, refresh, reset }

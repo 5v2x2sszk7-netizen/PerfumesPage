@@ -3,7 +3,7 @@
 import type { Perfume } from "@/types/perfume"
 import { PerfumeCard } from "@/components/perfume/PerfumeCard"
 import { Input, Label, Select } from "@/components/ui/Field"
-import { ButtonGhost } from "@/components/ui/Button"
+import { Button } from "@/components/ui/Button"
 import { Surface } from "@/components/ui/Surface"
 import { LazyReveal } from "@/components/ui/LazyReveal"
 import { Pill } from "@/components/ui/Pill"
@@ -82,36 +82,26 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
   )
 
   useEffect(() => {
-    const t = window.setTimeout(() => {
-      const stored = localStorage.getItem("catalog_view")
-      if (!searchParams.get("view") && (stored === "grid" || stored === "list") && stored !== "grid") {
-        replaceQuery((next) => {
-          next.set("view", stored)
-        })
-      }
-    }, 0)
-    return () => window.clearTimeout(t)
+    const storedViewRaw = localStorage.getItem("catalog_view")
+    const viewToSet = storedViewRaw === "grid" || storedViewRaw === "list" ? storedViewRaw : null
+
+    const storedCategoryRaw = localStorage.getItem("catalog_category")
+    const categoryToSet = storedCategoryRaw === "niche" || storedCategoryRaw === "designer" ? storedCategoryRaw : null
+
+    const shouldSetView = !searchParams.get("view") && viewToSet != null && viewToSet !== "grid"
+    const shouldSetCategory = !searchParams.get("category") && categoryToSet != null && categoryToSet !== "niche"
+
+    if (!shouldSetView && !shouldSetCategory) return
+
+    replaceQuery((next) => {
+      if (shouldSetView) next.set("view", viewToSet)
+      if (shouldSetCategory) next.set("category", categoryToSet)
+    })
   }, [replaceQuery, searchParams])
 
   useEffect(() => {
     localStorage.setItem("catalog_view", view)
   }, [view])
-
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      const stored = localStorage.getItem("catalog_category")
-      if (
-        !searchParams.get("category") &&
-        (stored === "niche" || stored === "designer") &&
-        stored !== "niche"
-      ) {
-        replaceQuery((next) => {
-          next.set("category", stored)
-        })
-      }
-    }, 0)
-    return () => window.clearTimeout(t)
-  }, [replaceQuery, searchParams])
 
   useEffect(() => {
     localStorage.setItem("catalog_category", category)
@@ -416,13 +406,14 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
                   <p className="text-lg font-semibold text-ink-950 sm:hidden">{countLabel}</p>
                 ) : null}
                 {hasActiveFilters ? (
-                  <ButtonGhost
+                  <Button
                     type="button"
+                    variant="ghost"
                     className="rounded-full bg-ink-50/70 px-5 py-2.5 text-sm text-ink-700 ring-1 ring-inset ring-black/8 transition duration-700 ease-luxe hover:bg-white"
                     onClick={clearFilters}
                   >
                     Limpiar filtros
-                  </ButtonGhost>
+                  </Button>
                 ) : null}
               </div>
             </div>
@@ -487,13 +478,14 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
                 : "Próximamente nuevas incorporaciones. Si buscas algo específico, pídelo por WhatsApp."}
             </p>
             <div className="mt-2 flex flex-wrap gap-3">
-              <ButtonGhost
+              <Button
                 type="button"
+                variant="ghost"
                 className="rounded-full bg-white/60 px-5 py-2.5 text-sm ring-1 ring-inset ring-black/8 transition duration-700 ease-luxe hover:bg-white"
                 onClick={clearFilters}
               >
                 {hasActiveFilters ? "Limpiar filtros" : "Ver todas las colecciones"}
-              </ButtonGhost>
+              </Button>
               <button
                 type="button"
                 onClick={() => setIsFilterOpen(true)}

@@ -10,7 +10,7 @@
     "maintenance:backup": "node scripts/maintenance.mjs backup",
     "maintenance:backup:uploads": "node scripts/maintenance.mjs backup --uploads",
     "maintenance:restore": "node scripts/maintenance.mjs restore",
-    "deadcode": "ts-prune -p tsconfig.json --ignore \"**/.next/**\""
+    "deadcode": "ts-prune -p tsconfig.json --ignore '^([.]next/|src/app/)'"
   },
   "keywords": [],
   "author": "",

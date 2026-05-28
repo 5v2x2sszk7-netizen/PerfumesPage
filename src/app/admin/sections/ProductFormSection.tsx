@@ -2,7 +2,7 @@
 
 import type { Dispatch, RefObject, SetStateAction } from "react"
 import type { Perfume } from "@/types/perfume"
-import { Button, ButtonGhost } from "@/components/ui/Button"
+import { Button } from "@/components/ui/Button"
 import { Input, Label, Textarea } from "@/components/ui/Field"
 import { UploadButton } from "@/components/ui/UploadButton"
 import type { Draft } from "@/lib/admin/types"
@@ -233,14 +233,15 @@ export function ProductFormSection({
                 {isEditing ? "Guardar cambios" : "Añadir al catálogo"}
               </Button>
               {isEditing ? (
-                <ButtonGhost
+                <Button
                   type="button"
+                  variant="ghost"
                   className="w-full rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
                   onClick={onCancelEdit}
                   disabled={busy}
                 >
                   Cancelar
-                </ButtonGhost>
+                </Button>
               ) : null}
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { Button, ButtonGhost } from "@/components/ui/Button"
+import { Button } from "@/components/ui/Button"
 import { Input, Label, Textarea } from "@/components/ui/Field"
 import { UploadButton } from "@/components/ui/UploadButton"
 import type { Dispatch, RefObject, SetStateAction } from "react"
@@ -152,14 +152,15 @@ export function ReviewsSection({
                     {r.imageSrc ? <p className="mt-2 text-xs text-ink-500">{r.imageSrc}</p> : null}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <ButtonGhost
+                    <Button
                       type="button"
+                      variant="ghost"
                       className="rounded-xl border border-red-200 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
                       onClick={() => onDeleteReview(r)}
                       disabled={busy}
                     >
                       Eliminar
-                    </ButtonGhost>
+                    </Button>
                   </div>
                 </div>
               ))}

@@ -1,13 +1,19 @@
-import { cn } from "@/lib/cn"
+import { cn, focusRing } from "@/lib/cn"
 import type { ComponentPropsWithoutRef } from "react"
 
 type PillVariant = "catalog" | "admin"
 
 function baseClass(variant: PillVariant) {
   if (variant === "catalog") {
-    return "inline-flex h-10 items-center justify-center rounded-full px-5 text-ui-sm font-medium tracking-ui ring-1 ring-inset transition-luxe-wide duration-700 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]"
+    return cn(
+      "inline-flex h-10 items-center justify-center rounded-full px-5 text-ui-sm font-medium tracking-ui ring-1 ring-inset transition-luxe-wide duration-700 ease-luxe",
+      focusRing
+    )
   }
-  return "inline-flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium tracking-wide transition focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-50"
+  return cn(
+    "inline-flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium tracking-wide transition disabled:opacity-50",
+    focusRing
+  )
 }
 
 function stateClass(variant: PillVariant, active: boolean) {

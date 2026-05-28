@@ -1,7 +1,7 @@
 import type { Perfume } from "@/types/perfume"
 import Image from "next/image"
 import Link from "next/link"
-import { cn } from "@/lib/cn"
+import { cn, focusRing } from "@/lib/cn"
 import { formatPrice, availabilityLabel } from "@/lib/whatsapp"
 import { Badge, availabilityBadgeTone } from "@/components/ui/Badge"
 
@@ -14,7 +14,10 @@ export function PerfumeCard({ perfume }: { perfume: Perfume }) {
     <Link
       href={`/catalog/${perfume.slug}`}
       prefetch={false}
-      className="group relative block [transform:translateZ(0)] overflow-hidden rounded-luxe-lg bg-white no-underline shadow-card ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:-translate-y-1 hover:ring-black/10 hover:shadow-perfume-hover focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]"
+      className={cn(
+        "group relative block [transform:translateZ(0)] overflow-hidden rounded-luxe-lg bg-white no-underline shadow-card ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:-translate-y-1 hover:ring-black/10 hover:shadow-perfume-hover",
+        focusRing
+      )}
     >
       <div className="pointer-events-none absolute inset-0 bg-perfume-hover-gold opacity-0 transition-opacity duration-luxe-slow ease-luxe group-hover:opacity-100" />
       <div className="pointer-events-none absolute inset-0 bg-perfume-hover-white opacity-0 transition-opacity duration-luxe-fast ease-luxe group-hover:opacity-100" />

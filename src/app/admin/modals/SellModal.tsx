@@ -1,5 +1,5 @@
 import type { Perfume } from "@/types/perfume"
-import { Button, ButtonGhost } from "@/components/ui/Button"
+import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Field"
 import { formatMoney } from "@/lib/admin/utils"
 import { ModalShell } from "@/components/ui/ModalShell"
@@ -76,14 +76,15 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
           ) : null}
         </div>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <ButtonGhost
+          <Button
             type="button"
+            variant="ghost"
             className="w-full rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
             onClick={onClose}
             disabled={busy}
           >
             Cancelar
-          </ButtonGhost>
+          </Button>
           <Button
             type="button"
             onClick={onConfirm}
