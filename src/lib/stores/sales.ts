@@ -1,5 +1,5 @@
 import crypto from "node:crypto"
-import { dataFilePath, readJsonArrayResult, writeJson } from "@/lib/storage/jsonFile"
+import { dataFilePath, readJsonArrayResult, withStorageLock, writeJson } from "@/lib/storage/jsonFile"
 
 export type SaleRecord = {
   id: string
@@ -77,6 +77,8 @@ export async function appendSale(record: Omit<SaleRecord, "id" | "at"> & { id?: 
     qty: record.qty
   }
 
-  const existing = await readSales()
-  await writeSales([sale, ...existing])
+  await withStorageLock(salesPath, async () => {
+    const existing = await readSales()
+    await writeSales([sale, ...existing])
+  })
 }

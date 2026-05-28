@@ -6,9 +6,9 @@ type BadgeTone = "neutral" | "neutral-muted" | "gold"
 type BadgeSize = "xs" | "sm" | "md"
 
 function sizeClass(size: BadgeSize) {
-  if (size === "xs") return "px-3 py-1 text-[10px] font-medium tracking-[0.18em]"
+  if (size === "xs") return "px-3 py-1 text-ui-2xs font-medium tracking-[0.18em]"
   if (size === "md") return "px-5 py-2.5 text-sm font-medium tracking-wide"
-  return "px-4 py-1.5 text-[10px] font-medium tracking-[0.22em]"
+  return "px-4 py-1.5 text-ui-2xs font-medium tracking-[0.22em]"
 }
 
 function toneClass(tone: BadgeTone) {

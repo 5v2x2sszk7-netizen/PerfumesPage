@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import type { Perfume } from "@/types/perfume"
-import { requireAdmin } from "@/lib/adminAuth"
-import { addSuggestion, readPerfumes, readSales, readSuggestions, writePerfumes } from "@/lib/perfumeStore"
+import { addSuggestion, readPerfumes, readSales, readSuggestions, withPerfumesLock, writePerfumes } from "@/lib/perfumeStore"
 import { slugify } from "@/lib/slug"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { availabilityFromStock, isAllowedPerfumeImageSrc, parseCost, parseNotes, parseSold, parseStock } from "@/lib/perfume/parsers"
@@ -16,9 +15,7 @@ function ensureUniqueSlug(slug: string, existing: Set<string>) {
   return `${slug}-${i}`
 }
 
-export async function GET(req: Request) {
-  const unauthorized = requireAdmin(req)
-  if (unauthorized) return unauthorized
+export async function GET() {
   const perfumes = await readPerfumes()
   const suggestions = await readSuggestions()
   const sales = await readSales()
@@ -33,9 +30,6 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const unauthorized = requireAdmin(req)
-  if (unauthorized) return unauthorized
-
   const body = (await req.json()) as Partial<Perfume>
   if (!body.name || !body.brand || !body.category || !body.description) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -56,13 +50,15 @@ export async function POST(req: Request) {
     }
   }
 
-  const perfumes = await readPerfumes()
-  const existingSlugs = new Set(perfumes.map((p) => p.slug))
-  const baseSlug = slugify(body.slug?.trim() || `${body.brand} ${body.name}`)
-  const slug = ensureUniqueSlug(baseSlug, existingSlugs)
-  const idBase = body.id?.trim() || `${slug}-${body.sizeMl}`
-  const existingIds = new Set(perfumes.map((p) => p.id))
-  const id = existingIds.has(idBase) ? `${idBase}-${Date.now()}` : idBase
+  const name = String(body.name)
+  const brand = String(body.brand)
+  const description = String(body.description)
+  const category = body.category as Perfume["category"]
+  const sizeMl = body.sizeMl as number
+  const price = body.price as number
+  const availabilityBody = body.availability as Perfume["availability"]
+  const slugInput = body.slug?.trim()
+  const idInput = body.id?.trim()
 
   const notes = parseNotes(body.notes)
   const stockParsed = parseStock((body as unknown as { stock?: unknown }).stock)
@@ -79,33 +75,49 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid sold" }, { status: 400 })
   }
   const sold = soldParsed ?? 0
-  const stock = stockParsed ?? (body.availability === "out_of_stock" ? 0 : 1)
-  const availability = stockParsed != null ? availabilityFromStock(stock) : body.availability
+  const stock = stockParsed ?? (availabilityBody === "out_of_stock" ? 0 : 1)
+  const availability = stockParsed != null ? availabilityFromStock(stock) : availabilityBody
 
-  const created: Perfume = {
-    id,
-    slug,
-    name: String(body.name),
-    brand: String(body.brand),
-    category: body.category,
-    description: String(body.description),
-    sizeMl: body.sizeMl,
-    price: body.price,
-    cost,
-    sold,
-    stock,
-    availability,
-    imageSrc: (typeof body.imageSrc === "string" && body.imageSrc.trim() ? body.imageSrc.trim() : "/images/bottle-placeholder.svg"),
-    notes
-  }
+  const imageSrc =
+    typeof body.imageSrc === "string" && body.imageSrc.trim()
+      ? body.imageSrc.trim()
+      : "/images/bottle-placeholder.svg"
 
-  const next = [created, ...perfumes]
   try {
-    await writePerfumes(next)
+    const created = await withPerfumesLock(async () => {
+      const perfumes = await readPerfumes()
+      const existingSlugs = new Set(perfumes.map((p) => p.slug))
+      const baseSlug = slugify(slugInput || `${brand} ${name}`)
+      const slug = ensureUniqueSlug(baseSlug, existingSlugs)
+      const idBase = idInput || `${slug}-${sizeMl}`
+      const existingIds = new Set(perfumes.map((p) => p.id))
+      const id = existingIds.has(idBase) ? `${idBase}-${Date.now()}` : idBase
+
+      const created: Perfume = {
+        id,
+        slug,
+        name,
+        brand,
+        category,
+        description,
+        sizeMl,
+        price,
+        cost,
+        sold,
+        stock,
+        availability,
+        imageSrc,
+        notes
+      }
+
+      const next = [created, ...perfumes]
+      await writePerfumes(next)
+      return created
+    })
     await addSuggestion(created.brand, created.name)
+    return NextResponse.json({ perfume: created }, { status: 201 })
   } catch (e) {
     if (isPersistenceNotConfiguredError(e)) return NextResponse.json({ error: e.message }, { status: 501 })
     return NextResponse.json({ error: "Could not save product" }, { status: 500 })
   }
-  return NextResponse.json({ perfume: created }, { status: 201 })
 }

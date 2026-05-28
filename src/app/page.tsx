@@ -74,7 +74,7 @@ export default async function HomePage() {
 
       <section className="relative bg-white">
         <Container className="pt-14 pb-16 sm:pt-16 sm:pb-20">
-          <div className="max-w-[560px]">
+          <div className="max-w-home-hero">
             <p className="text-xs tracking-[0.32em] text-ink-500">AGREGADOS RECIENTEMENTE</p>
             <h2 className="mt-4 font-display text-2xl leading-[0.95] text-ink-950">Nuevas incorporaciones</h2>
 
@@ -83,7 +83,7 @@ export default async function HomePage() {
               <LazyReveal key={p.id} className="w-full" delayMs={idx * 120}>
                 <Link
                   href={`/catalog/${p.slug}`}
-                  className="group relative block w-full max-w-[360px] [transform:translateZ(0)] overflow-hidden rounded-2xl bg-white p-3 no-underline ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:ring-black/10 hover:shadow-home-featured-hover motion-safe:hover:-translate-y-0.5 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                  className="group relative block w-full max-w-featured-card [transform:translateZ(0)] overflow-hidden rounded-2xl bg-white p-3 no-underline ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:ring-black/10 hover:shadow-home-featured-hover motion-safe:hover:-translate-y-0.5 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                 >
                   <div className="pointer-events-none absolute inset-0 bg-home-featured-hover-glow opacity-0 transition-opacity duration-luxe-slow ease-luxe group-hover:opacity-100" />
                   <div className="relative aspect-[5/6] overflow-hidden rounded-xl bg-ink-50 ring-1 ring-inset ring-black/8">
@@ -126,7 +126,7 @@ export default async function HomePage() {
         <Container className="pt-12 pb-16">
           <div className="grid gap-y-8 gap-x-12 lg:grid-cols-12 lg:items-start">
             <LazyReveal delayMs={0} className="lg:col-span-5">
-              <div className="max-w-[480px]">
+              <div className="max-w-home-intro">
                 <p className="text-xs tracking-[0.32em] text-ink-500">SERVICIO</p>
                 <h2 className="mt-4 font-display text-3xl leading-[0.95] text-ink-950 sm:text-4xl">
                   Menos catálogo infinito. Más curaduría.
@@ -246,7 +246,7 @@ export default async function HomePage() {
                     <div className="grid gap-4 md:grid-cols-[240px_1fr] md:gap-8">
                       <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-antiqueGoldMuted/55 font-display text-[13px] font-medium tracking-wide text-ink-950 ring-1 ring-inset ring-black/8">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-antiqueGoldMuted/55 font-display text-ui-md font-medium tracking-wide text-ink-950 ring-1 ring-inset ring-black/8">
                             {getInitials(r.customerName)}
                           </div>
                           <div className="min-w-0">
@@ -254,7 +254,7 @@ export default async function HomePage() {
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-neutral-400">
                               <span>{new Date(r.at).toLocaleDateString("es-MX")}</span>
                               {r.rating ? (
-                                <span className="flex items-center gap-1 text-[13px] leading-none text-[#bfa37a]">
+                                <span className="flex items-center gap-1 text-ui-md leading-none text-[#bfa37a]">
                                   {Array.from({ length: 5 }).map((_, i) => (
                                     <span key={i}>{i < starsValue ? "★" : "☆"}</span>
                                   ))}
@@ -276,10 +276,10 @@ export default async function HomePage() {
                               {deliveryStatus ? (
                                 <div className="space-y-1">
                                   <p className="text-sm font-medium text-ink-950">{deliveryStatus}</p>
-                                  <p className="text-[11px] tracking-[0.22em] text-neutral-400/90">ENTREGA CONFIRMADA</p>
+                                  <p className="text-ui-xs tracking-[0.22em] text-neutral-400/90">ENTREGA CONFIRMADA</p>
                                 </div>
                               ) : (
-                                <p className="text-[11px] tracking-[0.22em] text-neutral-400/90">ENTREGA CONFIRMADA</p>
+                                <p className="text-ui-xs tracking-[0.22em] text-neutral-400/90">ENTREGA CONFIRMADA</p>
                               )}
                               {r.deliveryNotes ? (
                                 <p className="text-xs text-ink-700">
@@ -292,7 +292,7 @@ export default async function HomePage() {
                                     {deliveryImages.map((src, imageIdx) => {
                                       const itemClass =
                                         deliveryImages.length === 1
-                                          ? "w-full max-w-[400px]"
+                                          ? "w-full max-w-delivery-single"
                                           : "w-[160px] sm:w-[172px]"
                                       return (
                                         <ZoomableImage

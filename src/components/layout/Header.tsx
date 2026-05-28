@@ -28,7 +28,7 @@ export function Header() {
   return (
     <header
       className={[
-        "sticky top-0 z-50",
+        "sticky top-0 z-header",
         "transition-luxe-header duration-luxe ease-luxe",
         scrolled
           ? "border-b border-black/6 bg-glass-header-scrolled shadow-header backdrop-blur-sm"
@@ -37,10 +37,10 @@ export function Header() {
     >
       <Container className="flex h-14 items-center justify-between">
         <Link href="/" prefetch={false} className="group inline-flex flex-col leading-none">
-          <span className="font-display text-[1.14rem] uppercase tracking-[0.32em] text-ink-950 sm:text-[1.34rem] sm:tracking-[0.30em]">
+          <span className="font-display text-logo uppercase tracking-[0.32em] text-ink-950 sm:text-logo-sm sm:tracking-[0.30em]">
             {siteConfig.wordmark}
           </span>
-          <span className="mt-1 text-[10px] font-extralight tracking-[0.52em] text-ink-500">
+          <span className="mt-1 text-ui-2xs font-extralight tracking-[0.52em] text-ink-500">
             {siteConfig.descriptor}
           </span>
         </Link>
@@ -49,14 +49,14 @@ export function Header() {
           <Link
             href="/catalog"
             prefetch={false}
-            className="text-[12.5px] text-ink-600 transition-colors duration-700 ease-luxe hover:text-ink-950"
+            className="text-ui-sm text-ink-600 transition-colors duration-700 ease-luxe hover:text-ink-950"
           >
             Catálogo
           </Link>
           <Link
             href="/special-order"
             prefetch={false}
-            className="text-[12.5px] text-ink-600 transition-colors duration-700 ease-luxe hover:text-ink-950"
+            className="text-ui-sm text-ink-600 transition-colors duration-700 ease-luxe hover:text-ink-950"
           >
             Pedidos especiales
           </Link>

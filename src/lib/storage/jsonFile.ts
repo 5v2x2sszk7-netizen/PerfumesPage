@@ -4,6 +4,25 @@ export function dataFilePath(fileName: string) {
   return `data/${fileName}`
 }
 
+const storageLockTails = new Map<string, Promise<void>>()
+
+export async function withStorageLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const prev = storageLockTails.get(key) ?? Promise.resolve()
+  let release!: () => void
+  const next = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const nextTail = prev.then(() => next)
+  storageLockTails.set(key, nextTail)
+  await prev
+  try {
+    return await fn()
+  } finally {
+    release()
+    if (storageLockTails.get(key) === nextTail) storageLockTails.delete(key)
+  }
+}
+
 export async function readJsonArrayResult<T>(filePath: string): Promise<
   | { status: "ok"; value: T[] }
   | { status: "missing"; value: [] }

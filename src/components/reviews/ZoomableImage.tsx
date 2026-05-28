@@ -234,7 +234,7 @@ export function ZoomableImage({
             <div
               id={dialogId}
               className={
-                "fixed inset-0 z-[500] flex items-start justify-center overflow-y-auto p-1 pt-8 pb-4 sm:p-4 sm:pt-10 sm:pb-6 " +
+                "fixed inset-0 z-zoom flex items-start justify-center overflow-y-auto p-1 pt-8 pb-4 sm:p-4 sm:pt-10 sm:pb-6 " +
                 (closing ? "modal-overlay-out" : "modal-overlay-in")
               }
               role="dialog"
@@ -295,7 +295,7 @@ export function ZoomableImage({
                   <div className="pointer-events-none absolute left-1/2 top-[60%] h-[640px] w-[640px] -translate-x-1/2 rounded-full bg-zoom-glow-1 opacity-32 blur-[140px] sm:h-[820px] sm:w-[820px]" />
                   <div className="pointer-events-none absolute left-1/2 top-[68%] h-[760px] w-[760px] -translate-x-1/2 rounded-full bg-zoom-glow-2 opacity-24 blur-[160px] sm:h-[960px] sm:w-[960px]" />
                   {glowRgb ? (
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(240%_170%_at_50%_46%,rgb(var(--glow-rgb)/0.12),transparent_74%)] opacity-65 transition-opacity duration-luxe-fast ease-luxe" />
+                    <div className="pointer-events-none absolute inset-0 bg-zoom-dynamic-glow opacity-65 transition-opacity duration-luxe-fast ease-luxe" />
                   ) : null}
 
                   <div
@@ -331,7 +331,7 @@ export function ZoomableImage({
                   />
 
                   {total > 1 ? (
-                    <div className="pointer-events-none absolute left-6 top-6 rounded-full bg-black/0 px-3 py-1 text-[11px] font-medium tracking-[0.16em] text-white/66 ring-1 ring-white/3">
+                    <div className="pointer-events-none absolute left-6 top-6 rounded-full bg-black/0 px-3 py-1 text-ui-xs font-medium tracking-[0.16em] text-white/66 ring-1 ring-white/3">
                       {String(activeIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
                     </div>
                   ) : null}
@@ -379,7 +379,7 @@ export function ZoomableImage({
                               ? "text-white/72"
                               : idx === 1
                                 ? "text-white/62"
-                                : "text-[13.5px] text-white/66 tracking-[0.21em]"
+                                : "text-ui-lg text-white/66 tracking-[0.21em]"
                           return (
                             <div key={`${idx}-${part}`} className={"leading-[1.30] " + lineClass}>
                               {part}

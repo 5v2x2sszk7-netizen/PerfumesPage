@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/lib/adminAuth"
 import { deleteReview, updateReview } from "@/lib/perfumeStore"
 import type { Review } from "@/lib/perfumeStore"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
@@ -8,8 +7,6 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const unauthorized = requireAdmin(req)
-  if (unauthorized) return unauthorized
   const { id } = await params
   const body = (await req.json()) as Partial<Review>
 
@@ -31,8 +28,6 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const unauthorized = requireAdmin(req)
-  if (unauthorized) return unauthorized
   const { id } = await params
   try {
     const ok = await deleteReview(id)

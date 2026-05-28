@@ -44,8 +44,13 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
+  const token = expectedAdminToken()
   const cookieValue = req.cookies.get(adminCookieName)?.value
-  const ok = await isValidAdminSessionValue(cookieValue)
+  const hasSession = await isValidAdminSessionValue(cookieValue)
+  const authHeader = req.headers.get("authorization")?.trim() ?? ""
+  const bearer = authHeader.replace(/^Bearer\s+/i, "").trim()
+  const hasBearerToken = Boolean(token && bearer && constantTimeEqual(bearer, token))
+  const ok = hasSession || hasBearerToken
 
   if (pathname.startsWith("/api/admin/")) {
     if (!ok) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

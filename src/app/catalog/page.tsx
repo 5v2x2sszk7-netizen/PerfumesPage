@@ -38,7 +38,7 @@ function CatalogSkeleton() {
               <div className="mt-5 space-y-3">
                 <div className="h-3 w-28 rounded-full shimmer" />
                 <div className="h-5 w-44 rounded-full shimmer" />
-                <div className="h-4 w-full max-w-[220px] rounded-full shimmer" />
+                <div className="h-4 w-full max-w-skeleton rounded-full shimmer" />
               </div>
             </div>
           </div>

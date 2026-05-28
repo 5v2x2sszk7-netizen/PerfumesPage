@@ -1,7 +1,8 @@
 import type { Perfume } from "@/types/perfume"
-import { dataFilePath, readJsonArray, writeJson } from "@/lib/storage/jsonFile"
+import { dataFilePath, readJsonArray, withStorageLock, writeJson } from "@/lib/storage/jsonFile"
 
 const perfumesPath = dataFilePath("perfumes.json")
+export const perfumesStorageKey = perfumesPath
 
 function normalizePerfume(input: Perfume): Perfume {
   const cost =
@@ -30,4 +31,8 @@ export async function readPerfumes(): Promise<Perfume[]> {
 
 export async function writePerfumes(perfumes: Perfume[]) {
   await writeJson(perfumesPath, perfumes.map(normalizePerfume))
+}
+
+export async function withPerfumesLock<T>(fn: () => Promise<T>): Promise<T> {
+  return withStorageLock(perfumesPath, fn)
 }

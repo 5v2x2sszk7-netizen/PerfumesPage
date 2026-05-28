@@ -1,5 +1,5 @@
 import crypto from "node:crypto"
-import { dataFilePath, readJsonArray, writeJson } from "@/lib/storage/jsonFile"
+import { dataFilePath, readJsonArray, withStorageLock, writeJson } from "@/lib/storage/jsonFile"
 
 export type Review = {
   id: string
@@ -109,35 +109,41 @@ export async function createReview(input: Omit<Review, "id" | "at"> & { id?: str
   const res = validateAndNormalizeReview(input)
   if (!res.ok) throw new Error(res.error)
   const normalized = res.value
-  const existing = await readReviews()
-  await writeReviews([normalized, ...existing])
+  await withStorageLock(reviewsPath, async () => {
+    const existing = await readReviews()
+    await writeReviews([normalized, ...existing])
+  })
   return normalized
 }
 
 export async function updateReview(id: string, patch: Partial<Review>) {
-  const existing = await readReviews()
-  const idx = existing.findIndex((r) => r.id === id)
-  if (idx === -1) return null
-  const current = existing[idx]
-  const merged = {
-    ...current,
-    ...patch,
-    id: current.id,
-    at: current.at
-  }
-  const res = validateAndNormalizeReview(merged)
-  if (!res.ok) throw new Error(res.error)
-  const normalized = res.value
-  const next = [...existing]
-  next[idx] = normalized
-  await writeReviews(next)
-  return normalized
+  return withStorageLock(reviewsPath, async () => {
+    const existing = await readReviews()
+    const idx = existing.findIndex((r) => r.id === id)
+    if (idx === -1) return null
+    const current = existing[idx]
+    const merged = {
+      ...current,
+      ...patch,
+      id: current.id,
+      at: current.at
+    }
+    const res = validateAndNormalizeReview(merged)
+    if (!res.ok) throw new Error(res.error)
+    const normalized = res.value
+    const next = [...existing]
+    next[idx] = normalized
+    await writeReviews(next)
+    return normalized
+  })
 }
 
 export async function deleteReview(id: string) {
-  const existing = await readReviews()
-  const next = existing.filter((r) => r.id !== id)
-  if (next.length === existing.length) return false
-  await writeReviews(next)
-  return true
+  return withStorageLock(reviewsPath, async () => {
+    const existing = await readReviews()
+    const next = existing.filter((r) => r.id !== id)
+    if (next.length === existing.length) return false
+    await writeReviews(next)
+    return true
+  })
 }

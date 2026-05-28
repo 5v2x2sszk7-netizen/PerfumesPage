@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Input, Label, Textarea } from "@/components/ui/Field"
+import { UploadButton } from "@/components/ui/UploadButton"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 
@@ -246,32 +247,23 @@ export function ReviewForm() {
                 }
                 readOnly
               />
-              <label
-                htmlFor="review-delivery-photo"
-                className={`inline-flex h-11 w-full min-w-[160px] cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-antiqueGold px-5 text-sm font-medium tracking-wide text-white shadow-sm ring-1 ring-black/8 transition hover:bg-antiqueGoldDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] hover:shadow-cta-hover sm:w-auto ${
-                  uploading || status === "submitting" ? "pointer-events-none opacity-50" : ""
-                }`}
+              <UploadButton
+                multiple
+                accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
+                disabled={uploading || status === "submitting"}
+                className={deliveryPhotos.length >= 5 ? "text-[#60523e]" : ""}
+                onSelect={(files) => {
+                  void onUploadDeliveryPhotos(files)
+                }}
               >
                 {uploading
                   ? "Subiendo..."
                   : deliveryPhotos.length >= 5
-                    ? <span className="text-[#60523e]">Límite 5</span>
+                    ? "Límite 5"
                     : deliveryPhotos.length
                       ? "Agregar fotos"
                       : "Subir fotos"}
-              </label>
-              <input
-                id="review-delivery-photo"
-                type="file"
-                multiple
-                accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
-                className="hidden"
-                onChange={(e) => {
-                  const files = e.target.files
-                  if (files?.length) void onUploadDeliveryPhotos(files)
-                  e.currentTarget.value = ""
-                }}
-              />
+              </UploadButton>
             </div>
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center sm:justify-items-end">
               <div className="space-y-1">
@@ -300,7 +292,7 @@ export function ReviewForm() {
                       onClick={() => removeDeliveryPhoto(p.id)}
                       className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-ink-950 shadow-sm ring-1 ring-black/8"
                     >
-                      <span className="text-[11px] leading-none">✕</span>
+                      <span className="text-ui-xs leading-none">✕</span>
                     </button>
                   </div>
                 ))}

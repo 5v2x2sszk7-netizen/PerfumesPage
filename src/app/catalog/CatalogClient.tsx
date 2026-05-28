@@ -6,6 +6,7 @@ import { Input, Label, Select } from "@/components/ui/Field"
 import { ButtonGhost } from "@/components/ui/Button"
 import { Surface } from "@/components/ui/Surface"
 import { LazyReveal } from "@/components/ui/LazyReveal"
+import { Pill } from "@/components/ui/Pill"
 import { cn } from "@/lib/cn"
 import { availabilityLabel } from "@/lib/whatsapp"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -183,44 +184,34 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
       <Surface className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
           <div className="grid gap-2">
-            <p className="text-[11px] font-medium tracking-[0.22em] text-ink-500">CATEGORÍA</p>
+            <p className="text-ui-xs font-medium tracking-[0.22em] text-ink-500">CATEGORÍA</p>
             <div className="flex items-center gap-2">
-              <button
+              <Pill
                 type="button"
+                variant="catalog"
+                active={category === "niche"}
                 onClick={() => {
                   replaceQuery((next) => {
                     next.delete("brand")
                     next.delete("category")
                   })
                 }}
-                className={cn(
-                  "inline-flex h-10 items-center justify-center rounded-full px-5 text-[12.5px] font-medium tracking-[0.18em] ring-1 ring-inset transition-luxe-wide duration-700 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]",
-                  category === "niche"
-                    ? "bg-white text-ink-950 ring-antiqueGold/28 shadow-pill-active"
-                    : "bg-ink-50/70 text-ink-700 ring-black/8 hover:bg-white"
-                )}
-                aria-pressed={category === "niche"}
               >
                 Nicho
-              </button>
-              <button
+              </Pill>
+              <Pill
                 type="button"
+                variant="catalog"
+                active={category === "designer"}
                 onClick={() => {
                   replaceQuery((next) => {
                     next.delete("brand")
                     next.set("category", "designer")
                   })
                 }}
-                className={cn(
-                  "inline-flex h-10 items-center justify-center rounded-full px-5 text-[12.5px] font-medium tracking-[0.18em] ring-1 ring-inset transition-luxe-wide duration-700 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]",
-                  category === "designer"
-                    ? "bg-white text-ink-950 ring-antiqueGold/28 shadow-pill-active"
-                    : "bg-ink-50/70 text-ink-700 ring-black/8 hover:bg-white"
-                )}
-                aria-pressed={category === "designer"}
               >
                 Diseñador
-              </button>
+              </Pill>
             </div>
           </div>
 
@@ -269,7 +260,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
             <div className="grid gap-3 md:grid-cols-3">
               <div className="grid gap-1.5">
-                <Label htmlFor="q" className="text-[11px] tracking-[0.18em] text-ink-600">
+                <Label htmlFor="q" className="text-ui-xs tracking-[0.18em] text-ink-600">
                   Buscar
                 </Label>
                 <Input
@@ -290,7 +281,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="brand" className="text-[11px] tracking-[0.18em] text-ink-600">
+                <Label htmlFor="brand" className="text-ui-xs tracking-[0.18em] text-ink-600">
                   Marca
                 </Label>
                 <Select
@@ -318,7 +309,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
               <div className="grid gap-1.5">
                 <Label
                   htmlFor="availability"
-                  className="text-[11px] tracking-[0.18em] text-ink-600"
+                  className="text-ui-xs tracking-[0.18em] text-ink-600"
                 >
                   Disponibilidad
                 </Label>
@@ -347,7 +338,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
             <div className="flex flex-wrap items-end justify-between gap-3 lg:justify-end">
               <div className="flex items-end gap-2">
                 <div className="grid gap-1.5">
-                  <Label htmlFor="sort" className="text-[11px] tracking-[0.18em] text-ink-600">
+                  <Label htmlFor="sort" className="text-ui-xs tracking-[0.18em] text-ink-600">
                     Ordenar por:
                   </Label>
                   <Select
@@ -442,12 +433,12 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
       {ordered.length ? (
         view === "grid" && ordered.length === 1 ? (
           <div className="mt-10 flex justify-center">
-            <LazyReveal delayMs={0} className="w-full max-w-[420px] sm:max-w-[460px]">
+            <LazyReveal delayMs={0} className="w-full max-w-catalog-filters sm:max-w-catalog-filters-sm">
               <PerfumeCard perfume={ordered[0]!} />
             </LazyReveal>
           </div>
         ) : view === "grid" && ordered.length === 2 ? (
-          <div className="mt-10 mx-auto grid max-w-[940px] grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="mt-10 mx-auto grid max-w-catalog-grid grid-cols-1 gap-6 sm:grid-cols-2">
             {ordered.map((p, idx) => (
               <LazyReveal key={p.id} delayMs={idx * 90} className="w-full">
                 <PerfumeCard perfume={p} />
@@ -479,12 +470,12 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
               sizes="100vw"
               priority={false}
             />
-            <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_30%,rgba(18,28,58,0.10),rgba(255,255,255,0.92)_60%,rgba(255,255,255,0.98)_100%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(88%_70%_at_50%_44%,transparent_62%,rgba(0,0,0,0.06)_100%)]" />
+            <div className="absolute inset-0 bg-catalog-empty-overlay-1" />
+            <div className="absolute inset-0 bg-catalog-empty-overlay-2" />
           </div>
 
           <div className="relative grid gap-3">
-            <p className="text-[11px] font-medium tracking-[0.22em] text-ink-500">COLECCIÓN</p>
+            <p className="text-ui-xs font-medium tracking-[0.22em] text-ink-500">COLECCIÓN</p>
             <p className="font-display text-2xl text-ink-950">
               {hasActiveFilters
                 ? "No hay fragancias disponibles con esta selección."

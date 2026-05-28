@@ -1,5 +1,6 @@
 import type { Perfume } from "@/types/perfume"
 import { ButtonGhost } from "@/components/ui/Button"
+import { ModalShell } from "@/components/ui/ModalShell"
 import { Surface } from "@/components/ui/Surface"
 
 type Props = {
@@ -13,15 +14,8 @@ export function DeleteProductModal({ deleteTarget, busy, onClose, onConfirm }: P
   if (!deleteTarget) return null
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4"
-      role="dialog"
-      aria-modal="true"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <Surface variant="modal" radius="xl" className="w-full max-w-md p-6">
+    <ModalShell open={true} onClose={onClose} contentClassName="w-full max-w-md">
+      <Surface variant="modal" radius="xl" className="w-full p-6">
         <p className="text-xs tracking-[0.25em] text-ink-500">CONFIRMAR</p>
         <h2 className="mt-2 font-display text-2xl text-ink-950">Eliminar producto</h2>
         <p className="mt-3 text-sm text-ink-700">
@@ -46,6 +40,6 @@ export function DeleteProductModal({ deleteTarget, busy, onClose, onConfirm }: P
           </ButtonGhost>
         </div>
       </Surface>
-    </div>
+    </ModalShell>
   )
 }

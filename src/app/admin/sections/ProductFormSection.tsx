@@ -4,6 +4,7 @@ import type { Dispatch, RefObject, SetStateAction } from "react"
 import type { Perfume } from "@/types/perfume"
 import { Button, ButtonGhost } from "@/components/ui/Button"
 import { Input, Label, Textarea } from "@/components/ui/Field"
+import { UploadButton } from "@/components/ui/UploadButton"
 import type { Draft } from "@/lib/admin/types"
 import { formatMoney } from "@/lib/admin/utils"
 import Image from "next/image"
@@ -57,7 +58,7 @@ export function ProductFormSection({
   return (
     <section className="rounded-luxe-xl bg-ink-50/60 p-3 ring-1 ring-inset ring-black/8 sm:p-5">
       <div className="rounded-3xl border border-black/8 bg-white p-6">
-        <div className="-mx-6 -mt-6 sticky top-3 z-30 border-b border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft">
+        <div className="-mx-6 -mt-6 sticky top-3 z-sticky border-b border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-2xl text-ink-950">{isEditing ? "Editar perfume" : "Nuevo perfume"}</h2>
           </div>
@@ -153,26 +154,16 @@ export function ProductFormSection({
 
           <div className="md:col-span-2 grid gap-2">
             <Label>Imagen</Label>
-            <input
-              ref={fileInputRef}
-              id="admin-image-file"
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0]
-                if (f) onUpload(f)
-              }}
-            />
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
               <Input placeholder="/uploads/tu-imagen.jpg" value={draft.imageSrc} onChange={(e) => setDraft((d) => ({ ...d, imageSrc: e.target.value }))} />
-              <label
-                htmlFor="admin-image-file"
-                className={
-                  "inline-flex h-11 w-full min-w-[160px] cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-antiqueGold px-5 text-sm font-medium tracking-wide text-white shadow-sm ring-1 ring-black/8 transition hover:bg-antiqueGoldDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] hover:shadow-cta-hover sm:w-auto " +
-                  (busy ? "pointer-events-none opacity-50 " : "") +
-                  (uploadedPath ? "hover:opacity-95" : "hover:opacity-95")
-                }
+              <UploadButton
+                inputRef={fileInputRef}
+                accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
+                disabled={busy}
+                onSelect={(files) => {
+                  const f = files[0]
+                  if (f) onUpload(f)
+                }}
               >
                 {uploading ? (
                   <span className="inline-flex items-center gap-2">
@@ -184,7 +175,7 @@ export function ProductFormSection({
                 ) : (
                   "Elegir imagen"
                 )}
-              </label>
+              </UploadButton>
             </div>
             <div className="grid gap-2 sm:grid-cols-[120px_1fr] sm:items-center">
               <div className="h-24 w-24 overflow-hidden rounded-2xl border border-black/8 bg-ink-50">
@@ -228,7 +219,7 @@ export function ProductFormSection({
           </div>
         </div>
 
-        <div className="-mx-6 mt-10 sticky bottom-3 z-30 border-t border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft-up">
+        <div className="-mx-6 mt-10 sticky bottom-3 z-sticky border-t border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft-up">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-ink-600">{canSubmit ? "Listo para guardar." : "Completa los campos obligatorios (*)"}</p>
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">

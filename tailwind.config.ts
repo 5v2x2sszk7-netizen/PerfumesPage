@@ -46,6 +46,38 @@ export default {
       letterSpacing: {
         luxe: "0.12em"
       },
+      zIndex: {
+        sticky: "30",
+        header: "50",
+        modal: "100",
+        zoom: "500"
+      },
+      fontSize: {
+        "ui-2xs": ["10px", { lineHeight: "1rem" }],
+        "ui-xs": ["11px", { lineHeight: "1rem" }],
+        "ui-sm": ["12.5px", { lineHeight: "1.15rem" }],
+        "ui-md": ["13px", { lineHeight: "1.2rem" }],
+        "ui-lg": ["13.5px", { lineHeight: "1.25rem" }],
+        "ui-body": ["15px", { lineHeight: "1.85" }],
+        "ui-rating": ["17px", { lineHeight: "1" }],
+        logo: ["1.14rem", { lineHeight: "1" }],
+        "logo-sm": ["1.34rem", { lineHeight: "1" }]
+      },
+      maxWidth: {
+        "footer-copy": "320px",
+        "featured-card": "360px",
+        "delivery-single": "400px",
+        "catalog-filters": "420px",
+        "catalog-filters-sm": "460px",
+        "home-intro": "480px",
+        "home-hero": "560px",
+        "catalog-grid": "940px",
+        prose: "72ch",
+        "review-copy": "44ch",
+        "review-media": "300px",
+        skeleton: "220px",
+        page: "1120px"
+      },
       boxShadow: {
         glow: "0 0 0 1px rgba(184, 155, 94, 0.18), 0 12px 40px rgba(0,0,0,0.35)",
         card: "0 12px 50px rgba(0,0,0,0.03)",
@@ -102,14 +134,21 @@ export default {
         "perfume-hover-white": "radial-gradient(70%_60%_at_50%_0%,rgba(255,255,255,0.16),transparent_62%)",
         "perfume-media-glow": "radial-gradient(65%_55%_at_50%_20%,rgba(191,163,122,0.18),transparent_72%)",
         "perfume-media-highlight": "linear-gradient(180deg,rgba(255,255,255,0.10),transparent_55%)",
+        "perfume-detail-card-glow":
+          "radial-gradient(70%_70%_at_50%_18%,rgba(184,155,94,0.14),transparent_62%),radial-gradient(110%_90%_at_50%_52%,rgba(16,24,52,0.06),transparent_64%)",
+        "perfume-detail-card-shine": "radial-gradient(65%_55%_at_50%_18%,rgba(255,255,255,0.18),transparent_65%)",
         "perfume-consult-underline":
           "linear-gradient(90deg,rgba(191,163,122,0.0),rgba(191,163,122,0.28),rgba(191,163,122,0.0))",
         "glass-header-scrolled": "linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.72))",
         "glass-header-top": "linear-gradient(180deg,rgba(255,255,255,0.78),rgba(255,255,255,0.78))",
+        "catalog-empty-overlay-1":
+          "radial-gradient(120%_90%_at_50%_30%,rgba(18,28,58,0.10),rgba(255,255,255,0.92)_60%,rgba(255,255,255,0.98)_100%)",
+        "catalog-empty-overlay-2": "radial-gradient(88%_70%_at_50%_44%,transparent_62%,rgba(0,0,0,0.06)_100%)",
         "zoom-overlay":
           "radial-gradient(340%_260%_at_50%_42%,rgba(14,22,46,0.58),rgba(10,13,18,0.20)_58%,rgba(6,7,9,0.94)_100%),radial-gradient(250%_185%_at_50%_62%,rgba(28,44,86,0.12),transparent_80%),linear-gradient(180deg,transparent_48%,rgba(0,0,0,0.48)_100%)",
         "zoom-glow-1": "radial-gradient(circle,rgba(55,105,220,0.10),transparent_72%)",
         "zoom-glow-2": "radial-gradient(circle,rgba(16,28,64,0.22),transparent_70%)",
+        "zoom-dynamic-glow": "radial-gradient(240%_170%_at_50%_46%,rgb(var(--glow-rgb)/0.12),transparent_74%)",
         "zoom-vignette-1": "radial-gradient(125%_92%_at_50%_44%,transparent_58%,rgba(0,0,0,0.55)_100%)",
         "zoom-vignette-2": "radial-gradient(88%_70%_at_50%_44%,transparent_62%,rgba(0,0,0,0.22)_100%)",
         "zoom-nav-left": "linear-gradient(90deg,rgba(255,255,255,0.06),transparent_80%)",

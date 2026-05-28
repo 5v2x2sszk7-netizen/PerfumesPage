@@ -1,5 +1,6 @@
 import { Button, ButtonGhost } from "@/components/ui/Button"
 import { Input, Label, Textarea } from "@/components/ui/Field"
+import { UploadButton } from "@/components/ui/UploadButton"
 import type { Dispatch, RefObject, SetStateAction } from "react"
 import type { Review, ReviewDraft } from "@/lib/admin/types"
 import Image from "next/image"
@@ -67,30 +68,20 @@ export function ReviewsSection({
               </div>
               <div className="grid gap-2">
                 <Label>Imagen (captura)</Label>
-                <input
-                  ref={reviewFileInputRef}
-                  id="admin-review-image-file"
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) onUploadReview(f)
-                  }}
-                />
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
                   <Input
                     placeholder="/uploads/tu-reseña.jpg"
                     value={reviewDraft.imageSrc}
                     onChange={(e) => setReviewDraft((d) => ({ ...d, imageSrc: e.target.value }))}
                   />
-                  <label
-                    htmlFor="admin-review-image-file"
-                    className={
-                      "inline-flex h-11 w-full min-w-[160px] cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-antiqueGold px-5 text-sm font-medium tracking-wide text-white shadow-sm ring-1 ring-black/8 transition hover:bg-antiqueGoldDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] hover:shadow-cta-hover sm:w-auto " +
-                      (busy ? "pointer-events-none opacity-50 " : "") +
-                      (reviewUploadedPath ? "hover:opacity-95" : "hover:opacity-95")
-                    }
+                  <UploadButton
+                    inputRef={reviewFileInputRef}
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
+                    disabled={busy}
+                    onSelect={(files) => {
+                      const f = files[0]
+                      if (f) onUploadReview(f)
+                    }}
                   >
                     {reviewUploading ? (
                       <span className="inline-flex items-center gap-2">
@@ -102,7 +93,7 @@ export function ReviewsSection({
                     ) : (
                       "Elegir imagen"
                     )}
-                  </label>
+                  </UploadButton>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-[120px_1fr] sm:items-center">
                   <div className="h-24 w-24 overflow-hidden rounded-2xl border border-black/8 bg-ink-50">

@@ -6,7 +6,7 @@ export function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="bg-white opacity-glass">
+    <footer className="bg-white/78">
       <div className="border-t border-black/6">
         <Container className="py-14">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
@@ -15,12 +15,12 @@ export function Footer() {
                 <p className="font-display text-lg uppercase tracking-luxe text-ink-950">
                   {siteConfig.wordmark}
                 </p>
-                <p className="mt-1 text-[10px] tracking-[0.45em] text-ink-600">
+                <p className="mt-1 text-ui-2xs tracking-[0.45em] text-ink-600">
                   {siteConfig.descriptor}
                 </p>
               </div>
 
-              <p className="max-w-[320px] text-sm leading-[1.85] text-ink-700">
+              <p className="max-w-footer-copy text-sm leading-[1.85] text-ink-700">
                 Perfumería de nicho con selección curada. Disponibilidad limitada: confirmamos
                 stock, envíos y equivalencias antes de cerrar por WhatsApp.
               </p>
@@ -43,7 +43,7 @@ export function Footer() {
 
             <div className="grid gap-8 sm:grid-cols-2">
               <div className="space-y-3">
-                <p className="text-[11px] font-medium tracking-[0.25em] text-ink-500">
+                <p className="text-ui-xs font-medium tracking-[0.25em] text-ink-500">
                   NAVEGACIÓN
                 </p>
                 <div className="grid gap-2 text-sm text-ink-700">
@@ -57,7 +57,7 @@ export function Footer() {
               </div>
 
               <div className="space-y-3">
-                <p className="text-[11px] font-medium tracking-[0.25em] text-ink-500">
+                <p className="text-ui-xs font-medium tracking-[0.25em] text-ink-500">
                   DETALLES
                 </p>
                 <div className="space-y-2 text-sm text-ink-700">

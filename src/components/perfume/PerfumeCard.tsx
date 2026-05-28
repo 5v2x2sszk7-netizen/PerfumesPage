@@ -58,7 +58,7 @@ export function PerfumeCard({ perfume }: { perfume: Perfume }) {
         </div>
 
         <div className="mt-5 space-y-2">
-          <p className="text-[11px] tracking-[0.22em] text-ink-500">{perfume.brand}</p>
+          <p className="text-ui-xs tracking-[0.22em] text-ink-500">{perfume.brand}</p>
           <h3 className={cn("font-display text-xl leading-tight text-ink-950", isOut ? "text-ink-700" : "")}>
             {perfume.name}
           </h3>

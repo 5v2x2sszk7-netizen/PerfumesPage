@@ -1,4 +1,4 @@
-import { dataFilePath, readJson, writeJson } from "@/lib/storage/jsonFile"
+import { dataFilePath, readJson, withStorageLock, writeJson } from "@/lib/storage/jsonFile"
 import { readPerfumes } from "@/lib/stores/perfumes"
 import { normalizeKey } from "@/lib/text"
 
@@ -66,19 +66,21 @@ export async function addSuggestion(brand: string, name: string) {
   const nameTrimmed = name.trim()
   if (!brandTrimmed && !nameTrimmed) return
 
-  const current = await readSuggestions()
-  const next: PerfumeSuggestions = {
-    brands: current.brands,
-    namesByBrand: { ...current.namesByBrand }
-  }
+  await withStorageLock(suggestionsPath, async () => {
+    const current = await readSuggestions()
+    const next: PerfumeSuggestions = {
+      brands: current.brands,
+      namesByBrand: { ...current.namesByBrand }
+    }
 
-  if (brandTrimmed) next.brands = addUniqueCaseInsensitive(next.brands, brandTrimmed)
+    if (brandTrimmed) next.brands = addUniqueCaseInsensitive(next.brands, brandTrimmed)
 
-  if (brandTrimmed && nameTrimmed) {
-    const brandKey = normalizeKey(brandTrimmed)
-    const existingNames = next.namesByBrand[brandKey] ?? []
-    next.namesByBrand[brandKey] = addUniqueCaseInsensitive(existingNames, nameTrimmed)
-  }
+    if (brandTrimmed && nameTrimmed) {
+      const brandKey = normalizeKey(brandTrimmed)
+      const existingNames = next.namesByBrand[brandKey] ?? []
+      next.namesByBrand[brandKey] = addUniqueCaseInsensitive(existingNames, nameTrimmed)
+    }
 
-  await writeSuggestions(next)
+    await writeSuggestions(next)
+  })
 }
