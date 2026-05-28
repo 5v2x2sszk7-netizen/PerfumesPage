@@ -8,7 +8,7 @@ export function isAllowedPerfumeImageSrc(value: string) {
   return false
 }
 
-export function parseStringArray(value: unknown): string[] | undefined {
+function parseStringArray(value: unknown): string[] | undefined {
   if (value == null) return undefined
   if (Array.isArray(value)) return value.map((v) => String(v)).filter(Boolean)
   if (typeof value === "string") {

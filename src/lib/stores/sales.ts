@@ -1,7 +1,7 @@
 import crypto from "node:crypto"
 import { dataFilePath, readJsonArrayResult, withStorageLock, writeJson } from "@/lib/storage/jsonFile"
 
-export type SaleRecord = {
+type SaleRecord = {
   id: string
   at: string
   perfumeId: string
@@ -52,7 +52,7 @@ function normalizeSaleRecord(input: unknown): SaleRecord | null {
   }
 }
 
-export async function readSales(): Promise<SaleRecord[]> {
+export async function readSales() {
   const res = await readJsonArrayResult<unknown>(salesPath)
   if (res.status === "missing" || res.status === "invalid" || res.status === "error") {
     return []
@@ -60,11 +60,21 @@ export async function readSales(): Promise<SaleRecord[]> {
   return res.value.map(normalizeSaleRecord).filter(Boolean) as SaleRecord[]
 }
 
-export async function writeSales(sales: SaleRecord[]) {
+async function writeSales(sales: SaleRecord[]) {
   await writeJson(salesPath, sales)
 }
 
-export async function appendSale(record: Omit<SaleRecord, "id" | "at"> & { id?: string; at?: string }) {
+export async function appendSale(record: {
+  perfumeId: string
+  brand: string
+  name: string
+  sizeMl: number
+  unitPrice: number
+  unitCost: number
+  qty: number
+  id?: string
+  at?: string
+}) {
   const sale: SaleRecord = {
     id: record.id?.trim() || crypto.randomUUID(),
     at: record.at ?? new Date().toISOString(),

@@ -40,10 +40,29 @@ export default {
         glass: "0.78",
         "glass-scrolled": "0.72"
       },
+      lineHeight: {
+        display: "0.95",
+        body: "1.85"
+      },
       height: {
         "home-hero": "420px",
         "home-hero-sm": "520px",
-        "home-hero-lg": "680px"
+        "home-hero-lg": "680px",
+        "zoom-glow-1": "640px",
+        "zoom-glow-1-sm": "820px",
+        "zoom-glow-2": "760px",
+        "zoom-glow-2-sm": "960px"
+      },
+      width: {
+        thumb: "160px",
+        "thumb-sm": "172px",
+        "zoom-glow-1": "640px",
+        "zoom-glow-1-sm": "820px",
+        "zoom-glow-2": "760px",
+        "zoom-glow-2-sm": "960px"
+      },
+      minWidth: {
+        thumb: "160px"
       },
       maxHeight: {
         "review-media": "260px",
@@ -130,6 +149,10 @@ export default {
         "luxe-xl": "2.75rem",
         "luxe-md": "2rem",
         "luxe-dialog": "2.125rem"
+      },
+      blur: {
+        "zoom-1": "140px",
+        "zoom-2": "160px"
       },
       backgroundImage: {
         "home-hero-overlay-1":

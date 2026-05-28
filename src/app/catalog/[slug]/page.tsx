@@ -9,21 +9,27 @@ import { readPerfumes } from "@/lib/perfumeStore"
 import { LazyReveal } from "@/components/ui/LazyReveal"
 import { guessOlfactoryFamily, renderDescription, splitSentences } from "@/lib/editorial"
 import { Badge, availabilityBadgeTone } from "@/components/ui/Badge"
+import type { Perfume } from "@/types/perfume"
 
 export const revalidate = 60
+
+function resolvePerfume(perfumes: Perfume[], rawSlug: string) {
+  const slug = decodeURIComponent(rawSlug).trim()
+  return (
+    perfumes.find((p) => p.slug === slug) ??
+    perfumes.find((p) => p.id === slug) ??
+    perfumes.find((p) => p.id.startsWith(`${slug}-`))
+  )
+}
 
 export async function generateMetadata({
   params
 }: {
-  params: Promise<{ slug: string }>
+  params: { slug: string }
 }): Promise<Metadata> {
-  const { slug: rawSlug } = await params
-  const slug = decodeURIComponent(rawSlug).trim()
+  const { slug: rawSlug } = params
   const perfumes = await readPerfumes()
-  const perfume =
-    perfumes.find((p) => p.slug === slug) ??
-    perfumes.find((p) => p.id === slug) ??
-    perfumes.find((p) => p.id.startsWith(`${slug}-`))
+  const perfume = resolvePerfume(perfumes, rawSlug)
   if (!perfume) return {}
 
   const title = `${perfume.name} · ${perfume.brand}`
@@ -40,14 +46,10 @@ export async function generateMetadata({
   }
 }
 
-export default async function PerfumeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug: rawSlug } = await params
-  const slug = decodeURIComponent(rawSlug).trim()
+export default async function PerfumeDetailPage({ params }: { params: { slug: string } }) {
+  const { slug: rawSlug } = params
   const perfumes = await readPerfumes()
-  const perfume =
-    perfumes.find((p) => p.slug === slug) ??
-    perfumes.find((p) => p.id === slug) ??
-    perfumes.find((p) => p.id.startsWith(`${slug}-`))
+  const perfume = resolvePerfume(perfumes, rawSlug)
   if (!perfume) notFound()
 
   const message = formatPerfumeWhatsAppMessage(perfume)
@@ -104,7 +106,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
               <div className="space-y-8">
                 <div>
                   <p className="text-xs tracking-section text-ink-500">{perfume.brand}</p>
-                  <h1 className="mt-2 font-display text-4xl leading-[0.95] text-ink-950 sm:text-5xl">{perfume.name}</h1>
+                    <h1 className="mt-2 font-display text-4xl leading-display text-ink-950 sm:text-5xl">{perfume.name}</h1>
 
                   <div className="mt-5 flex flex-wrap gap-2">
                     <Badge>{concentration}</Badge>
@@ -114,11 +116,11 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                   </div>
 
                   {headline ? (
-                    <p className="mt-6 max-w-xl font-display text-2xl leading-[0.95] text-ink-950">
+                    <p className="mt-6 max-w-xl font-display text-2xl leading-display text-ink-950">
                       {headline}
                     </p>
                   ) : null}
-                  {rest ? <p className="mt-3 max-w-xl text-sm leading-[1.85] text-ink-700">{rest}</p> : null}
+                  {rest ? <p className="mt-3 max-w-xl text-sm leading-body text-ink-700">{rest}</p> : null}
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -140,14 +142,14 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
 
                 <div className="rounded-luxe border border-black/8 bg-white px-7 py-7 shadow-panel">
                   <p className="text-ui-xs font-medium tracking-section text-ink-500">DISPONIBILIDAD</p>
-                  <p className="mt-3 font-display text-2xl leading-[0.95] text-ink-950">{availabilityEditorial}</p>
+                  <p className="mt-3 font-display text-2xl leading-display text-ink-950">{availabilityEditorial}</p>
                   <p className="mt-2 text-sm tracking-wide text-ink-700">
                     {perfume.sizeMl} ml <span className="text-ink-400">·</span> {concentration}
                   </p>
 
                   <div className="mt-7">
                     <p className="text-ui-xs font-medium tracking-section text-ink-500">PRECIO</p>
-                    <p className="mt-2 font-display text-3xl leading-[0.95] text-ink-950">{formatPrice(perfume.price)}</p>
+                    <p className="mt-2 font-display text-3xl leading-display text-ink-950">{formatPrice(perfume.price)}</p>
                   </div>
 
                   <div className="mt-7">

@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { ZoomableImage } from "@/components/reviews/ZoomableImage"
+import { ZoomableImage } from "./ZoomableImage"
 import { getInitials } from "@/lib/text"
 import { Badge } from "@/components/ui/Badge"
+import { cn } from "@/lib/cn"
 
 export type ReviewCarouselItem = {
   src: string
@@ -193,10 +194,10 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
               type="button"
               aria-label={`Ir a la imagen ${i + 1}`}
               onClick={() => scrollToIndex(i)}
-              className={
-                "h-2 w-2 rounded-full transition " +
-                (i === activeIndex ? "bg-goldSoft" : "bg-neutral-200 hover:bg-neutral-300")
-              }
+              className={cn(
+                "h-2 w-2 rounded-full transition",
+                i === activeIndex ? "bg-goldSoft" : "bg-ink-200 hover:bg-ink-300"
+              )}
             />
           ))}
         </div>

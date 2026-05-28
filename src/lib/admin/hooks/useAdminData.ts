@@ -51,11 +51,12 @@ export function useAdminData({
 
   useEffect(() => {
     const controller = new AbortController()
-    queueMicrotask(() => {
+    const raf = window.requestAnimationFrame(() => {
       if (controller.signal.aborted) return
       void refresh({ signal: controller.signal })
     })
     return () => {
+      window.cancelAnimationFrame(raf)
       controller.abort()
     }
   }, [refresh])

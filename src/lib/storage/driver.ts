@@ -2,11 +2,11 @@ import fs from "node:fs/promises"
 import path from "node:path"
 import { ensureFsWritesAllowed } from "@/lib/persistence"
 
-export type StorageWriteOptions = {
+type StorageWriteOptions = {
   contentType?: string
 }
 
-export type StorageDriver = {
+type StorageDriver = {
   readText: (key: string) => Promise<string | null>
   writeText: (key: string, value: string, options?: StorageWriteOptions) => Promise<void>
   readBytes: (key: string) => Promise<Uint8Array | null>

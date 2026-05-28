@@ -26,7 +26,7 @@ function isSafeUploadsPath(value: string, requiredPrefix: string) {
   return true
 }
 
-export function validateAndNormalizeReview(input: unknown): ReviewValidationResult {
+function validateAndNormalizeReview(input: unknown): ReviewValidationResult {
   if (!input || typeof input !== "object") return { ok: false, error: "Invalid body" }
   const record = input as Record<string, unknown>
 
@@ -101,7 +101,7 @@ export async function readReviews(): Promise<Review[]> {
     .filter(Boolean) as Review[]
 }
 
-export async function writeReviews(reviews: Review[]) {
+async function writeReviews(reviews: Review[]) {
   await writeJson(reviewsPath, reviews)
 }
 

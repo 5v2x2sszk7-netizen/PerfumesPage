@@ -20,7 +20,7 @@ export function Footer() {
                 </p>
               </div>
 
-              <p className="max-w-footer-copy text-sm leading-[1.85] text-ink-700">
+              <p className="max-w-footer-copy text-sm leading-body text-ink-700">
                 Perfumería de nicho con selección curada. Disponibilidad limitada: confirmamos
                 stock, envíos y equivalencias antes de cerrar por WhatsApp.
               </p>
@@ -61,10 +61,10 @@ export function Footer() {
                   DETALLES
                 </p>
                 <div className="space-y-2 text-sm text-ink-700">
-                  <p className="leading-[1.85]">
+                  <p className="leading-body">
                     Horario: <span className="text-ink-500">respuesta rápida</span>
                   </p>
-                  <p className="leading-[1.85]">
+                  <p className="leading-body">
                     Envíos: <span className="text-ink-500">MX</span>
                   </p>
                 </div>

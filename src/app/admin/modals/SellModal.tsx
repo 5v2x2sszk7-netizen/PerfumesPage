@@ -2,8 +2,7 @@ import type { Perfume } from "@/types/perfume"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Field"
 import { formatMoney } from "@/lib/admin/utils"
-import { ModalShell } from "@/components/ui/ModalShell"
-import { Surface } from "@/components/ui/Surface"
+import { ModalCard } from "@/components/ui/ModalShell"
 
 type Props = {
   sellTarget: Perfume | null
@@ -18,14 +17,18 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
   if (!sellTarget) return null
 
   return (
-    <ModalShell open={true} onClose={onClose} contentClassName="w-full max-w-md">
-      <Surface variant="modal" radius="xl" className="w-full p-6">
-        <p className="text-xs tracking-section text-ink-500">CONFIRMAR</p>
-        <h2 className="mt-2 font-display text-2xl text-ink-950">Confirmar venta</h2>
-        <p className="mt-3 text-sm text-ink-700">
+    <ModalCard
+      open={true}
+      onClose={onClose}
+      kicker="CONFIRMAR"
+      title="Confirmar venta"
+      description={
+        <>
           Esto descontará piezas del stock de “{sellTarget.name}” ({sellTarget.brand}).
-        </p>
-        <div className="mt-4 grid gap-3 rounded-2xl border border-black/8 bg-white p-4">
+        </>
+      }
+    >
+      <div className="mt-4 grid gap-3 rounded-2xl border border-black/8 bg-white p-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-ink-700">Stock actual</p>
             <p className="text-sm font-medium text-ink-950">{sellTarget.stock}</p>
@@ -75,27 +78,26 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
             <p className="text-xs text-ink-600">Al confirmar, el producto se eliminará del catálogo.</p>
           ) : null}
         </div>
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
-            onClick={onClose}
-            disabled={busy}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            onClick={onConfirm}
-            disabled={busy || Math.floor(sellQty) < 1 || Math.floor(sellQty) > Math.floor(sellTarget.stock ?? 0)}
-            variant="gold"
-            className="w-full hover:shadow-cta-hover sm:w-auto"
-          >
-            Confirmar pago
-          </Button>
-        </div>
-      </Surface>
-    </ModalShell>
+      <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
+          onClick={onClose}
+          disabled={busy}
+        >
+          Cancelar
+        </Button>
+        <Button
+          type="button"
+          onClick={onConfirm}
+          disabled={busy || Math.floor(sellQty) < 1 || Math.floor(sellQty) > Math.floor(sellTarget.stock ?? 0)}
+          variant="gold"
+          className="w-full hover:shadow-cta-hover sm:w-auto"
+        >
+          Confirmar pago
+        </Button>
+      </div>
+    </ModalCard>
   )
 }

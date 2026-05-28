@@ -43,10 +43,10 @@ export function AdminLoginClient() {
       <p className="text-xs tracking-section text-ink-500">ADMIN</p>
       <h1 className="mt-2 font-display text-3xl text-ink-950">Iniciar sesión</h1>
       <div className="mt-6 grid gap-2">
-        <Label htmlFor="token">Token</Label>
+        <Label htmlFor="token">Token de admin</Label>
         <Input
           id="token"
-          placeholder='En local puedes usar "dev" si no configuras ADMIN_TOKEN'
+          placeholder="Token de admin"
           value={token}
           onChange={(e) => setToken(e.target.value)}
           onKeyDown={(e) => {

@@ -12,7 +12,7 @@ type RateLimitConfig = {
   max: number
 }
 
-export type ProcessUploadOptions = {
+type ProcessUploadOptions = {
   maxSizeBytes: number
   baseNameFallback: string
   uploadSubdir?: string

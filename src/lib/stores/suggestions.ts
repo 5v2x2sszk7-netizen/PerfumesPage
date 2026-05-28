@@ -2,7 +2,7 @@ import { dataFilePath, readJson, withStorageLock, writeJson } from "@/lib/storag
 import { readPerfumes } from "@/lib/stores/perfumes"
 import { normalizeKey } from "@/lib/text"
 
-export type PerfumeSuggestions = {
+type PerfumeSuggestions = {
   brands: string[]
   namesByBrand: Record<string, string[]>
 }
@@ -50,14 +50,14 @@ function normalizeSuggestions(input: unknown): PerfumeSuggestions | null {
   return { brands, namesByBrand }
 }
 
-export async function readSuggestions(): Promise<PerfumeSuggestions> {
+export async function readSuggestions() {
   const parsed = await readJson<unknown>(suggestionsPath)
   const normalized = normalizeSuggestions(parsed)
   if (normalized) return normalized
   return buildSuggestionsFromPerfumes(await readPerfumes())
 }
 
-export async function writeSuggestions(suggestions: PerfumeSuggestions) {
+async function writeSuggestions(suggestions: PerfumeSuggestions) {
   await writeJson(suggestionsPath, suggestions)
 }
 

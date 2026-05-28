@@ -23,58 +23,51 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json()) as Partial<Perfume>
-  if (!body.name || !body.brand || !body.category || !body.description) {
-    return jsonError("Missing required fields", 400)
-  }
-  if (!body.sizeMl || typeof body.sizeMl !== "number") {
-    return jsonError("Invalid sizeMl", 400)
-  }
-  if (typeof body.price !== "number") {
-    return jsonError("Invalid price", 400)
-  }
-  if (!body.availability) {
-    return jsonError("Missing availability", 400)
-  }
+  const raw = (await req.json().catch(() => null)) as unknown
+  if (!raw || typeof raw !== "object") return jsonError("Invalid body", 400)
+  const body = raw as Record<string, unknown>
 
-  if (body.imageSrc != null && typeof body.imageSrc === "string" && body.imageSrc.trim()) {
-    if (!isAllowedPerfumeImageSrc(body.imageSrc)) {
-      return jsonError("Invalid imageSrc", 400)
-    }
-  }
+  const name = typeof body.name === "string" ? body.name.trim() : ""
+  const brand = typeof body.brand === "string" ? body.brand.trim() : ""
+  const description = typeof body.description === "string" ? body.description.trim() : ""
+  const category = body.category === "designer" || body.category === "niche" ? body.category : null
+  if (!name || !brand || !description || !category) return jsonError("Missing required fields", 400)
 
-  const name = String(body.name)
-  const brand = String(body.brand)
-  const description = String(body.description)
-  const category = body.category as Perfume["category"]
-  const sizeMl = body.sizeMl as number
-  const price = body.price as number
-  const availabilityBody = body.availability as Perfume["availability"]
-  const slugInput = body.slug?.trim()
-  const idInput = body.id?.trim()
+  const sizeRaw = body.sizeMl
+  const sizeMl = typeof sizeRaw === "number" ? sizeRaw : typeof sizeRaw === "string" ? Number(sizeRaw) : NaN
+  if (!Number.isFinite(sizeMl) || sizeMl <= 0) return jsonError("Invalid sizeMl", 400)
+
+  const priceRaw = body.price
+  const price = typeof priceRaw === "number" ? priceRaw : typeof priceRaw === "string" ? Number(priceRaw) : NaN
+  if (!Number.isFinite(price) || price < 0) return jsonError("Invalid price", 400)
+
+  const availabilityBody =
+    body.availability === "in_stock" || body.availability === "low_stock" || body.availability === "out_of_stock"
+      ? body.availability
+      : null
+  if (!availabilityBody) return jsonError("Missing availability", 400)
+
+  const slugInput = typeof body.slug === "string" ? body.slug.trim() : undefined
+  const idInput = typeof body.id === "string" ? body.id.trim() : undefined
 
   const notes = parseNotes(body.notes)
-  const stockParsed = parseStock((body as unknown as { stock?: unknown }).stock)
-  if (stockParsed === null && (body as unknown as { stock?: unknown }).stock != null) {
-    return jsonError("Invalid stock", 400)
-  }
-  const costParsed = parseCost((body as unknown as { cost?: unknown }).cost)
-  if (costParsed === null && (body as unknown as { cost?: unknown }).cost != null) {
-    return jsonError("Invalid cost", 400)
-  }
+  const stockParsed = parseStock(body.stock)
+  if (stockParsed === null && body.stock != null) return jsonError("Invalid stock", 400)
+
+  const costParsed = parseCost(body.cost)
+  if (costParsed === null && body.cost != null) return jsonError("Invalid cost", 400)
   const cost = costParsed ?? 0
-  const soldParsed = parseSold((body as unknown as { sold?: unknown }).sold)
-  if (soldParsed === null && (body as unknown as { sold?: unknown }).sold != null) {
-    return jsonError("Invalid sold", 400)
-  }
+
+  const soldParsed = parseSold(body.sold)
+  if (soldParsed === null && body.sold != null) return jsonError("Invalid sold", 400)
   const sold = soldParsed ?? 0
+
   const stock = stockParsed ?? (availabilityBody === "out_of_stock" ? 0 : 1)
   const availability = stockParsed != null ? availabilityFromStock(stock) : availabilityBody
 
-  const imageSrc =
-    typeof body.imageSrc === "string" && body.imageSrc.trim()
-      ? body.imageSrc.trim()
-      : "/images/bottle-placeholder.svg"
+  const imageSrcRaw = typeof body.imageSrc === "string" ? body.imageSrc.trim() : ""
+  const imageSrc = imageSrcRaw ? imageSrcRaw : "/images/bottle-placeholder.svg"
+  if (imageSrcRaw && !isAllowedPerfumeImageSrc(imageSrcRaw)) return jsonError("Invalid imageSrc", 400)
 
   try {
     const created = await withPerfumesLock(async () => {

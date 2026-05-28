@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/Button"
 import { Pill } from "@/components/ui/Pill"
-import { AdminPanel } from "@/components/ui/Surface"
+import { AdminPanel } from "@/app/admin/components/AdminPanel"
 import type { AdminSection } from "@/lib/admin/types"
 
 type Props = {

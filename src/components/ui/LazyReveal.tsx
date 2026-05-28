@@ -56,12 +56,13 @@ export function LazyReveal({
     const rect = el.getBoundingClientRect()
     const inView = rect.top < window.innerHeight * 0.92 && rect.bottom > 0
     lazyRevealCallbacks.set(el, () => setVisible(true))
-    queueMicrotask(() => {
+    const raf = window.requestAnimationFrame(() => {
       if (inView) setVisible(true)
       setMounted(true)
     })
     if (!inView) observer.observe(el)
     return () => {
+      window.cancelAnimationFrame(raf)
       lazyRevealCallbacks.delete(el)
       observer.unobserve(el)
     }

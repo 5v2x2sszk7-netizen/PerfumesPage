@@ -37,16 +37,14 @@ export function formatPerfumeWhatsAppMessage(perfume: Perfume) {
   return lines.join("\n")
 }
 
-export type SpecialOrderPayload = {
+export function formatSpecialOrderWhatsAppMessage(payload: {
   customerName: string
   phone: string
   perfumeName: string
   brand: string
   sizeMl: string
   comments?: string
-}
-
-export function formatSpecialOrderWhatsAppMessage(payload: SpecialOrderPayload) {
+}) {
   const rawSize = payload.sizeMl.trim()
   const sizeLabel = /^\d+(\.\d+)?$/.test(rawSize) ? `${rawSize} ml` : rawSize
 

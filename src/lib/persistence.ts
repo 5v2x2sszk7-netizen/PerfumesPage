@@ -1,4 +1,4 @@
-export class PersistenceNotConfiguredError extends Error {
+class PersistenceNotConfiguredError extends Error {
   code = "PERSISTENCE_NOT_CONFIGURED" as const
 
   constructor(message: string) {
@@ -7,7 +7,9 @@ export class PersistenceNotConfiguredError extends Error {
   }
 }
 
-export function isPersistenceNotConfiguredError(err: unknown): err is PersistenceNotConfiguredError {
+export function isPersistenceNotConfiguredError(
+  err: unknown
+): err is Error & { code: "PERSISTENCE_NOT_CONFIGURED" } {
   return err instanceof PersistenceNotConfiguredError
 }
 

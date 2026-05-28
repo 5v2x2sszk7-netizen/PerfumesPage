@@ -10,7 +10,7 @@ export const revalidate = 0
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const action = req.headers.get("x-perfimes-action")?.trim().toLocaleLowerCase()
+  const action = req.headers.get("x-perfimes-action")?.trim().toLowerCase()
   const body = (await req.json()) as Partial<Perfume>
   if (body.imageSrc != null && typeof body.imageSrc === "string" && body.imageSrc.trim()) {
     if (!isAllowedPerfumeImageSrc(body.imageSrc)) {

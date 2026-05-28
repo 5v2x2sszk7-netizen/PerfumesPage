@@ -27,7 +27,7 @@ export function renderDescription(value: string): ReactNode {
   const isSingleDenseBlock = blocks.length === 1 && raw.includes("\n") && !raw.includes("\n\n")
 
   return (
-    <div className="mt-4 max-w-prose space-y-4 text-ui-body leading-[1.85] text-ink-700">
+    <div className="mt-4 max-w-prose space-y-4 text-ui-body leading-body text-ink-700">
       {(isSingleDenseBlock ? blocks[0].split("\n").map((l) => l.trim()).filter(Boolean) : blocks).map(
         (block, idx) => {
           const lines = block
@@ -50,7 +50,7 @@ export function renderDescription(value: string): ReactNode {
           const single = items.join(" ")
           if (isSingleDenseBlock && idx === 0 && !single.includes(":")) {
             return (
-              <p key={idx} className="font-display text-xl leading-[0.95] text-ink-950">
+              <p key={idx} className="font-display text-xl leading-display text-ink-950">
                 {renderInlineBold(single)}
               </p>
             )

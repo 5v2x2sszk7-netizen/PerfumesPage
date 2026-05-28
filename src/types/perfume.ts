@@ -1,5 +1,4 @@
 export type PerfumeAvailability = "in_stock" | "low_stock" | "out_of_stock"
-export type PerfumeCategory = "niche" | "designer"
 
 export type PerfumeNotes = {
   top?: string[]
@@ -12,7 +11,7 @@ export type Perfume = {
   slug: string
   name: string
   brand: string
-  category: PerfumeCategory
+  category: "niche" | "designer"
   concentration?: string
   description: string
   sizeMl: number

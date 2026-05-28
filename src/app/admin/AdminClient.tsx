@@ -25,15 +25,12 @@ function useAdminUiState() {
   const [sellTarget, setSellTarget] = useState<Perfume | null>(null)
   const [deleteReviewTarget, setDeleteReviewTarget] = useState<Review | null>(null)
   const [sellQty, setSellQty] = useState(1)
-  const [section, setSection] = useState<AdminSection>("products")
-
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      const stored = localStorage.getItem("admin_section")
-      if (stored === "products" || stored === "form" || stored === "report" || stored === "reviews") setSection(stored)
-    }, 0)
-    return () => window.clearTimeout(t)
-  }, [])
+  const [section, setSection] = useState<AdminSection>(() => {
+    if (typeof window === "undefined") return "products"
+    const stored = window.localStorage.getItem("admin_section")
+    if (stored === "products" || stored === "form" || stored === "report" || stored === "reviews") return stored
+    return "products"
+  })
 
   useEffect(() => {
     localStorage.setItem("admin_section", section)

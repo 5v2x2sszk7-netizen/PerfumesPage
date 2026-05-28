@@ -1,7 +1,7 @@
 import type { Perfume } from "@/types/perfume"
 import { Button } from "@/components/ui/Button"
 import { formatMoney } from "@/lib/admin/utils"
-import { AdminPanel } from "@/components/ui/Surface"
+import { AdminPanel } from "@/app/admin/components/AdminPanel"
 
 type Props = {
   perfumes: Perfume[]

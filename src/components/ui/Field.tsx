@@ -78,3 +78,28 @@ export function Select({
     />
   )
 }
+
+export function SelectWithCaret({
+  className,
+  wrapperClassName,
+  variant = "default",
+  uiSize = "md",
+  ...props
+}: ComponentPropsWithoutRef<"select"> & {
+  className?: string
+  wrapperClassName?: string
+  variant?: FieldVariant
+  uiSize?: FieldSize
+}) {
+  return (
+    <div className={cn("relative", wrapperClassName)}>
+      <Select
+        className={cn("pr-10", className)}
+        variant={variant}
+        uiSize={uiSize}
+        {...props}
+      />
+      <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-ink-400">▾</div>
+    </div>
+  )
+}

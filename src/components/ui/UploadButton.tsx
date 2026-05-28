@@ -37,7 +37,7 @@ export function UploadButton({ children, onSelect, accept, multiple, disabled, c
         disabled={disabled}
         onClick={() => ref.current?.click()}
         className={cn(
-          "inline-flex h-11 w-full min-w-[160px] select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-antiqueGold px-5 text-sm font-medium tracking-wide text-white shadow-sm ring-1 ring-black/8 transition hover:bg-antiqueGoldDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] hover:shadow-cta-hover disabled:pointer-events-none disabled:opacity-50 sm:w-auto",
+          "inline-flex h-11 w-full min-w-thumb select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-antiqueGold px-5 text-sm font-medium tracking-wide text-white shadow-sm ring-1 ring-black/8 transition hover:bg-antiqueGoldDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] hover:shadow-cta-hover disabled:pointer-events-none disabled:opacity-50 sm:w-auto",
           className
         )}
       >
@@ -46,4 +46,3 @@ export function UploadButton({ children, onSelect, accept, multiple, disabled, c
     </>
   )
 }
-
