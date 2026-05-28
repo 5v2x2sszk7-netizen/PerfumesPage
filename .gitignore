@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.env.local
+.env.*.local
+
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.log
+
+public/uploads/
+
+data/*.json
+!data/perfumes.json

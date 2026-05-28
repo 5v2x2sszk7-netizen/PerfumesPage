@@ -1,0 +1,33 @@
+[
+  {
+    "id": "xerjoff-torino-21-50",
+    "slug": "xerjoff-torino-21",
+    "name": "Torino 21",
+    "brand": "Xerjoff",
+    "category": "niche",
+    "description": "Lanzada en 2022 para celebrar las finales Nitto ATP en Turín, Torino 22 de Xerjoff es una fragancia unisex vigorizante y sofisticada que equilibra a la perfección el espíritu dinámico del deporte con la alta perfumería de lujo. Su composición abre con un estallido fresco y herbal de eucalipto y bergamota, matizado por el toque especiado del azafrán. En su corazón, la dulzura de la salvia se entrelaza con el carácter del mate y la madera de guayaco, cerrando con una base cálida, limpia y altamente persistente de almizcle y maderas secas. Un aroma brillante, limpio y con una personalidad magnética ideal para cualquier época del año.",
+    "sizeMl": 50,
+    "price": 3000,
+    "cost": 2300,
+    "sold": 0,
+    "stock": 1,
+    "availability": "low_stock",
+    "imageSrc": "/uploads/1779765101053-comprar-decant-xerjoff-torino-21-perfume-nicho-originall-png.webp",
+    "notes": {
+      "top": [
+        "Eucalipto",
+        "Azafrán",
+        "Bergamota"
+      ],
+      "heart": [
+        "Mate",
+        "Salvia (Clary Sage)",
+        "Madera de Guayaco"
+      ],
+      "base": [
+        "Maderas Secas",
+        "Almizcle"
+      ]
+    }
+  }
+]

@@ -1,0 +1,92 @@
+import { NextResponse } from "next/server"
+import fs from "node:fs/promises"
+import path from "node:path"
+import sharp from "sharp"
+import { slugify } from "@/lib/slug"
+import { ensureFsWritesAllowed, isPersistenceNotConfiguredError } from "@/lib/persistence"
+import { checkRateLimit } from "@/lib/rateLimit"
+
+type RateLimitConfig = {
+  keyPrefix: string
+  windowMs: number
+  max: number
+}
+
+export type ProcessUploadOptions = {
+  maxSizeBytes: number
+  baseNameFallback: string
+  uploadSubdir?: string
+  maxDim: number
+  quality: number
+  rateLimit?: RateLimitConfig
+}
+
+const allowedExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".avif"])
+
+export async function processUpload(req: Request, opts: ProcessUploadOptions) {
+  if (opts.rateLimit) {
+    const rate = await checkRateLimit(req, opts.rateLimit)
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limited" },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.max(1, Math.ceil(rate.retryAfterMs / 1000)))
+          }
+        }
+      )
+    }
+  }
+
+  const formData = await req.formData()
+  const file = formData.get("file")
+  if (!(file instanceof File)) {
+    return NextResponse.json({ error: "Missing file" }, { status: 400 })
+  }
+
+  if (file.size <= 0 || file.size > opts.maxSizeBytes) {
+    return NextResponse.json({ error: "File too large" }, { status: 400 })
+  }
+
+  const originalName = file.name || "image"
+  const ext = path.extname(originalName).toLowerCase()
+  if (!allowedExtensions.has(ext)) {
+    return NextResponse.json({ error: "Unsupported file type" }, { status: 400 })
+  }
+
+  const baseName = slugify(path.basename(originalName, ext)) || opts.baseNameFallback
+  const fileName = `${Date.now()}-${baseName}.webp`
+  const uploadDir = path.join(process.cwd(), "public", "uploads", opts.uploadSubdir ?? "")
+
+  try {
+    ensureFsWritesAllowed("uploads")
+    await fs.mkdir(uploadDir, { recursive: true })
+  } catch (e) {
+    if (isPersistenceNotConfiguredError(e)) {
+      return NextResponse.json({ error: e.message }, { status: 501 })
+    }
+    return NextResponse.json({ error: "Upload not available" }, { status: 500 })
+  }
+
+  try {
+    const inputBuffer = Buffer.from(await file.arrayBuffer())
+    const outputBuffer = await sharp(inputBuffer)
+      .rotate()
+      .resize({
+        width: opts.maxDim,
+        height: opts.maxDim,
+        fit: "inside",
+        withoutEnlargement: true
+      })
+      .webp({ quality: opts.quality })
+      .toBuffer()
+
+    await fs.writeFile(path.join(uploadDir, fileName), outputBuffer)
+  } catch {
+    return NextResponse.json({ error: "Could not process image" }, { status: 400 })
+  }
+
+  const publicPath = opts.uploadSubdir ? `/uploads/${opts.uploadSubdir}/${fileName}` : `/uploads/${fileName}`
+  return NextResponse.json({ path: publicPath })
+}

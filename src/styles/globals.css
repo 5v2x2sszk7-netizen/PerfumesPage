@@ -1,0 +1,232 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background: #f7f5f1;
+  color: #0a0a0a;
+  font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(
+    a,
+    button,
+    input,
+    textarea,
+    select,
+    summary,
+    [role="button"],
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+  outline: 2px solid rgba(184, 155, 94, 0.82);
+  outline-offset: 3px;
+}
+
+
+::selection {
+  background: rgba(184, 155, 94, 0.28);
+}
+
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.shimmer {
+  background-color: rgba(10, 10, 10, 0.06);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+    transition: opacity 1050ms cubic-bezier(0.22, 1, 0.36, 1), transform 1050ms cubic-bezier(0.22, 1, 0.36, 1);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .reveal::before,
+  .reveal::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .shimmer {
+    background-image: linear-gradient(
+      90deg,
+      rgba(10, 10, 10, 0.06) 0%,
+      rgba(10, 10, 10, 0.05) 34%,
+      rgba(191, 163, 122, 0.12) 50%,
+      rgba(10, 10, 10, 0.05) 66%,
+      rgba(10, 10, 10, 0.06) 100%
+    );
+    background-size: 220% 100%;
+    animation: shimmer 1400ms cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  @keyframes ken-burns-soft {
+    0% {
+      transform: scale(1) translate3d(0, 0, 0);
+    }
+    100% {
+      transform: scale(1.02) translate3d(0, -2px, 0);
+    }
+  }
+
+  .ken-burns-soft {
+    animation: ken-burns-soft 12s ease-in-out infinite alternate;
+  }
+
+  @keyframes modal-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .modal-fade {
+    animation: modal-fade-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes modal-pop-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  .modal-pop {
+    animation: modal-pop-in 230ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes modal-image-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .modal-image {
+    animation: modal-image-in 230ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes modal-overlay-in {
+    from {
+      background-color: rgba(0, 0, 0, 0);
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+    }
+    to {
+      background-color: rgba(8, 10, 14, 0.93);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+  }
+
+  .modal-overlay-in {
+    animation: modal-overlay-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes modal-overlay-out {
+    from {
+      background-color: rgba(8, 10, 14, 0.93);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    to {
+      background-color: rgba(0, 0, 0, 0);
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+    }
+  }
+
+  .modal-overlay-out {
+    animation: modal-overlay-out 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes modal-pop-out {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0) scale(0.99);
+    }
+  }
+
+  .modal-pop-out {
+    animation: modal-pop-out 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes modal-image-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+  }
+
+  .modal-image-out {
+    animation: modal-image-out 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}

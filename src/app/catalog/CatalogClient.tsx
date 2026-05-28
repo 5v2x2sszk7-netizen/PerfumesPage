@@ -1,0 +1,519 @@
+"use client"
+
+import type { Perfume } from "@/types/perfume"
+import { PerfumeCard } from "@/components/perfume/PerfumeCard"
+import { Input, Label, Select } from "@/components/ui/Field"
+import { ButtonGhost } from "@/components/ui/Button"
+import { Surface } from "@/components/ui/Surface"
+import { LazyReveal } from "@/components/ui/LazyReveal"
+import { cn } from "@/lib/cn"
+import { availabilityLabel } from "@/lib/whatsapp"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import Image from "next/image"
+
+function normalize(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+}
+
+type SortKey = "recommended" | "name_asc" | "brand_asc" | "availability" | "price_asc" | "price_desc"
+type ViewMode = "grid" | "list"
+
+function parseSortKey(value: string | null): SortKey {
+  if (
+    value === "name_asc" ||
+    value === "brand_asc" ||
+    value === "availability" ||
+    value === "price_asc" ||
+    value === "price_desc" ||
+    value === "recommended"
+  ) {
+    return value
+  }
+  return "recommended"
+}
+
+function parseViewMode(value: string | null): ViewMode {
+  if (value === "list" || value === "grid") return value
+  return "grid"
+}
+
+function parseCategory(value: string | null): Perfume["category"] {
+  if (value === "designer" || value === "niche") return value
+  return "niche"
+}
+
+function compareAvailability(a: Perfume["availability"], b: Perfume["availability"]) {
+  const rank: Record<Perfume["availability"], number> = {
+    in_stock: 0,
+    low_stock: 1,
+    out_of_stock: 2
+  }
+  return rank[a] - rank[b]
+}
+
+export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const q = searchParams.get("q") ?? ""
+  const category = parseCategory(searchParams.get("category"))
+  const brand = searchParams.get("brand") ?? ""
+  const availability = searchParams.get("availability") ?? ""
+  const sort = parseSortKey(searchParams.get("sort"))
+  const view = parseViewMode(searchParams.get("view"))
+  const hasActiveFilters = Boolean(q.trim() || brand || availability || sort !== "recommended")
+
+  const [isFilterOpen, setIsFilterOpen] = useState(() => hasActiveFilters)
+
+  const replaceQuery = useCallback(
+    (mut: (next: URLSearchParams) => void) => {
+      const next = new URLSearchParams(searchParams.toString())
+      mut(next)
+      const qs = next.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    },
+    [router, pathname, searchParams]
+  )
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      const stored = localStorage.getItem("catalog_view")
+      if (!searchParams.get("view") && (stored === "grid" || stored === "list") && stored !== "grid") {
+        replaceQuery((next) => {
+          next.set("view", stored)
+        })
+      }
+    }, 0)
+    return () => window.clearTimeout(t)
+  }, [replaceQuery, searchParams])
+
+  useEffect(() => {
+    localStorage.setItem("catalog_view", view)
+  }, [view])
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      const stored = localStorage.getItem("catalog_category")
+      if (
+        !searchParams.get("category") &&
+        (stored === "niche" || stored === "designer") &&
+        stored !== "niche"
+      ) {
+        replaceQuery((next) => {
+          next.set("category", stored)
+        })
+      }
+    }, 0)
+    return () => window.clearTimeout(t)
+  }, [replaceQuery, searchParams])
+
+  useEffect(() => {
+    localStorage.setItem("catalog_category", category)
+  }, [category])
+
+  const brands = useMemo(() => {
+    const base = perfumes.filter((p) => p.category === category)
+    return Array.from(new Set(base.map((p) => p.brand))).sort((a, b) => a.localeCompare(b, "es"))
+  }, [perfumes, category])
+
+  const filtered = useMemo(() => {
+    const query = normalize(q).trim()
+    return perfumes.filter((p) => {
+      if (p.category !== category) return false
+      if (brand && p.brand !== brand) return false
+      if (availability && p.availability !== availability) return false
+      if (!query) return true
+      const haystack = normalize(`${p.brand} ${p.name}`)
+      return haystack.includes(query)
+    })
+  }, [perfumes, q, category, brand, availability])
+
+  const ordered = useMemo(() => {
+    const items = [...filtered]
+    if (sort === "name_asc") {
+      items.sort((a, b) => a.name.localeCompare(b.name, "es"))
+      return items
+    }
+    if (sort === "brand_asc") {
+      items.sort((a, b) => {
+        const byBrand = a.brand.localeCompare(b.brand, "es")
+        if (byBrand !== 0) return byBrand
+        return a.name.localeCompare(b.name, "es")
+      })
+      return items
+    }
+    if (sort === "availability") {
+      items.sort((a, b) => {
+        const byAvailability = compareAvailability(a.availability, b.availability)
+        if (byAvailability !== 0) return byAvailability
+        return a.name.localeCompare(b.name, "es")
+      })
+      return items
+    }
+    if (sort === "price_asc") {
+      items.sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, "es"))
+      return items
+    }
+    if (sort === "price_desc") {
+      items.sort((a, b) => b.price - a.price || a.name.localeCompare(b.name, "es"))
+      return items
+    }
+    return items
+  }, [filtered, sort])
+
+  function clearFilters() {
+    replaceQuery((next) => {
+      next.delete("q")
+      next.delete("brand")
+      next.delete("availability")
+      next.delete("sort")
+    })
+  }
+
+  const countLabel = `${ordered.length} ${ordered.length === 1 ? "Producto" : "Productos"}`
+  const showCount = ordered.length > 0
+
+  return (
+    <div className="mt-8">
+      <Surface className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+          <div className="grid gap-2">
+            <p className="text-[11px] font-medium tracking-[0.22em] text-ink-500">CATEGORÍA</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  replaceQuery((next) => {
+                    next.delete("brand")
+                    next.delete("category")
+                  })
+                }}
+                className={cn(
+                  "inline-flex h-10 items-center justify-center rounded-full px-5 text-[12.5px] font-medium tracking-[0.18em] ring-1 ring-inset transition-luxe-wide duration-700 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]",
+                  category === "niche"
+                    ? "bg-white text-ink-950 ring-antiqueGold/28 shadow-[0_18px_55px_rgba(0,0,0,0.06)]"
+                    : "bg-ink-50/70 text-ink-700 ring-black/8 hover:bg-white"
+                )}
+                aria-pressed={category === "niche"}
+              >
+                Nicho
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  replaceQuery((next) => {
+                    next.delete("brand")
+                    next.set("category", "designer")
+                  })
+                }}
+                className={cn(
+                  "inline-flex h-10 items-center justify-center rounded-full px-5 text-[12.5px] font-medium tracking-[0.18em] ring-1 ring-inset transition-luxe-wide duration-700 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]",
+                  category === "designer"
+                    ? "bg-white text-ink-950 ring-antiqueGold/28 shadow-[0_18px_55px_rgba(0,0,0,0.06)]"
+                    : "bg-ink-50/70 text-ink-700 ring-black/8 hover:bg-white"
+                )}
+                aria-pressed={category === "designer"}
+              >
+                Diseñador
+              </button>
+            </div>
+          </div>
+
+          {showCount ? (
+            <p className="hidden text-sm font-medium tracking-wide text-ink-950 sm:block">{countLabel}</p>
+          ) : null}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsFilterOpen((v) => !v)}
+          className={cn(
+            "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink-50/70 px-5 text-sm font-medium tracking-wide text-ink-950 ring-1 ring-inset ring-black/8 transition-luxe duration-700 ease-luxe hover:-translate-y-0.5 hover:bg-white focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1] sm:w-auto",
+            hasActiveFilters ? "ring-antiqueGold/22 shadow-[0_18px_55px_rgba(0,0,0,0.06)]" : ""
+          )}
+          aria-expanded={isFilterOpen}
+          aria-controls="catalog-filters"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 5h18M6 12h12M10 19h4"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+          {isFilterOpen ? "Cerrar filtros" : "Filtros"}
+          {hasActiveFilters ? (
+            <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-antiqueGold" />
+          ) : null}
+        </button>
+      </Surface>
+
+      {isFilterOpen ? (
+        <Surface
+          id="catalog-filters"
+          className="mt-4 p-4 sm:p-5"
+        >
+          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="q" className="text-[11px] tracking-[0.18em] text-ink-600">
+                  Buscar
+                </Label>
+                <Input
+                  id="q"
+                  name="q"
+                  placeholder="Nombre o marca"
+                  value={q}
+                  autoComplete="off"
+                  variant="pill"
+                  uiSize="sm"
+                  onChange={(e) => {
+                    const value = e.target.value
+                    replaceQuery((next) => {
+                      if (value.trim()) next.set("q", value)
+                      else next.delete("q")
+                    })
+                  }}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="brand" className="text-[11px] tracking-[0.18em] text-ink-600">
+                  Marca
+                </Label>
+                <Select
+                  id="brand"
+                  name="brand"
+                  value={brand}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    replaceQuery((next) => {
+                      if (value) next.set("brand", value)
+                      else next.delete("brand")
+                    })
+                  }}
+                  variant="pill"
+                  uiSize="sm"
+                >
+                  <option value="">Todas</option>
+                  {brands.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label
+                  htmlFor="availability"
+                  className="text-[11px] tracking-[0.18em] text-ink-600"
+                >
+                  Disponibilidad
+                </Label>
+                <Select
+                  id="availability"
+                  name="availability"
+                  value={availability}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    replaceQuery((next) => {
+                      if (value) next.set("availability", value)
+                      else next.delete("availability")
+                    })
+                  }}
+                  variant="pill"
+                  uiSize="sm"
+                >
+                  <option value="">Todas</option>
+                  <option value="in_stock">{availabilityLabel.in_stock}</option>
+                  <option value="low_stock">{availabilityLabel.low_stock}</option>
+                  <option value="out_of_stock">{availabilityLabel.out_of_stock}</option>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-end justify-between gap-3 lg:justify-end">
+              <div className="flex items-end gap-2">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="sort" className="text-[11px] tracking-[0.18em] text-ink-600">
+                    Ordenar por:
+                  </Label>
+                  <Select
+                    id="sort"
+                    name="sort"
+                    value={sort}
+                    onChange={(e) => {
+                      const value = e.target.value as SortKey
+                      replaceQuery((next) => {
+                        if (value === "recommended") next.delete("sort")
+                        else next.set("sort", value)
+                      })
+                    }}
+                    variant="pill"
+                    uiSize="sm"
+                    className="w-64 max-w-full"
+                  >
+                    <option value="recommended">Recomendado</option>
+                    <option value="name_asc">Nombre (A–Z)</option>
+                    <option value="brand_asc">Marca (A–Z)</option>
+                    <option value="availability">Disponibilidad</option>
+                    <option value="price_asc">Precio (menor)</option>
+                    <option value="price_desc">Precio (mayor)</option>
+                  </Select>
+                </div>
+                <div className="flex items-end gap-2 pb-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      replaceQuery((next) => {
+                        next.delete("view")
+                      })
+                    }}
+                    className={cn(
+                      "inline-flex h-10 w-10 items-center justify-center rounded-full ring-1 ring-inset transition duration-500 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]",
+                      view === "grid"
+                        ? "bg-ink-950 text-white ring-white/10"
+                        : "bg-ink-50/70 text-ink-950 ring-black/8 hover:bg-white"
+                    )}
+                    aria-label="Vista en cuadrícula"
+                  >
+                    <span className="grid grid-cols-2 gap-1">
+                      <span className="h-2 w-2 rounded-sm bg-current" />
+                      <span className="h-2 w-2 rounded-sm bg-current" />
+                      <span className="h-2 w-2 rounded-sm bg-current" />
+                      <span className="h-2 w-2 rounded-sm bg-current" />
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      replaceQuery((next) => {
+                        next.set("view", "list")
+                      })
+                    }}
+                    className={cn(
+                      "inline-flex h-10 w-10 items-center justify-center rounded-full ring-1 ring-inset transition duration-500 ease-luxe focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]",
+                      view === "list"
+                        ? "bg-ink-950 text-white ring-white/10"
+                        : "bg-ink-50/70 text-ink-950 ring-black/8 hover:bg-white"
+                    )}
+                    aria-label="Vista en lista"
+                  >
+                    <span className="grid gap-1">
+                      <span className="h-1 w-5 rounded-sm bg-current" />
+                      <span className="h-1 w-5 rounded-sm bg-current" />
+                      <span className="h-1 w-5 rounded-sm bg-current" />
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {showCount ? (
+                  <p className="text-lg font-semibold text-ink-950 sm:hidden">{countLabel}</p>
+                ) : null}
+                {hasActiveFilters ? (
+                  <ButtonGhost
+                    type="button"
+                    className="rounded-full bg-ink-50/70 px-5 py-2.5 text-sm text-ink-700 ring-1 ring-inset ring-black/8 transition duration-700 ease-luxe hover:bg-white"
+                    onClick={clearFilters}
+                  >
+                    Limpiar filtros
+                  </ButtonGhost>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </Surface>
+      ) : null}
+
+      {ordered.length ? (
+        view === "grid" && ordered.length === 1 ? (
+          <div className="mt-10 flex justify-center">
+            <LazyReveal delayMs={0} className="w-full max-w-[420px] sm:max-w-[460px]">
+              <PerfumeCard perfume={ordered[0]!} />
+            </LazyReveal>
+          </div>
+        ) : view === "grid" && ordered.length === 2 ? (
+          <div className="mt-10 mx-auto grid max-w-[940px] grid-cols-1 gap-6 sm:grid-cols-2">
+            {ordered.map((p, idx) => (
+              <LazyReveal key={p.id} delayMs={idx * 90} className="w-full">
+                <PerfumeCard perfume={p} />
+              </LazyReveal>
+            ))}
+          </div>
+        ) : (
+          <div
+            className={cn(
+              "mt-8 grid gap-6",
+              view === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+            )}
+          >
+            {ordered.map((p, idx) => (
+              <LazyReveal key={p.id} delayMs={Math.min(idx, 12) * 55} className="w-full">
+                <PerfumeCard perfume={p} />
+              </LazyReveal>
+            ))}
+          </div>
+        )
+      ) : (
+        <Surface radius="luxe-xl" className="relative mt-8 overflow-hidden p-8 sm:p-10">
+          <div className="pointer-events-none absolute inset-0">
+            <Image
+              src="/images/MaloParfumsHome.jpg"
+              alt=""
+              fill
+              className="object-cover opacity-[0.08] blur-2xl grayscale"
+              sizes="100vw"
+              priority={false}
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_30%,rgba(18,28,58,0.10),rgba(255,255,255,0.92)_60%,rgba(255,255,255,0.98)_100%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(88%_70%_at_50%_44%,transparent_62%,rgba(0,0,0,0.06)_100%)]" />
+          </div>
+
+          <div className="relative grid gap-3">
+            <p className="text-[11px] font-medium tracking-[0.22em] text-ink-500">COLECCIÓN</p>
+            <p className="font-display text-2xl text-ink-950">
+              {hasActiveFilters
+                ? "No hay fragancias disponibles con esta selección."
+                : "Estamos actualizando esta colección."}
+            </p>
+            <p className="max-w-2xl text-sm leading-relaxed text-ink-700">
+              {hasActiveFilters
+                ? "Prueba ajustar la búsqueda o limpiar los filtros para ver más opciones."
+                : "Próximamente nuevas incorporaciones. Si buscas algo específico, pídelo por WhatsApp."}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-3">
+              <ButtonGhost
+                type="button"
+                className="rounded-full bg-white/60 px-5 py-2.5 text-sm ring-1 ring-inset ring-black/8 transition duration-700 ease-luxe hover:bg-white"
+                onClick={clearFilters}
+              >
+                {hasActiveFilters ? "Limpiar filtros" : "Ver todas las colecciones"}
+              </ButtonGhost>
+              <button
+                type="button"
+                onClick={() => setIsFilterOpen(true)}
+                className="rounded-full bg-ink-950 px-5 py-2.5 text-sm font-medium tracking-wide text-white transition duration-700 ease-luxe hover:bg-ink-900"
+              >
+                Ajustar filtros
+              </button>
+            </div>
+          </div>
+        </Surface>
+      )}
+    </div>
+  )
+}
