@@ -11,6 +11,8 @@ import { LazyReveal } from "@/components/ui/LazyReveal"
 import { Surface } from "@/components/ui/Surface"
 import { formatCustomerDisplayName, getInitials } from "@/lib/text"
 
+export const revalidate = 60
+
 function formatReviewSnippet(text: string) {
   const trimmed = text.trim()
   const lettersOnly = trimmed.toLowerCase().replace(/[^a-záéíóúüñ]+/g, "")
@@ -75,7 +77,7 @@ export default async function HomePage() {
       <section className="relative bg-white">
         <Container className="pt-14 pb-16 sm:pt-16 sm:pb-20">
           <div className="max-w-home-hero">
-            <p className="text-xs tracking-[0.32em] text-ink-500">AGREGADOS RECIENTEMENTE</p>
+            <p className="text-xs tracking-brand text-ink-500">AGREGADOS RECIENTEMENTE</p>
             <h2 className="mt-4 font-display text-2xl leading-[0.95] text-ink-950">Nuevas incorporaciones</h2>
 
             <div className="mt-8 grid grid-cols-1 gap-4">
@@ -97,7 +99,7 @@ export default async function HomePage() {
                       priority={false}
                     />
                   </div>
-                  <p className="relative mt-4 text-xs tracking-[0.18em] text-ink-500">{p.brand}</p>
+                  <p className="relative mt-4 text-xs tracking-ui text-ink-500">{p.brand}</p>
                   <p className="relative mt-1 font-display text-base text-ink-950">{p.name}</p>
                   <div className="relative mt-3 flex items-center justify-between gap-3">
                     <span className="text-sm text-ink-700">{p.sizeMl} ml</span>
@@ -127,7 +129,7 @@ export default async function HomePage() {
           <div className="grid gap-y-8 gap-x-12 lg:grid-cols-12 lg:items-start">
             <LazyReveal delayMs={0} className="lg:col-span-5">
               <div className="max-w-home-intro">
-                <p className="text-xs tracking-[0.32em] text-ink-500">SERVICIO</p>
+                <p className="text-xs tracking-brand text-ink-500">SERVICIO</p>
                 <h2 className="mt-4 font-display text-3xl leading-[0.95] text-ink-950 sm:text-4xl">
                   Menos catálogo infinito. Más curaduría.
                 </h2>
@@ -144,7 +146,7 @@ export default async function HomePage() {
                   <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
                     <p className="font-display text-4xl font-light leading-none text-black/35">01</p>
                     <div className="space-y-2">
-                      <p className="text-xs tracking-[0.25em] text-ink-500">EXPERIENCIA</p>
+                      <p className="text-xs tracking-section text-ink-500">EXPERIENCIA</p>
                       <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Compra asistida</h3>
                       <p className="text-sm leading-[1.85] text-ink-700">
                         Recomendaciones, equivalencias y disponibilidad real antes de confirmar.
@@ -159,7 +161,7 @@ export default async function HomePage() {
                   <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
                     <p className="font-display text-4xl font-light leading-none text-black/35">02</p>
                     <div className="space-y-2">
-                      <p className="text-xs tracking-[0.25em] text-ink-500">CONFIANZA</p>
+                      <p className="text-xs tracking-section text-ink-500">CONFIANZA</p>
                       <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Transparencia</h3>
                       <p className="text-sm leading-[1.85] text-ink-700">
                         Tamaño, precio y estatus con lenguaje claro. Sin promesas vacías.
@@ -174,7 +176,7 @@ export default async function HomePage() {
                   <div className="grid gap-4 sm:grid-cols-[92px_1fr] sm:gap-7">
                     <p className="font-display text-4xl font-light leading-none text-black/35">03</p>
                     <div className="space-y-2">
-                      <p className="text-xs tracking-[0.25em] text-ink-500">CATÁLOGO</p>
+                      <p className="text-xs tracking-section text-ink-500">CATÁLOGO</p>
                       <h3 className="font-display text-2xl leading-[0.95] text-ink-950">Pedidos especiales</h3>
                       <p className="text-sm leading-[1.85] text-ink-700">
                         Si no está listado, lo buscamos: disponibilidad, opción y cotización.
@@ -192,11 +194,11 @@ export default async function HomePage() {
         <Container className="py-16 pt-24">
           <div className="space-y-8">
             <div className="mb-6">
-              <p className="text-xs tracking-[0.25em] text-ink-500">RESEÑAS</p>
+              <p className="text-xs tracking-section text-ink-500">RESEÑAS</p>
               <h2 className="mt-3 font-display text-2xl leading-[0.95] text-ink-950">Lo que dicen nuestros clientes</h2>
               {ratingCount ? (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-1 text-base leading-none text-[#bfa37a]">
+                  <div className="flex items-center gap-1 text-base leading-none text-goldSoft">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <span key={i}>{i < roundedStars ? "★" : "☆"}</span>
                     ))}
@@ -254,7 +256,7 @@ export default async function HomePage() {
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-neutral-400">
                               <span>{new Date(r.at).toLocaleDateString("es-MX")}</span>
                               {r.rating ? (
-                                <span className="flex items-center gap-1 text-ui-md leading-none text-[#bfa37a]">
+                                <span className="flex items-center gap-1 text-ui-md leading-none text-goldSoft">
                                   {Array.from({ length: 5 }).map((_, i) => (
                                     <span key={i}>{i < starsValue ? "★" : "☆"}</span>
                                   ))}
@@ -276,10 +278,10 @@ export default async function HomePage() {
                               {deliveryStatus ? (
                                 <div className="space-y-1">
                                   <p className="text-sm font-medium text-ink-950">{deliveryStatus}</p>
-                                  <p className="text-ui-xs tracking-[0.22em] text-neutral-400/90">ENTREGA CONFIRMADA</p>
+                                  <p className="text-ui-xs tracking-kicker text-neutral-400/90">ENTREGA CONFIRMADA</p>
                                 </div>
                               ) : (
-                                <p className="text-ui-xs tracking-[0.22em] text-neutral-400/90">ENTREGA CONFIRMADA</p>
+                                <p className="text-ui-xs tracking-kicker text-neutral-400/90">ENTREGA CONFIRMADA</p>
                               )}
                               {r.deliveryNotes ? (
                                 <p className="text-xs text-ink-700">

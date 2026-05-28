@@ -26,7 +26,7 @@ export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Pr
               className="flex flex-col gap-3 rounded-2xl border border-black/8 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
-                <p className="text-xs tracking-[0.18em] text-ink-500">{p.brand}</p>
+                <p className="text-xs tracking-ui text-ink-500">{p.brand}</p>
                 <p className="truncate font-display text-lg text-ink-950">{p.name}</p>
                 <p className="mt-1 text-xs text-ink-500">
                   {p.category === "niche" ? "Nicho" : "Diseñador"} · {p.sizeMl} ml · {p.stock} en stock · {p.availability} · Venta{" "}

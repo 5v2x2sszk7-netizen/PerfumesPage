@@ -184,7 +184,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
       <Surface className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
           <div className="grid gap-2">
-            <p className="text-ui-xs font-medium tracking-[0.22em] text-ink-500">CATEGORÍA</p>
+            <p className="text-ui-xs font-medium tracking-kicker text-ink-500">CATEGORÍA</p>
             <div className="flex items-center gap-2">
               <Pill
                 type="button"
@@ -260,7 +260,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
             <div className="grid gap-3 md:grid-cols-3">
               <div className="grid gap-1.5">
-                <Label htmlFor="q" className="text-ui-xs tracking-[0.18em] text-ink-600">
+                <Label htmlFor="q" className="text-ui-xs tracking-ui text-ink-600">
                   Buscar
                 </Label>
                 <Input
@@ -281,7 +281,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="brand" className="text-ui-xs tracking-[0.18em] text-ink-600">
+                <Label htmlFor="brand" className="text-ui-xs tracking-ui text-ink-600">
                   Marca
                 </Label>
                 <Select
@@ -309,7 +309,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
               <div className="grid gap-1.5">
                 <Label
                   htmlFor="availability"
-                  className="text-ui-xs tracking-[0.18em] text-ink-600"
+                  className="text-ui-xs tracking-ui text-ink-600"
                 >
                   Disponibilidad
                 </Label>
@@ -338,7 +338,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
             <div className="flex flex-wrap items-end justify-between gap-3 lg:justify-end">
               <div className="flex items-end gap-2">
                 <div className="grid gap-1.5">
-                  <Label htmlFor="sort" className="text-ui-xs tracking-[0.18em] text-ink-600">
+                  <Label htmlFor="sort" className="text-ui-xs tracking-ui text-ink-600">
                     Ordenar por:
                   </Label>
                   <Select
@@ -475,7 +475,7 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
           </div>
 
           <div className="relative grid gap-3">
-            <p className="text-ui-xs font-medium tracking-[0.22em] text-ink-500">COLECCIÓN</p>
+            <p className="text-ui-xs font-medium tracking-kicker text-ink-500">COLECCIÓN</p>
             <p className="font-display text-2xl text-ink-950">
               {hasActiveFilters
                 ? "No hay fragancias disponibles con esta selección."

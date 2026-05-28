@@ -12,7 +12,7 @@ export default function SpecialOrderPage() {
   return (
     <div className="bg-white">
       <Container className="py-12 sm:py-16">
-        <p className="text-xs tracking-[0.25em] text-ink-500">PEDIDOS ESPECIALES</p>
+        <p className="text-xs tracking-section text-ink-500">PEDIDOS ESPECIALES</p>
         <h1 className="mt-3 font-display text-3xl text-ink-950 sm:text-4xl">
           ¿No está en el catálogo?
         </h1>

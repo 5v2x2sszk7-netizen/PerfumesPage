@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server"
 import type { Perfume } from "@/types/perfume"
 import { addSuggestion, appendSale, readPerfumes, withPerfumesLock, writePerfumes } from "@/lib/perfumeStore"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { availabilityFromStock, isAllowedPerfumeImageSrc, parseCost, parseNotes, parseSold, parseStock } from "@/lib/perfume/parsers"
+import { jsonError, jsonOk } from "@/lib/apiResponse"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -14,21 +14,21 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const body = (await req.json()) as Partial<Perfume>
   if (body.imageSrc != null && typeof body.imageSrc === "string" && body.imageSrc.trim()) {
     if (!isAllowedPerfumeImageSrc(body.imageSrc)) {
-      return NextResponse.json({ error: "Invalid imageSrc" }, { status: 400 })
+      return jsonError("Invalid imageSrc", 400)
     }
   }
   const notes = parseNotes(body.notes)
   const stockParsed = parseStock((body as unknown as { stock?: unknown }).stock)
   if (stockParsed === null && (body as unknown as { stock?: unknown }).stock != null) {
-    return NextResponse.json({ error: "Invalid stock" }, { status: 400 })
+    return jsonError("Invalid stock", 400)
   }
   const costParsed = parseCost((body as unknown as { cost?: unknown }).cost)
   if (costParsed === null && (body as unknown as { cost?: unknown }).cost != null) {
-    return NextResponse.json({ error: "Invalid cost" }, { status: 400 })
+    return jsonError("Invalid cost", 400)
   }
   const soldParsed = parseSold((body as unknown as { sold?: unknown }).sold)
   if (soldParsed === null && (body as unknown as { sold?: unknown }).sold != null) {
-    return NextResponse.json({ error: "Invalid sold" }, { status: 400 })
+    return jsonError("Invalid sold", 400)
   }
 
   try {
@@ -73,12 +73,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       await writePerfumes(next)
       return { status: "ok" as const, perfume: updated }
     })
-    if (res.status === "not_found") return NextResponse.json({ error: "Not found" }, { status: 404 })
+    if (res.status === "not_found") return jsonError("Not found", 404)
     await addSuggestion(res.perfume.brand, res.perfume.name)
-    return NextResponse.json({ perfume: res.perfume })
+    return jsonOk({ perfume: res.perfume })
   } catch (e) {
-    if (isPersistenceNotConfiguredError(e)) return NextResponse.json({ error: e.message }, { status: 501 })
-    return NextResponse.json({ error: "Could not save product" }, { status: 500 })
+    if (isPersistenceNotConfiguredError(e)) return jsonError(e.message, 501)
+    return jsonError("Could not save product", 500)
   }
 }
 
@@ -93,10 +93,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       await writePerfumes(next)
       return true
     })
-    if (!deleted) return NextResponse.json({ error: "Not found" }, { status: 404 })
-    return NextResponse.json({ ok: true })
+    if (!deleted) return jsonError("Not found", 404)
+    return jsonOk({})
   } catch (e) {
-    if (isPersistenceNotConfiguredError(e)) return NextResponse.json({ error: e.message }, { status: 501 })
-    return NextResponse.json({ error: "Could not delete product" }, { status: 500 })
+    if (isPersistenceNotConfiguredError(e)) return jsonError(e.message, 501)
+    return jsonError("Could not delete product", 500)
   }
 }

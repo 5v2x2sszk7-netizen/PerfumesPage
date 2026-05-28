@@ -14,18 +14,29 @@ export type StorageDriver = {
 }
 
 function normalizeKey(input: string) {
-  return input.replace(/^\/+/, "")
+  return input.replace(/^\/+/, "").trim()
 }
 
 function resolveFsPathFromKey(key: string) {
   const normalized = normalizeKey(key)
+  validateStorageKey(normalized)
   if (normalized.startsWith("uploads/")) {
     const rest = normalized.slice("uploads/".length)
-    return path.join(process.cwd(), "public", "uploads", rest)
+    const base = path.resolve(process.cwd(), "public", "uploads")
+    const resolved = path.resolve(base, rest)
+    if (resolved !== base && !resolved.startsWith(base + path.sep)) {
+      throw new Error(`Unsupported storage key: ${normalized}`)
+    }
+    return resolved
   }
   if (normalized.startsWith("data/")) {
     const rest = normalized.slice("data/".length)
-    return path.join(process.cwd(), "data", rest)
+    const base = path.resolve(process.cwd(), "data")
+    const resolved = path.resolve(base, rest)
+    if (resolved !== base && !resolved.startsWith(base + path.sep)) {
+      throw new Error(`Unsupported storage key: ${normalized}`)
+    }
+    return resolved
   }
   throw new Error(`Unsupported storage key: ${normalized}`)
 }
@@ -35,6 +46,16 @@ function inferScopeFromKey(key: string): "data" | "uploads" | null {
   if (normalized.startsWith("uploads/")) return "uploads"
   if (normalized.startsWith("data/")) return "data"
   return null
+}
+
+function validateStorageKey(normalized: string) {
+  if (!normalized) throw new Error("Unsupported storage key")
+  if (!(normalized.startsWith("uploads/") || normalized.startsWith("data/"))) {
+    throw new Error(`Unsupported storage key: ${normalized}`)
+  }
+  if (normalized.includes("..")) throw new Error(`Unsupported storage key: ${normalized}`)
+  if (normalized.includes("\\")) throw new Error(`Unsupported storage key: ${normalized}`)
+  if (normalized.includes("\u0000")) throw new Error(`Unsupported storage key: ${normalized}`)
 }
 
 class FsStorageDriver implements StorageDriver {
@@ -89,6 +110,7 @@ class HttpStorageDriver implements StorageDriver {
 
   private urlForKey(key: string) {
     const normalized = normalizeKey(key)
+    validateStorageKey(normalized)
     const base = this.baseUrl.endsWith("/") ? this.baseUrl : `${this.baseUrl}/`
     return new URL(normalized, base)
   }

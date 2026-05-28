@@ -20,7 +20,7 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
   return (
     <ModalShell open={true} onClose={onClose} contentClassName="w-full max-w-md">
       <Surface variant="modal" radius="xl" className="w-full p-6">
-        <p className="text-xs tracking-[0.25em] text-ink-500">CONFIRMAR</p>
+        <p className="text-xs tracking-section text-ink-500">CONFIRMAR</p>
         <h2 className="mt-2 font-display text-2xl text-ink-950">Confirmar venta</h2>
         <p className="mt-3 text-sm text-ink-700">
           Esto descontará piezas del stock de “{sellTarget.name}” ({sellTarget.brand}).

@@ -120,7 +120,7 @@ export function ReportSection({ perfumes, sales }: Props) {
       <div className="rounded-3xl border border-black/8 bg-white p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1">
-            <p className="text-xs tracking-[0.25em] text-ink-500">INFORME</p>
+            <p className="text-xs tracking-section text-ink-500">INFORME</p>
             <h2 className="font-display text-2xl text-ink-950">Ganancias</h2>
           </div>
           <p className="text-sm text-ink-600">{perfumes.length} productos</p>
@@ -165,14 +165,14 @@ export function ReportSection({ perfumes, sales }: Props) {
           <div className="rounded-3xl border border-black/8 bg-white p-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="space-y-1">
-                <p className="text-xs tracking-[0.25em] text-ink-500">RESUMEN</p>
+                <p className="text-xs tracking-section text-ink-500">RESUMEN</p>
                 <h3 className="font-display text-xl text-ink-950">Perfume más vendido</h3>
               </div>
               <p className="text-sm text-ink-600">{topPerfume ? `${topPerfume.soldUnits} pzas` : "Aún no hay ventas registradas"}</p>
             </div>
             {topPerfume ? (
               <div className="mt-4 rounded-2xl border border-black/8 bg-white p-4">
-                <p className="text-xs tracking-[0.18em] text-ink-500">PERFUME</p>
+                <p className="text-xs tracking-ui text-ink-500">PERFUME</p>
                 <p className="mt-1 font-display text-xl text-ink-950">
                   {topPerfume.name} · {topPerfume.sizeMl} ml
                 </p>
@@ -188,7 +188,7 @@ export function ReportSection({ perfumes, sales }: Props) {
           <div className="rounded-3xl border border-black/8 bg-white p-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="space-y-1">
-                <p className="text-xs tracking-[0.25em] text-ink-500">DETALLE</p>
+                <p className="text-xs tracking-section text-ink-500">DETALLE</p>
                 <h3 className="font-display text-xl text-ink-950">Ventas por perfume</h3>
               </div>
               <p className="text-sm text-ink-600">
@@ -202,7 +202,7 @@ export function ReportSection({ perfumes, sales }: Props) {
                   className="flex flex-col gap-2 rounded-2xl border border-black/8 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
-                    <p className="text-xs tracking-[0.18em] text-ink-500">{idx + 1}. Perfume</p>
+                    <p className="text-xs tracking-ui text-ink-500">{idx + 1}. Perfume</p>
                     <p className="truncate font-display text-lg text-ink-950">
                       {row.name} · {row.sizeMl} ml
                     </p>

@@ -25,7 +25,7 @@ export function Footer() {
                 stock, envíos y equivalencias antes de cerrar por WhatsApp.
               </p>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs tracking-[0.18em] text-ink-500">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs tracking-ui text-ink-500">
                 <span className="inline-flex items-center gap-2">
                   <span className="h-1 w-1 rounded-full bg-antiqueGold/70" />
                   Curado
@@ -43,7 +43,7 @@ export function Footer() {
 
             <div className="grid gap-8 sm:grid-cols-2">
               <div className="space-y-3">
-                <p className="text-ui-xs font-medium tracking-[0.25em] text-ink-500">
+                <p className="text-ui-xs font-medium tracking-section text-ink-500">
                   NAVEGACIÓN
                 </p>
                 <div className="grid gap-2 text-sm text-ink-700">
@@ -57,7 +57,7 @@ export function Footer() {
               </div>
 
               <div className="space-y-3">
-                <p className="text-ui-xs font-medium tracking-[0.25em] text-ink-500">
+                <p className="text-ui-xs font-medium tracking-section text-ink-500">
                   DETALLES
                 </p>
                 <div className="space-y-2 text-sm text-ink-700">

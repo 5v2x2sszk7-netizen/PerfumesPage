@@ -40,7 +40,7 @@ export function AdminLoginClient() {
 
   return (
     <div className="mx-auto w-full max-w-lg rounded-3xl border border-black/8 bg-white p-6">
-      <p className="text-xs tracking-[0.25em] text-ink-500">ADMIN</p>
+      <p className="text-xs tracking-section text-ink-500">ADMIN</p>
       <h1 className="mt-2 font-display text-3xl text-ink-950">Iniciar sesión</h1>
       <div className="mt-6 grid gap-2">
         <Label htmlFor="token">Token</Label>

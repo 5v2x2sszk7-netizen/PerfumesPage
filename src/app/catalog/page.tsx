@@ -4,8 +4,7 @@ import { CatalogClient } from "@/app/catalog/CatalogClient"
 import { readPerfumes } from "@/lib/perfumeStore"
 import { Suspense } from "react"
 
-export const dynamic = "force-dynamic"
-export const revalidate = 0
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: "Catálogo",
@@ -54,7 +53,7 @@ export default async function CatalogPage() {
   return (
     <Container className="py-10 sm:py-14">
       <div className="flex flex-col gap-3">
-        <p className="text-xs tracking-[0.25em] text-ink-500">CATÁLOGO</p>
+        <p className="text-xs tracking-section text-ink-500">CATÁLOGO</p>
         <h1 className="font-display text-3xl leading-[0.95] text-ink-950 sm:text-4xl">
           Perfumes disponibles
         </h1>

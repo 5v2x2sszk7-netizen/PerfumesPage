@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server"
 import path from "node:path"
 import sharp from "sharp"
 import { slugify } from "@/lib/slug"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { checkRateLimit } from "@/lib/rateLimit"
+import { jsonError, jsonOk } from "@/lib/apiResponse"
 import { getStorageDriver } from "@/lib/storage/driver"
 
 type RateLimitConfig = {
@@ -27,32 +27,28 @@ export async function processUpload(req: Request, opts: ProcessUploadOptions) {
   if (opts.rateLimit) {
     const rate = await checkRateLimit(req, opts.rateLimit)
     if (!rate.allowed) {
-      return NextResponse.json(
-        { error: "Rate limited" },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(Math.max(1, Math.ceil(rate.retryAfterMs / 1000)))
-          }
+      return jsonError("Rate limited", 429, {
+        headers: {
+          "Retry-After": String(Math.max(1, Math.ceil(rate.retryAfterMs / 1000)))
         }
-      )
+      })
     }
   }
 
   const formData = await req.formData()
   const file = formData.get("file")
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Missing file" }, { status: 400 })
+    return jsonError("Missing file", 400)
   }
 
   if (file.size <= 0 || file.size > opts.maxSizeBytes) {
-    return NextResponse.json({ error: "File too large" }, { status: 400 })
+    return jsonError("File too large", 400)
   }
 
   const originalName = file.name || "image"
   const ext = path.extname(originalName).toLowerCase()
   if (!allowedExtensions.has(ext)) {
-    return NextResponse.json({ error: "Unsupported file type" }, { status: 400 })
+    return jsonError("Unsupported file type", 400)
   }
 
   const baseName = slugify(path.basename(originalName, ext)) || opts.baseNameFallback
@@ -74,7 +70,7 @@ export async function processUpload(req: Request, opts: ProcessUploadOptions) {
       .webp({ quality: opts.quality })
       .toBuffer()
   } catch {
-    return NextResponse.json({ error: "Could not process image" }, { status: 400 })
+    return jsonError("Could not process image", 400)
   }
 
   try {
@@ -83,11 +79,11 @@ export async function processUpload(req: Request, opts: ProcessUploadOptions) {
     })
   } catch (e) {
     if (isPersistenceNotConfiguredError(e)) {
-      return NextResponse.json({ error: e.message }, { status: 501 })
+      return jsonError(e.message, 501)
     }
-    return NextResponse.json({ error: "Upload not available" }, { status: 500 })
+    return jsonError("Upload not available", 500)
   }
 
   const publicPath = opts.uploadSubdir ? `/uploads/${opts.uploadSubdir}/${fileName}` : `/uploads/${fileName}`
-  return NextResponse.json({ path: publicPath })
+  return jsonOk({ path: publicPath })
 }

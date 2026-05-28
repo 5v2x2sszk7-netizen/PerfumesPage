@@ -1,4 +1,5 @@
 import type { Perfume } from "@/types/perfume"
+import type { Review as StoreReview } from "@/lib/perfumeStore"
 
 export type Draft = {
   id?: string
@@ -36,14 +37,7 @@ export type SaleRecord = {
   qty: number
 }
 
-export type Review = {
-  id: string
-  at: string
-  customerName: string
-  text: string
-  rating?: number
-  imageSrc?: string
-}
+export type Review = StoreReview
 
 export type ReviewDraft = {
   customerName: string

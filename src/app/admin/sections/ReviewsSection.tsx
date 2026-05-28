@@ -39,7 +39,7 @@ export function ReviewsSection({
       <div className="rounded-3xl border border-black/8 bg-white p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1">
-            <p className="text-xs tracking-[0.25em] text-ink-500">RESEÑAS</p>
+            <p className="text-xs tracking-section text-ink-500">RESEÑAS</p>
             <h2 className="font-display text-2xl text-ink-950">Clientes</h2>
           </div>
           <p className="text-sm text-ink-600">{reviews.length} reseñas</p>
@@ -144,7 +144,7 @@ export function ReviewsSection({
                   className="flex flex-col gap-3 rounded-2xl border border-black/8 bg-white p-4 sm:flex-row sm:items-start sm:justify-between"
                 >
                   <div className="min-w-0">
-                    <p className="text-xs tracking-[0.18em] text-ink-500">CLIENTE</p>
+                    <p className="text-xs tracking-ui text-ink-500">CLIENTE</p>
                     <p className="truncate font-display text-lg text-ink-950">{r.customerName}</p>
                     <p className="mt-1 text-xs text-ink-500">{new Date(r.at).toLocaleDateString("es-MX")}</p>
                     {r.rating ? <p className="mt-2 text-xs text-ink-700">{"★".repeat(r.rating)}</p> : null}

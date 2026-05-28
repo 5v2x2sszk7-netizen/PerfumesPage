@@ -251,7 +251,7 @@ export function ReviewForm() {
                 multiple
                 accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
                 disabled={uploading || status === "submitting"}
-                className={deliveryPhotos.length >= 5 ? "text-[#60523e]" : ""}
+                className={deliveryPhotos.length >= 5 ? "text-inkWarm" : ""}
                 onSelect={(files) => {
                   void onUploadDeliveryPhotos(files)
                 }}

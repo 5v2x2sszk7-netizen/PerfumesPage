@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server"
 import { adminCookieName } from "@/lib/adminSession"
+import { jsonOk } from "@/lib/apiResponse"
 
 export async function POST() {
-  const res = NextResponse.json({ ok: true })
+  const res = jsonOk({})
   res.cookies.set(adminCookieName, "", {
     httpOnly: true,
     sameSite: "lax",
@@ -12,4 +12,3 @@ export async function POST() {
   })
   return res
 }
-

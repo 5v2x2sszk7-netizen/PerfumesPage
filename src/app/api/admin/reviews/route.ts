@@ -1,21 +1,14 @@
-import { NextResponse } from "next/server"
 import { createReview, readReviews } from "@/lib/perfumeStore"
 import type { Review } from "@/lib/perfumeStore"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
+import { jsonError, jsonNoStoreOk, jsonOk } from "@/lib/apiResponse"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export async function GET() {
   const reviews = await readReviews()
-  return NextResponse.json(
-    { reviews },
-    {
-      headers: {
-        "Cache-Control": "no-store, max-age=0"
-      }
-    }
-  )
+  return jsonNoStoreOk({ reviews })
 }
 
 export async function POST(req: Request) {
@@ -28,11 +21,11 @@ export async function POST(req: Request) {
       rating: typeof body.rating === "number" ? body.rating : undefined,
       imageSrc: typeof body.imageSrc === "string" ? body.imageSrc.trim() : undefined
     })
-    return NextResponse.json({ review: created }, { status: 201 })
+    return jsonOk({ review: created }, { status: 201 })
   } catch (e) {
     if (isPersistenceNotConfiguredError(e)) {
-      return NextResponse.json({ error: e.message }, { status: 501 })
+      return jsonError(e.message, 501)
     }
-    return NextResponse.json({ error: e instanceof Error ? e.message : "Invalid review" }, { status: 400 })
+    return jsonError(e instanceof Error ? e.message : "Invalid review", 400)
   }
 }

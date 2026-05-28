@@ -1,18 +1,14 @@
-"use client"
-
 import type { Perfume } from "@/types/perfume"
 import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/cn"
 import { formatPrice, availabilityLabel } from "@/lib/whatsapp"
-import { useState } from "react"
 import { Badge, availabilityBadgeTone } from "@/components/ui/Badge"
 
 export function PerfumeCard({ perfume }: { perfume: Perfume }) {
   const isOut = perfume.availability === "out_of_stock"
   const concentration = perfume.concentration?.trim() || "Eau de Parfum"
   const showConsult = perfume.price <= 0
-  const [imageLoaded, setImageLoaded] = useState(false)
 
   return (
     <Link
@@ -33,13 +29,10 @@ export function PerfumeCard({ perfume }: { perfume: Perfume }) {
               fill
               className={cn(
                 "object-cover transition-luxe-media duration-luxe-fast ease-luxe",
-                imageLoaded ? "opacity-100" : "opacity-0",
                 isOut ? "opacity-85" : "group-hover:scale-[1.02] group-hover:translate-y-[-1px]"
               )}
               sizes="(max-width: 640px) 90vw, (max-width: 1024px) 40vw, 360px"
               priority={false}
-              onLoadingComplete={() => setImageLoaded(true)}
-              onError={() => setImageLoaded(true)}
             />
           </div>
 
@@ -58,7 +51,7 @@ export function PerfumeCard({ perfume }: { perfume: Perfume }) {
         </div>
 
         <div className="mt-5 space-y-2">
-          <p className="text-ui-xs tracking-[0.22em] text-ink-500">{perfume.brand}</p>
+          <p className="text-ui-xs tracking-kicker text-ink-500">{perfume.brand}</p>
           <h3 className={cn("font-display text-xl leading-tight text-ink-950", isOut ? "text-ink-700" : "")}>
             {perfume.name}
           </h3>

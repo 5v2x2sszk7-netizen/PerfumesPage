@@ -32,7 +32,7 @@ export function ReviewWriteModal() {
             <div className="relative max-h-[90vh] overflow-y-auto rounded-3xl border border-black/8 bg-white px-6 pb-6 pt-5 shadow-modal-soft">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                  <p className="text-xs tracking-[0.25em] text-ink-500">OPINIÓN</p>
+                  <p className="text-xs tracking-section text-ink-500">OPINIÓN</p>
                   <h2 className="font-display text-2xl text-ink-950">Escribe tu reseña</h2>
                 </div>
               </div>

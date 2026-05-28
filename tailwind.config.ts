@@ -22,6 +22,7 @@ export default {
         antiqueGoldDark: "#a88952",
         antiqueGoldMuted: "#e6dcc6",
         goldSoft: "#bfa37a",
+        inkWarm: "#60523e",
         paperBorder: "#d7d2c9",
         paper: {
           50: "#fdfbf7",
@@ -44,7 +45,11 @@ export default {
         body: ["var(--font-body)"]
       },
       letterSpacing: {
-        luxe: "0.12em"
+        luxe: "0.12em",
+        ui: "0.18em",
+        kicker: "0.22em",
+        section: "0.25em",
+        brand: "0.32em"
       },
       zIndex: {
         sticky: "30",

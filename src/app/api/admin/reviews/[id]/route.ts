@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server"
 import { deleteReview, updateReview } from "@/lib/perfumeStore"
 import type { Review } from "@/lib/perfumeStore"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
+import { jsonError, jsonOk } from "@/lib/apiResponse"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -17,13 +17,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       rating: typeof body.rating === "number" ? body.rating : undefined,
       imageSrc: typeof body.imageSrc === "string" ? body.imageSrc.trim() : undefined
     })
-    if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 })
-    return NextResponse.json({ review: updated })
+    if (!updated) return jsonError("Not found", 404)
+    return jsonOk({ review: updated })
   } catch (e) {
     if (isPersistenceNotConfiguredError(e)) {
-      return NextResponse.json({ error: e.message }, { status: 501 })
+      return jsonError(e.message, 501)
     }
-    return NextResponse.json({ error: e instanceof Error ? e.message : "Invalid review" }, { status: 400 })
+    return jsonError(e instanceof Error ? e.message : "Invalid review", 400)
   }
 }
 
@@ -31,12 +31,12 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const { id } = await params
   try {
     const ok = await deleteReview(id)
-    if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 })
-    return NextResponse.json({ ok: true })
+    if (!ok) return jsonError("Not found", 404)
+    return jsonOk({})
   } catch (e) {
     if (isPersistenceNotConfiguredError(e)) {
-      return NextResponse.json({ error: e.message }, { status: 501 })
+      return jsonError(e.message, 501)
     }
-    return NextResponse.json({ error: "Could not delete review" }, { status: 500 })
+    return jsonError("Could not delete review", 500)
   }
 }

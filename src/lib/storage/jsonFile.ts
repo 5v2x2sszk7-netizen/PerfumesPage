@@ -6,6 +6,57 @@ export function dataFilePath(fileName: string) {
 
 const storageLockTails = new Map<string, Promise<void>>()
 
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
+
+function upstashConfig() {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return null
+  return { url: url.replace(/\/$/, ""), token }
+}
+
+async function upstashCommand(command: unknown[]) {
+  const cfg = upstashConfig()
+  if (!cfg) return null
+  const res = await fetch(`${cfg.url}/command`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${cfg.token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(command)
+  }).catch(() => null)
+  if (!res || !res.ok) return null
+  const json = (await res.json().catch(() => null)) as { result?: unknown } | null
+  return json?.result ?? null
+}
+
+async function acquireDistributedLock(lockKey: string, ttlMs: number, waitBudgetMs: number) {
+  const cfg = upstashConfig()
+  if (!cfg) return null
+  const token = globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random()}`
+  const started = Date.now()
+  while (Date.now() - started < waitBudgetMs) {
+    const result = await upstashCommand(["SET", lockKey, token, "NX", "PX", String(ttlMs)])
+    if (result === "OK") return { lockKey, token }
+    await sleep(90 + Math.floor(Math.random() * 70))
+  }
+  throw new Error("Storage is busy. Try again.")
+}
+
+async function releaseDistributedLock(lock: { lockKey: string; token: string } | null) {
+  if (!lock) return
+  await upstashCommand([
+    "EVAL",
+    "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end",
+    "1",
+    lock.lockKey,
+    lock.token
+  ])
+}
+
 export async function withStorageLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
   const prev = storageLockTails.get(key) ?? Promise.resolve()
   let release!: () => void
@@ -16,7 +67,13 @@ export async function withStorageLock<T>(key: string, fn: () => Promise<T>): Pro
   storageLockTails.set(key, nextTail)
   await prev
   try {
-    return await fn()
+    const lockKey = `perfimes:lock:${key}`
+    const dist = await acquireDistributedLock(lockKey, 15_000, 6_000)
+    try {
+      return await fn()
+    } finally {
+      await releaseDistributedLock(dist)
+    }
   } finally {
     release()
     if (storageLockTails.get(key) === nextTail) storageLockTails.delete(key)

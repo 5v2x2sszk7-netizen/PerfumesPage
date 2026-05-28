@@ -126,7 +126,7 @@ export function ProductFormSection({
             <Input inputMode="numeric" value={draft.stock} onChange={(e) => setDraft((d) => ({ ...d, stock: e.target.value }))} />
           </div>
           <div className="md:col-span-2 grid gap-3 rounded-2xl border border-black/8 bg-white p-4">
-            <p className="text-xs tracking-[0.18em] text-ink-500">GANANCIA</p>
+            <p className="text-xs tracking-ui text-ink-500">GANANCIA</p>
             <div className="grid gap-2 sm:grid-cols-3">
               <div className="rounded-xl border border-black/8 bg-ink-50/40 px-4 py-3">
                 <p className="text-xs text-ink-600">Tu costo</p>

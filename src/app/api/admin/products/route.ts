@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server"
 import type { Perfume } from "@/types/perfume"
 import { addSuggestion, readPerfumes, readSales, readSuggestions, withPerfumesLock, writePerfumes } from "@/lib/perfumeStore"
 import { slugify } from "@/lib/slug"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { availabilityFromStock, isAllowedPerfumeImageSrc, parseCost, parseNotes, parseSold, parseStock } from "@/lib/perfume/parsers"
+import { jsonError, jsonNoStoreOk, jsonOk } from "@/lib/apiResponse"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -19,34 +19,27 @@ export async function GET() {
   const perfumes = await readPerfumes()
   const suggestions = await readSuggestions()
   const sales = await readSales()
-  return NextResponse.json(
-    { perfumes, suggestions, sales },
-    {
-      headers: {
-        "Cache-Control": "no-store, max-age=0"
-      }
-    }
-  )
+  return jsonNoStoreOk({ perfumes, suggestions, sales })
 }
 
 export async function POST(req: Request) {
   const body = (await req.json()) as Partial<Perfume>
   if (!body.name || !body.brand || !body.category || !body.description) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    return jsonError("Missing required fields", 400)
   }
   if (!body.sizeMl || typeof body.sizeMl !== "number") {
-    return NextResponse.json({ error: "Invalid sizeMl" }, { status: 400 })
+    return jsonError("Invalid sizeMl", 400)
   }
   if (typeof body.price !== "number") {
-    return NextResponse.json({ error: "Invalid price" }, { status: 400 })
+    return jsonError("Invalid price", 400)
   }
   if (!body.availability) {
-    return NextResponse.json({ error: "Missing availability" }, { status: 400 })
+    return jsonError("Missing availability", 400)
   }
 
   if (body.imageSrc != null && typeof body.imageSrc === "string" && body.imageSrc.trim()) {
     if (!isAllowedPerfumeImageSrc(body.imageSrc)) {
-      return NextResponse.json({ error: "Invalid imageSrc" }, { status: 400 })
+      return jsonError("Invalid imageSrc", 400)
     }
   }
 
@@ -63,16 +56,16 @@ export async function POST(req: Request) {
   const notes = parseNotes(body.notes)
   const stockParsed = parseStock((body as unknown as { stock?: unknown }).stock)
   if (stockParsed === null && (body as unknown as { stock?: unknown }).stock != null) {
-    return NextResponse.json({ error: "Invalid stock" }, { status: 400 })
+    return jsonError("Invalid stock", 400)
   }
   const costParsed = parseCost((body as unknown as { cost?: unknown }).cost)
   if (costParsed === null && (body as unknown as { cost?: unknown }).cost != null) {
-    return NextResponse.json({ error: "Invalid cost" }, { status: 400 })
+    return jsonError("Invalid cost", 400)
   }
   const cost = costParsed ?? 0
   const soldParsed = parseSold((body as unknown as { sold?: unknown }).sold)
   if (soldParsed === null && (body as unknown as { sold?: unknown }).sold != null) {
-    return NextResponse.json({ error: "Invalid sold" }, { status: 400 })
+    return jsonError("Invalid sold", 400)
   }
   const sold = soldParsed ?? 0
   const stock = stockParsed ?? (availabilityBody === "out_of_stock" ? 0 : 1)
@@ -115,9 +108,9 @@ export async function POST(req: Request) {
       return created
     })
     await addSuggestion(created.brand, created.name)
-    return NextResponse.json({ perfume: created }, { status: 201 })
+    return jsonOk({ perfume: created }, { status: 201 })
   } catch (e) {
-    if (isPersistenceNotConfiguredError(e)) return NextResponse.json({ error: e.message }, { status: 501 })
-    return NextResponse.json({ error: "Could not save product" }, { status: 500 })
+    if (isPersistenceNotConfiguredError(e)) return jsonError(e.message, 501)
+    return jsonError("Could not save product", 500)
   }
 }

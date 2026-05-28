@@ -4,6 +4,18 @@ import type { NextRequest } from "next/server"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
+function isSafeUploadPathParts(parts: string[]) {
+  if (!parts.length || parts.length > 20) return false
+  for (const part of parts) {
+    if (!part) return false
+    if (part === "." || part === "..") return false
+    if (part.includes("..")) return false
+    if (part.includes("\\")) return false
+    if (part.includes("\u0000")) return false
+  }
+  return true
+}
+
 function contentTypeForKey(key: string) {
   const lower = key.toLowerCase()
   if (lower.endsWith(".webp")) return "image/webp"
@@ -16,7 +28,7 @@ function contentTypeForKey(key: string) {
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
   const resolved = await ctx.params
   const parts = Array.isArray(resolved.path) ? resolved.path : []
-  if (!parts.length) return new Response("Not found", { status: 404 })
+  if (!isSafeUploadPathParts(parts)) return new Response("Not found", { status: 404 })
 
   const key = `uploads/${parts.join("/")}`
   const bytes = await getStorageDriver().readBytes(key)

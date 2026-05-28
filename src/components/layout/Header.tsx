@@ -37,7 +37,7 @@ export function Header() {
     >
       <Container className="flex h-14 items-center justify-between">
         <Link href="/" prefetch={false} className="group inline-flex flex-col leading-none">
-          <span className="font-display text-logo uppercase tracking-[0.32em] text-ink-950 sm:text-logo-sm sm:tracking-[0.30em]">
+          <span className="font-display text-logo uppercase tracking-brand text-ink-950 sm:text-logo-sm sm:tracking-[0.30em]">
             {siteConfig.wordmark}
           </span>
           <span className="mt-1 text-ui-2xs font-extralight tracking-[0.52em] text-ink-500">
@@ -45,7 +45,7 @@ export function Header() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-[450] tracking-[0.18em] text-ink-700 md:flex">
+        <nav className="hidden items-center gap-6 text-sm font-[450] tracking-ui text-ink-700 md:flex">
           <Link
             href="/catalog"
             prefetch={false}
@@ -65,7 +65,7 @@ export function Header() {
         <Link
           href="/catalog"
           prefetch={false}
-          className="rounded-full bg-ink-950 px-4 py-2 text-sm font-[450] tracking-[0.18em] text-white shadow-header-cta transition-luxe duration-700 ease-luxe hover:-translate-y-0.5 hover:bg-ink-900 hover:shadow-header-cta-hover active:translate-y-0 md:hidden"
+          className="rounded-full bg-ink-950 px-4 py-2 text-sm font-[450] tracking-ui text-white shadow-header-cta transition-luxe duration-700 ease-luxe hover:-translate-y-0.5 hover:bg-ink-900 hover:shadow-header-cta-hover active:translate-y-0 md:hidden"
         >
           Ver catálogo
         </Link>

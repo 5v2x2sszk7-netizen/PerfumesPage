@@ -1,15 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import type { Dispatch, SetStateAction } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { Perfume } from "@/types/perfume"
-import { ButtonGhost } from "@/components/ui/Button"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/admin/api"
-import type { AdminSection, Draft, Review, ReviewDraft, SaleRecord, Suggestions } from "@/lib/admin/types"
+import type { AdminSection, Draft, Review, ReviewDraft } from "@/lib/admin/types"
 import { emptyDraft, emptyReviewDraft } from "@/lib/admin/types"
-import { fromCsv, normalizeKey, toNotesCsv, uniqueNormalized } from "@/lib/admin/utils"
-import { Pill } from "@/components/ui/Pill"
+import { fromCsv, toNotesCsv } from "@/lib/admin/utils"
 import { DeleteProductModal } from "./modals/DeleteProductModal"
 import { DeleteReviewModal } from "./modals/DeleteReviewModal"
 import { SellModal } from "./modals/SellModal"
@@ -17,241 +14,10 @@ import { ProductFormSection } from "./sections/ProductFormSection"
 import { ProductsSection } from "./sections/ProductsSection"
 import { ReportSection } from "./sections/ReportSection"
 import { ReviewsSection } from "./sections/ReviewsSection"
-
-type Finance = {
-  price: number
-  cost: number
-  profit: number
-  margin: number
-}
-
-function useAdminData({ setBusy, setError }: { setBusy: Dispatch<SetStateAction<boolean>>; setError: Dispatch<SetStateAction<string | null>> }) {
-  const [perfumes, setPerfumes] = useState<Perfume[]>([])
-  const [suggestions, setSuggestions] = useState<Suggestions | null>(null)
-  const [sales, setSales] = useState<SaleRecord[]>([])
-  const [reviews, setReviews] = useState<Review[]>([])
-
-  const refresh = useCallback(async () => {
-    setBusy(true)
-    setError(null)
-    try {
-      const [productsData, reviewsData] = await Promise.all([
-        api<{ perfumes: Perfume[]; suggestions?: Suggestions; sales?: SaleRecord[] }>(`/api/admin/products?_ts=${Date.now()}`),
-        api<{ reviews: Review[] }>(`/api/admin/reviews?_ts=${Date.now()}`)
-      ])
-      setPerfumes(productsData.perfumes)
-      if (productsData.suggestions) setSuggestions(productsData.suggestions)
-      setSales(Array.isArray(productsData.sales) ? productsData.sales : [])
-      setReviews(Array.isArray(reviewsData.reviews) ? reviewsData.reviews : [])
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error")
-    } finally {
-      setBusy(false)
-    }
-  }, [setBusy, setError])
-
-  const reset = useCallback(() => {
-    setPerfumes([])
-    setSales([])
-    setSuggestions(null)
-    setReviews([])
-  }, [])
-
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      void refresh()
-    }, 0)
-    return () => window.clearTimeout(t)
-  }, [refresh])
-
-  return { perfumes, suggestions, sales, reviews, refresh, reset }
-}
-
-function useUploads({
-  setBusy,
-  setError,
-  setDraft,
-  setReviewDraft
-}: {
-  setBusy: Dispatch<SetStateAction<boolean>>
-  setError: Dispatch<SetStateAction<string | null>>
-  setDraft: Dispatch<SetStateAction<Draft>>
-  setReviewDraft: Dispatch<SetStateAction<ReviewDraft>>
-}) {
-  const [uploading, setUploading] = useState(false)
-  const [reviewUploading, setReviewUploading] = useState(false)
-  const [uploadedPath, setUploadedPath] = useState<string | null>(null)
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
-  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null)
-  const [reviewUploadedPath, setReviewUploadedPath] = useState<string | null>(null)
-  const [reviewSelectedFileName, setReviewSelectedFileName] = useState<string | null>(null)
-  const [reviewLocalPreviewUrl, setReviewLocalPreviewUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    return () => {
-      if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl)
-    }
-  }, [localPreviewUrl])
-
-  useEffect(() => {
-    return () => {
-      if (reviewLocalPreviewUrl) URL.revokeObjectURL(reviewLocalPreviewUrl)
-    }
-  }, [reviewLocalPreviewUrl])
-
-  const resetProductUpload = useCallback(() => {
-    setUploadedPath(null)
-    setSelectedFileName(null)
-    if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl)
-    setLocalPreviewUrl(null)
-  }, [localPreviewUrl])
-
-  const resetReviewUpload = useCallback(() => {
-    setReviewUploadedPath(null)
-    setReviewSelectedFileName(null)
-    if (reviewLocalPreviewUrl) URL.revokeObjectURL(reviewLocalPreviewUrl)
-    setReviewLocalPreviewUrl(null)
-  }, [reviewLocalPreviewUrl])
-
-  const onUpload = useCallback(
-    async (file: File) => {
-      setSelectedFileName(file.name || null)
-      if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl)
-      setLocalPreviewUrl(URL.createObjectURL(file))
-      setBusy(true)
-      setUploading(true)
-      setError(null)
-      try {
-        const form = new FormData()
-        form.append("file", file)
-        const res = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: form
-        })
-        if (!res.ok) {
-          const json = await res.json().catch(() => null)
-          throw new Error(json?.error || "Upload failed")
-        }
-        const json = (await res.json()) as { path: string }
-        setUploadedPath(json.path)
-        setDraft((d) => ({ ...d, imageSrc: json.path }))
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Error")
-      } finally {
-        setBusy(false)
-        setUploading(false)
-      }
-    },
-    [localPreviewUrl, setBusy, setDraft, setError]
-  )
-
-  const onUploadReview = useCallback(
-    async (file: File) => {
-      setReviewSelectedFileName(file.name || null)
-      if (reviewLocalPreviewUrl) URL.revokeObjectURL(reviewLocalPreviewUrl)
-      setReviewLocalPreviewUrl(URL.createObjectURL(file))
-      setBusy(true)
-      setReviewUploading(true)
-      setError(null)
-      try {
-        const form = new FormData()
-        form.append("file", file)
-        const res = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: form
-        })
-        if (!res.ok) {
-          const json = await res.json().catch(() => null)
-          throw new Error(json?.error || "Upload failed")
-        }
-        const json = (await res.json()) as { path: string }
-        setReviewUploadedPath(json.path)
-        setReviewDraft((d) => ({ ...d, imageSrc: json.path }))
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Error")
-      } finally {
-        setBusy(false)
-        setReviewUploading(false)
-      }
-    },
-    [reviewLocalPreviewUrl, setBusy, setReviewDraft, setError]
-  )
-
-  return {
-    uploading,
-    uploadedPath,
-    selectedFileName,
-    localPreviewUrl,
-    reviewUploading,
-    reviewUploadedPath,
-    reviewSelectedFileName,
-    reviewLocalPreviewUrl,
-    onUpload,
-    onUploadReview,
-    resetProductUpload,
-    resetReviewUpload
-  }
-}
-
-function useDraftValidation({ draft, perfumes, suggestions }: { draft: Draft; perfumes: Perfume[]; suggestions: Suggestions | null }) {
-  const isEditing = Boolean(draft.id)
-
-  const canSubmit = useMemo(() => {
-    const costNum = Number(draft.cost)
-    const isCostValid = !draft.cost.trim() || (Number.isFinite(costNum) && costNum >= 0)
-    return Boolean(
-      draft.name.trim() &&
-        draft.brand.trim() &&
-        draft.description.trim() &&
-        Number(draft.sizeMl) > 0 &&
-        Number.isFinite(Number(draft.price)) &&
-        isCostValid
-    )
-  }, [draft])
-
-  const missingFields = useMemo(() => {
-    const missing: string[] = []
-    if (!draft.name.trim()) missing.push("Nombre")
-    if (!draft.brand.trim()) missing.push("Marca")
-    if (!draft.description.trim()) missing.push("Descripción")
-    if (!(Number(draft.sizeMl) > 0)) missing.push("Tamaño (ml)")
-    if (!Number.isFinite(Number(draft.price))) missing.push("Precio")
-    if (draft.cost.trim() && !(Number.isFinite(Number(draft.cost)) && Number(draft.cost) >= 0)) missing.push("Costo")
-    return missing
-  }, [draft])
-
-  const finance = useMemo<Finance>(() => {
-    const price = Number(draft.price)
-    const cost = Number(draft.cost)
-    const priceOk = Number.isFinite(price) && price >= 0
-    const costOk = Number.isFinite(cost) && cost >= 0
-    const profit = priceOk && costOk ? price - cost : NaN
-    const margin = priceOk && costOk && price > 0 ? profit / price : NaN
-    return { price, cost, profit, margin }
-  }, [draft.cost, draft.price])
-
-  const brandSuggestions = useMemo(() => {
-    return uniqueNormalized([...(suggestions?.brands ?? []), ...perfumes.map((p) => p.brand)])
-  }, [perfumes, suggestions?.brands])
-
-  const nameSuggestions = useMemo(() => {
-    const draftBrandKey = normalizeKey(draft.brand)
-    const fromSuggestions = draftBrandKey ? (suggestions?.namesByBrand[draftBrandKey] ?? []) : []
-    const fromPerfumes = draftBrandKey
-      ? perfumes.filter((p) => normalizeKey(p.brand) === draftBrandKey).map((p) => p.name)
-      : perfumes.map((p) => p.name)
-
-    if (draftBrandKey) return uniqueNormalized([...fromSuggestions, ...fromPerfumes])
-
-    const allSuggestionNames = suggestions
-      ? Object.values(suggestions.namesByBrand).flatMap((names) => names)
-      : []
-
-    return uniqueNormalized([...allSuggestionNames, ...fromPerfumes])
-  }, [draft.brand, perfumes, suggestions])
-
-  return { isEditing, canSubmit, missingFields, finance, brandSuggestions, nameSuggestions }
-}
+import { AdminShell } from "./AdminShell"
+import { useAdminData } from "@/lib/admin/hooks/useAdminData"
+import { useDraftValidation } from "@/lib/admin/hooks/useDraftValidation"
+import { useUploads } from "@/lib/admin/hooks/useUploads"
 
 export function AdminClient() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -504,75 +270,19 @@ export function AdminClient() {
         onClose={() => setDeleteReviewTarget(null)}
         onConfirm={confirmDeleteReview}
       />
-      <section className="rounded-luxe-xl bg-ink-50/60 p-3 ring-1 ring-inset ring-black/8 sm:p-5">
-        <div className="rounded-3xl border border-black/8 bg-white p-6">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div className="space-y-1">
-              <p className="text-xs tracking-[0.25em] text-ink-500">ADMIN</p>
-              <h1 className="font-display text-3xl text-ink-950">Panel</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <ButtonGhost
-                type="button"
-                className="rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
-                onClick={refresh}
-                disabled={busy}
-              >
-                Recargar
-              </ButtonGhost>
-              <ButtonGhost
-                type="button"
-                className="rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
-                onClick={onLogout}
-                disabled={busy}
-              >
-                Salir
-              </ButtonGhost>
-            </div>
-          </div>
-
-          {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
-
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Pill
-              type="button"
-              onClick={() => setSection("products")}
-              active={section === "products"}
-              variant="admin"
-            >
-              Productos
-            </Pill>
-            <Pill
-              type="button"
-              onClick={() => {
-                setDraft(emptyDraft)
-                resetProductUpload()
-                setSection("form")
-              }}
-              active={section === "form"}
-              variant="admin"
-            >
-              Nuevo / Editar
-            </Pill>
-            <Pill
-              type="button"
-              onClick={() => setSection("report")}
-              active={section === "report"}
-              variant="admin"
-            >
-              Informe
-            </Pill>
-            <Pill
-              type="button"
-              onClick={() => setSection("reviews")}
-              active={section === "reviews"}
-              variant="admin"
-            >
-              Reseñas
-            </Pill>
-          </div>
-        </div>
-      </section>
+      <AdminShell
+        busy={busy}
+        error={error}
+        section={section}
+        onRefresh={refresh}
+        onLogout={onLogout}
+        onSelectSection={setSection}
+        onStartForm={() => {
+          setDraft(emptyDraft)
+          resetProductUpload()
+          setSection("form")
+        }}
+      />
 
       {section === "report" ? <ReportSection perfumes={perfumes} sales={sales} /> : null}
       {section === "reviews" ? (
