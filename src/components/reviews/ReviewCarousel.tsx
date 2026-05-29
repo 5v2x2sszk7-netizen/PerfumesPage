@@ -24,6 +24,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
   const rafRef = useRef<number | null>(null)
   const pendingActiveIndexRef = useRef<number | null>(null)
 
+  const activeIndexClamped = safeItems.length ? Math.min(activeIndex, safeItems.length - 1) : 0
   const canNavigate = safeItems.length > 1
 
   function scrollToIndex(nextIndex: number) {
@@ -38,17 +39,21 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
 
   function goPrev() {
     if (!canNavigate) return
-    scrollToIndex(activeIndex - 1)
+    scrollToIndex(activeIndexClamped - 1)
   }
 
   function goNext() {
     if (!canNavigate) return
-    scrollToIndex(activeIndex + 1)
+    scrollToIndex(activeIndexClamped + 1)
   }
 
   useEffect(() => {
     activeIndexRef.current = activeIndex
   }, [activeIndex])
+
+  useEffect(() => {
+    itemRefs.current = itemRefs.current.slice(0, safeItems.length)
+  }, [safeItems.length])
 
   useEffect(() => {
     const scroller = scrollRef.current
@@ -100,7 +105,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
       pendingActiveIndexRef.current = null
       observer.disconnect()
     }
-  }, [safeItems.length])
+  }, [safeItems])
   if (!safeItems.length) return null
 
 
@@ -165,7 +170,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
                         frameClassName="relative h-full w-full"
                         imageClassName={
                           "object-contain transition-transform duration-luxe-fast ease-out group-hover:scale-[1.03] " +
-                          (i === activeIndex ? "ken-burns-soft" : "")
+                          (i === activeIndexClamped ? "ken-burns-soft" : "")
                         }
                         dialogImageClassName="object-contain"
                       />
@@ -209,7 +214,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
               onClick={() => scrollToIndex(i)}
               className={cn(
                 "h-2 w-2 rounded-full transition",
-                i === activeIndex ? "bg-goldSoft" : "bg-ink-200 hover:bg-ink-300"
+                i === activeIndexClamped ? "bg-goldSoft" : "bg-ink-200 hover:bg-ink-300"
               )}
             />
           ))}

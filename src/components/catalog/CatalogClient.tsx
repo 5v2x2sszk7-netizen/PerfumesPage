@@ -292,6 +292,57 @@ function CatalogFiltersPanel({
   )
 }
 
+function CatalogEmptyState({
+  hasActiveFilters,
+  onClearFilters,
+  onOpenFilters
+}: {
+  hasActiveFilters: boolean
+  onClearFilters: () => void
+  onOpenFilters: () => void
+}) {
+  return (
+    <Surface radius="luxe-xl" className="relative mt-8 overflow-hidden p-8 sm:p-10">
+      <div className="pointer-events-none absolute inset-0">
+        <Image
+          src="/images/MaloParfumsHome.jpg"
+          alt=""
+          fill
+          className="object-cover opacity-ink-8 blur-2xl grayscale"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-catalog-empty-overlay-1" />
+        <div className="absolute inset-0 bg-catalog-empty-overlay-2" />
+      </div>
+
+      <div className="relative grid gap-3">
+        <p className="text-ui-xs font-medium tracking-kicker text-ink-500">COLECCIÓN</p>
+        <p className="font-display text-2xl text-ink-950">
+          {hasActiveFilters ? "No hay fragancias disponibles con esta selección." : "Estamos actualizando esta colección."}
+        </p>
+        <p className="max-w-2xl text-sm leading-relaxed text-ink-700">
+          {hasActiveFilters
+            ? "Prueba ajustar la búsqueda o limpiar los filtros para ver más opciones."
+            : "Próximamente nuevas incorporaciones. Si buscas algo específico, pídelo por WhatsApp."}
+        </p>
+        <div className="mt-2 flex flex-wrap gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            className="rounded-full bg-white/60 px-5 py-2.5 text-sm ring-1 ring-inset ring-black/8 transition duration-luxe-fast ease-luxe hover:bg-white"
+            onClick={onClearFilters}
+          >
+            {hasActiveFilters ? "Limpiar filtros" : "Ver todas las colecciones"}
+          </Button>
+          <Button type="button" onClick={onOpenFilters} className="transition duration-luxe-fast ease-luxe">
+            Ajustar filtros
+          </Button>
+        </div>
+      </div>
+    </Surface>
+  )
+}
+
 function CatalogResults({
   ordered,
   view,
@@ -339,50 +390,7 @@ function CatalogResults({
     )
   }
 
-  return (
-    <Surface radius="luxe-xl" className="relative mt-8 overflow-hidden p-8 sm:p-10">
-      <div className="pointer-events-none absolute inset-0">
-        <Image
-          src="/images/MaloParfumsHome.jpg"
-          alt=""
-          fill
-          className="object-cover opacity-ink-8 blur-2xl grayscale"
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-catalog-empty-overlay-1" />
-        <div className="absolute inset-0 bg-catalog-empty-overlay-2" />
-      </div>
-
-      <div className="relative grid gap-3">
-        <p className="text-ui-xs font-medium tracking-kicker text-ink-500">COLECCIÓN</p>
-        <p className="font-display text-2xl text-ink-950">
-          {hasActiveFilters ? "No hay fragancias disponibles con esta selección." : "Estamos actualizando esta colección."}
-        </p>
-        <p className="max-w-2xl text-sm leading-relaxed text-ink-700">
-          {hasActiveFilters
-            ? "Prueba ajustar la búsqueda o limpiar los filtros para ver más opciones."
-            : "Próximamente nuevas incorporaciones. Si buscas algo específico, pídelo por WhatsApp."}
-        </p>
-        <div className="mt-2 flex flex-wrap gap-3">
-          <Button
-            type="button"
-            variant="ghost"
-            className="rounded-full bg-white/60 px-5 py-2.5 text-sm ring-1 ring-inset ring-black/8 transition duration-luxe-fast ease-luxe hover:bg-white"
-            onClick={onClearFilters}
-          >
-            {hasActiveFilters ? "Limpiar filtros" : "Ver todas las colecciones"}
-          </Button>
-          <button
-            type="button"
-            onClick={onOpenFilters}
-            className="rounded-full bg-ink-950 px-5 py-2.5 text-sm font-medium tracking-wide text-white transition duration-luxe-fast ease-luxe hover:bg-ink-900"
-          >
-            Ajustar filtros
-          </button>
-        </div>
-      </div>
-    </Surface>
-  )
+  return <CatalogEmptyState hasActiveFilters={hasActiveFilters} onClearFilters={onClearFilters} onOpenFilters={onOpenFilters} />
 }
 
 export function CatalogClient({ perfumes }: { perfumes: PerfumeCardModel[] }) {

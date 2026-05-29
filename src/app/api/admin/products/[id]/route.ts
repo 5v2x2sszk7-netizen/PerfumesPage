@@ -57,7 +57,7 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
 
       const shouldLogSale = action === "sell" && soldParsed != null && soldParsed > current.sold
       if (shouldLogSale) {
-        const qty = soldParsed - Math.max(0, Math.floor(current.sold ?? 0))
+        const qty = soldParsed - Math.max(0, Math.floor(current.sold))
         if (qty > 0) {
           await appendSale({
             perfumeId: updated.id,

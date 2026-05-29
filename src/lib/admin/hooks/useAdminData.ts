@@ -21,12 +21,11 @@ export function useAdminData({
     setBusy(true)
     setError(null)
     try {
-      const ts = Date.now()
       const [productsData, reviewsData] = await Promise.all([
-        api<{ perfumes: Perfume[]; suggestions?: Suggestions; sales?: SaleRecord[] }>(`/api/admin/products?_ts=${ts}`, {
+        api<{ perfumes: Perfume[]; suggestions?: Suggestions; sales?: SaleRecord[] }>("/api/admin/products", {
           signal
         }),
-        api<{ reviews: Review[] }>(`/api/admin/reviews?_ts=${ts}`, { signal })
+        api<{ reviews: Review[] }>("/api/admin/reviews", { signal })
       ])
       if (signal?.aborted) return
       setPerfumes(productsData.perfumes)

@@ -23,7 +23,6 @@ export default {
         antiqueGoldMuted: "#e6dcc6",
         goldSoft: "#bfa37a",
         inkWarm: "#60523e",
-        paperBorder: "#d7d2c9",
         paper: {
           50: "#fdfbf7",
           100: "#f7f5f1"
@@ -37,8 +36,6 @@ export default {
         }
       },
       opacity: {
-        glass: "0.78",
-        "glass-scrolled": "0.72",
         "ink-8": "0.08",
         "ink-14": "0.14"
       },

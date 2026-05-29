@@ -43,6 +43,8 @@ export function ZoomDialog({
   const rafRef = useRef<number | null>(null)
   const pendingRef = useRef<{ x: number; y: number } | null>(null)
   const [parallax, setParallax] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const prefersReducedMotion =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
   useEffect(() => {
     if (!open) return
@@ -98,6 +100,7 @@ export function ZoomDialog({
           else setActiveIndex((prevIdx) => (prevIdx + 1) % total)
         }}
         onMouseMove={(e) => {
+          if (prefersReducedMotion) return
           const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
           const nx = (e.clientX - rect.left) / rect.width - 0.5
           const ny = (e.clientY - rect.top) / rect.height - 0.5
@@ -136,8 +139,10 @@ export function ZoomDialog({
           <div
             className="absolute inset-0"
             style={{
-              transform: `translate3d(${parallax.x}px, ${parallax.y}px, 0) translateY(-10px) scale(1.12)`,
-              transition: "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)"
+              transform: prefersReducedMotion
+                ? "translate3d(0px, 0px, 0) translateY(-10px) scale(1.12)"
+                : `translate3d(${parallax.x}px, ${parallax.y}px, 0) translateY(-10px) scale(1.12)`,
+              transition: prefersReducedMotion ? "none" : "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)"
             }}
           >
             <div className={"absolute inset-0 " + (closing ? "modal-image-out" : "modal-image")}>

@@ -19,7 +19,7 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
   if (!sellTarget) return null
 
   const qty = Math.max(1, Math.floor(sellQty))
-  const currentStock = Math.max(0, Math.floor(sellTarget.stock ?? 0))
+  const currentStock = Math.max(0, Math.floor(sellTarget.stock))
   const clampedQty = Math.min(qty, currentStock)
   const nextStock = Math.max(0, currentStock - qty)
   const perUnit = profitPerUnit(sellTarget.price, sellTarget.cost)

@@ -7,7 +7,7 @@ export const revalidate = 0
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteConfig.domain.replace(/\/$/, "")
-  const perfumes = (await readPerfumes()).filter((p) => (p.stock ?? 0) > 0)
+  const perfumes = (await readPerfumes()).filter((p) => p.stock > 0)
 
   return [
     { url: `${base}/`, changeFrequency: "weekly" as const, priority: 1 },

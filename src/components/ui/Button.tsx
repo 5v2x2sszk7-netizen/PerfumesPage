@@ -16,7 +16,7 @@ function variantClasses(variant: ButtonVariant) {
   if (variant === "outline")
     return "bg-white text-ink-950 ring-1 ring-inset ring-black/8 hover:bg-ink-50 active:bg-white"
   if (variant === "soft")
-    return "bg-white text-ink-950 ring-1 ring-inset ring-black/8 hover:bg-ink-50 active:bg-white"
+    return "bg-ink-50/70 text-ink-950 ring-1 ring-inset ring-black/8 hover:bg-white active:bg-ink-50/70"
   if (variant === "danger")
     return "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 active:bg-red-50"
   if (variant === "icon")

@@ -5,7 +5,7 @@ import type { Draft, ReviewDraft } from "@/lib/admin/types"
 import { emptyDraft, emptyReviewDraft } from "@/lib/admin/types"
 import { api } from "@/lib/admin/api"
 import { fromCsv, toNotesCsv } from "@/lib/admin/utils"
-import type { AdminUiState } from "@/features/admin/admin/uiState"
+import type { AdminUiState } from "@/features/admin/uiState"
 
 export function useAdminActions(opts: {
   draft: Draft
@@ -155,13 +155,13 @@ export function useAdminActions(opts: {
 
   const confirmSell = useCallback(async () => {
     if (!ui.sellTarget) return
-    const currentStock = Math.max(0, Math.floor(ui.sellTarget.stock ?? 0))
+    const currentStock = Math.max(0, Math.floor(ui.sellTarget.stock))
     const qty = Math.min(currentStock, Math.max(1, Math.floor(ui.sellQty)))
     const nextStock = Math.max(0, currentStock - qty)
     setBusy(true)
     setError(null)
     try {
-      const nextSold = Math.max(0, Math.floor((ui.sellTarget.sold ?? 0) + qty))
+      const nextSold = Math.max(0, Math.floor(ui.sellTarget.sold + qty))
       await api(`/api/admin/products/${encodeURIComponent(ui.sellTarget.id)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "X-Perfimes-Action": "sell" },
@@ -189,8 +189,8 @@ export function useAdminActions(opts: {
         description: p.description,
         sizeMl: String(p.sizeMl),
         price: String(p.price),
-        cost: String(p.cost ?? 0),
-        stock: String(p.stock ?? (p.availability === "out_of_stock" ? 0 : 1)),
+        cost: String(p.cost),
+        stock: String(p.stock),
         availability: p.availability,
         imageSrc: p.imageSrc,
         notesTop: toNotesCsv(p.notes?.top),

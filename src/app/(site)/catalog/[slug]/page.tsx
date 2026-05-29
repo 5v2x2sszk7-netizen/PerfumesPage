@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Container } from "@/components/ui/Container"
 import { ButtonExternal } from "@/components/ui/Button"
 import { availabilityLabel, buildWhatsAppLink, formatPerfumeWhatsAppMessage, formatPrice } from "@/lib/whatsapp"
-import { readPerfumesCached } from "@/lib/perfumeStore"
+import { readPerfumes, readPerfumesCached } from "@/lib/perfumeStore"
 import { LazyReveal } from "@/components/ui/LazyReveal"
 import { guessOlfactoryFamily, renderDescription, splitSentences } from "@/lib/editorial"
 import { Badge, availabilityBadgeTone } from "@/components/ui/Badge"
@@ -20,6 +20,11 @@ function resolvePerfume(perfumes: Perfume[], rawSlug: string) {
     perfumes.find((p) => p.id === slug) ??
     perfumes.find((p) => p.id.startsWith(`${slug}-`))
   )
+}
+
+export async function generateStaticParams() {
+  const perfumes = await readPerfumes()
+  return perfumes.map((p) => ({ slug: p.slug }))
 }
 
 export async function generateMetadata({
@@ -46,6 +51,108 @@ export async function generateMetadata({
   }
 }
 
+function AvailabilityPanel({
+  perfume,
+  concentration,
+  availabilityEditorial,
+  stockLabel
+}: {
+  perfume: Perfume
+  concentration: string
+  availabilityEditorial: string
+  stockLabel: string
+}) {
+  return (
+    <div className="rounded-luxe border border-black/8 bg-white px-7 py-7 shadow-panel">
+      <p className="text-ui-xs font-medium tracking-section text-ink-500">DISPONIBILIDAD</p>
+      <p className="mt-3 font-display text-2xl leading-display text-ink-950">{availabilityEditorial}</p>
+      <p className="mt-2 text-sm tracking-wide text-ink-700">
+        {perfume.sizeMl} ml <span className="text-ink-400">·</span> {concentration}
+      </p>
+
+      <div className="mt-7">
+        <p className="text-ui-xs font-medium tracking-section text-ink-500">PRECIO</p>
+        <p className="mt-2 font-display text-3xl leading-display text-ink-950">{formatPrice(perfume.price)}</p>
+      </div>
+
+      <div className="mt-7">
+        <Badge size="md" className="text-ink-950">
+          {stockLabel}
+        </Badge>
+      </div>
+    </div>
+  )
+}
+
+function DetailsSection({
+  perfume,
+  concentration,
+  family
+}: {
+  perfume: Perfume
+  concentration: string
+  family: string
+}) {
+  return (
+    <section>
+      <Container className="py-10 sm:py-14">
+        <div className="grid gap-6 lg:grid-cols-3">
+          <LazyReveal delayMs={0} className="lg:col-span-1">
+            <div className="rounded-luxe border border-black/8 bg-white p-6 shadow-panel">
+              <p className="text-xs tracking-section text-ink-500">DETALLES</p>
+              <div className="mt-5 grid gap-4">
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-xs tracking-ui text-ink-500">TAMAÑO</p>
+                  <p className="text-sm font-medium text-ink-950">{perfume.sizeMl} ml</p>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-xs tracking-ui text-ink-500">CONCENTRACIÓN</p>
+                  <p className="text-sm font-medium text-ink-950">{concentration}</p>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-xs tracking-ui text-ink-500">FAMILIA</p>
+                  <p className="text-sm font-medium text-ink-950">{family}</p>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-xs tracking-ui text-ink-500">ESTATUS</p>
+                  <p className="text-sm font-medium text-ink-950">{availabilityLabel[perfume.availability]}</p>
+                </div>
+              </div>
+            </div>
+          </LazyReveal>
+
+          <LazyReveal delayMs={120} className="lg:col-span-2">
+            <div className="rounded-luxe border border-black/8 bg-white p-7 shadow-panel">
+              <p className="text-xs tracking-section text-ink-500">NOTAS OLFATIVAS</p>
+              <div className="mt-6 grid max-w-3xl gap-y-6 sm:grid-cols-3 sm:gap-x-8">
+                <div className="space-y-3">
+                  <p className="text-xs tracking-ui text-ink-500">SALIDA</p>
+                  <p className="text-sm text-ink-800">{perfume.notes?.top?.join(" · ") || "—"}</p>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-xs tracking-ui text-ink-500">CORAZÓN</p>
+                  <p className="text-sm text-ink-800">{perfume.notes?.heart?.join(" · ") || "—"}</p>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-xs tracking-ui text-ink-500">FONDO</p>
+                  <p className="text-sm text-ink-800">{perfume.notes?.base?.join(" · ") || "—"}</p>
+                </div>
+              </div>
+            </div>
+          </LazyReveal>
+
+          <LazyReveal delayMs={240} className="lg:col-span-3">
+            <div className="rounded-luxe-xl border border-black/8 bg-white px-7 py-12 shadow-panel-lg sm:px-9 sm:py-12">
+              <p className="text-xs tracking-section text-ink-500">HISTORIA</p>
+              {renderDescription(perfume.description)}
+            </div>
+          </LazyReveal>
+        </div>
+      </Container>
+    </section>
+  )
+}
+
 export default async function PerfumeDetailPage({ params }: { params: { slug: string } }) {
   const { slug: rawSlug } = params
   const perfumes = await readPerfumesCached()
@@ -64,7 +171,7 @@ export default async function PerfumeDetailPage({ params }: { params: { slug: st
         ? "Actualmente agotado"
         : "Disponible"
   const stockLabel =
-    (perfume.stock ?? 0) <= 0 ? "Agotado" : (perfume.stock ?? 0) === 1 ? "Queda 1 pieza" : `Quedan ${perfume.stock} piezas`
+    perfume.stock <= 0 ? "Agotado" : perfume.stock === 1 ? "Queda 1 pieza" : `Quedan ${perfume.stock} piezas`
 
   return (
     <div>
@@ -140,88 +247,19 @@ export default async function PerfumeDetailPage({ params }: { params: { slug: st
                   </ButtonExternal>
                 </div>
 
-                <div className="rounded-luxe border border-black/8 bg-white px-7 py-7 shadow-panel">
-                  <p className="text-ui-xs font-medium tracking-section text-ink-500">DISPONIBILIDAD</p>
-                  <p className="mt-3 font-display text-2xl leading-display text-ink-950">{availabilityEditorial}</p>
-                  <p className="mt-2 text-sm tracking-wide text-ink-700">
-                    {perfume.sizeMl} ml <span className="text-ink-400">·</span> {concentration}
-                  </p>
-
-                  <div className="mt-7">
-                    <p className="text-ui-xs font-medium tracking-section text-ink-500">PRECIO</p>
-                    <p className="mt-2 font-display text-3xl leading-display text-ink-950">{formatPrice(perfume.price)}</p>
-                  </div>
-
-                  <div className="mt-7">
-                    <Badge size="md" className="text-ink-950">
-                      {stockLabel}
-                    </Badge>
-                  </div>
-                </div>
+                <AvailabilityPanel
+                  perfume={perfume}
+                  concentration={concentration}
+                  availabilityEditorial={availabilityEditorial}
+                  stockLabel={stockLabel}
+                />
               </div>
             </LazyReveal>
           </div>
         </Container>
       </section>
 
-      <section>
-        <Container className="py-10 sm:py-14">
-          <div className="grid gap-6 lg:grid-cols-3">
-            <LazyReveal delayMs={0} className="lg:col-span-1">
-              <div className="rounded-luxe border border-black/8 bg-white p-6 shadow-panel">
-                <p className="text-xs tracking-section text-ink-500">DETALLES</p>
-                <div className="mt-5 grid gap-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="text-xs tracking-ui text-ink-500">TAMAÑO</p>
-                    <p className="text-sm font-medium text-ink-950">{perfume.sizeMl} ml</p>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="text-xs tracking-ui text-ink-500">CONCENTRACIÓN</p>
-                    <p className="text-sm font-medium text-ink-950">{concentration}</p>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="text-xs tracking-ui text-ink-500">FAMILIA</p>
-                    <p className="text-sm font-medium text-ink-950">{family}</p>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="text-xs tracking-ui text-ink-500">ESTATUS</p>
-                    <p className="text-sm font-medium text-ink-950">
-                      {availabilityLabel[perfume.availability]}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </LazyReveal>
-
-            <LazyReveal delayMs={120} className="lg:col-span-2">
-              <div className="rounded-luxe border border-black/8 bg-white p-7 shadow-panel">
-                <p className="text-xs tracking-section text-ink-500">NOTAS OLFATIVAS</p>
-                <div className="mt-6 grid max-w-3xl gap-y-6 sm:grid-cols-3 sm:gap-x-8">
-                  <div className="space-y-3">
-                    <p className="text-xs tracking-ui text-ink-500">SALIDA</p>
-                    <p className="text-sm text-ink-800">{perfume.notes?.top?.join(" · ") || "—"}</p>
-                  </div>
-                  <div className="space-y-3">
-                    <p className="text-xs tracking-ui text-ink-500">CORAZÓN</p>
-                    <p className="text-sm text-ink-800">{perfume.notes?.heart?.join(" · ") || "—"}</p>
-                  </div>
-                  <div className="space-y-3">
-                    <p className="text-xs tracking-ui text-ink-500">FONDO</p>
-                    <p className="text-sm text-ink-800">{perfume.notes?.base?.join(" · ") || "—"}</p>
-                  </div>
-                </div>
-              </div>
-            </LazyReveal>
-
-            <LazyReveal delayMs={240} className="lg:col-span-3">
-              <div className="rounded-luxe-xl border border-black/8 bg-white px-7 py-12 shadow-panel-lg sm:px-9 sm:py-12">
-                <p className="text-xs tracking-section text-ink-500">HISTORIA</p>
-                {renderDescription(perfume.description)}
-              </div>
-            </LazyReveal>
-          </div>
-        </Container>
-      </section>
+      <DetailsSection perfume={perfume} concentration={concentration} family={family} />
     </div>
   )
 }

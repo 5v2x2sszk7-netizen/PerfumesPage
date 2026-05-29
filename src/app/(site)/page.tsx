@@ -8,7 +8,7 @@ import { buildReviewCarouselItems, getReviewRatingSummary } from "@/lib/reviews"
 export const revalidate = 60
 
 export default async function HomePage() {
-  const perfumes = (await readPerfumes()).filter((p) => (p.stock ?? 0) > 0)
+  const perfumes = (await readPerfumes()).filter((p) => p.stock > 0)
   const featured = perfumes.slice(0, 3)
   const reviews = await readReviews()
   const carouselItems = buildReviewCarouselItems(reviews, 12)

@@ -1,6 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/cn"
+import { Button } from "@/components/ui/Button"
 import type { ReactNode, RefObject } from "react"
 import { useRef } from "react"
 
@@ -32,17 +33,18 @@ export function UploadButton({ children, onSelect, accept, multiple, disabled, c
           e.currentTarget.value = ""
         }}
       />
-      <button
+      <Button
         type="button"
+        variant="gold"
         disabled={disabled}
         onClick={() => ref.current?.click()}
         className={cn(
-          "inline-flex h-11 w-full min-w-thumb select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-antiqueGold px-5 text-sm font-medium tracking-wide text-white shadow-sm ring-1 ring-black/8 transition hover:bg-antiqueGoldDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-antiqueGold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] hover:shadow-cta-hover disabled:pointer-events-none disabled:opacity-50 sm:w-auto",
+          "h-11 w-full min-w-thumb select-none whitespace-nowrap shadow-sm transition duration-luxe-fast ease-luxe hover:shadow-cta-hover active:scale-[0.98] disabled:pointer-events-none sm:w-auto",
           className
         )}
       >
         {children}
-      </button>
+      </Button>
     </>
   )
 }

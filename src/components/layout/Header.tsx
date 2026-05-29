@@ -2,6 +2,7 @@ import { siteConfig } from "@/config/site"
 import Link from "next/link"
 import { Container } from "@/components/ui/Container"
 import { HeaderScrollClient } from "@/components/layout/HeaderScrollClient"
+import { ButtonLink } from "@/components/ui/Button"
 
 export function Header() {
   const topClassName = "border-b border-transparent bg-glass-header-top shadow-none backdrop-blur-0"
@@ -43,12 +44,12 @@ export function Header() {
           </Link>
         </nav>
 
-        <Link
+        <ButtonLink
           href="/catalog"
-          className="rounded-full bg-ink-950 px-4 py-2 text-sm font-medium tracking-ui text-white shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:bg-ink-900 hover:shadow-header-cta-hover active:translate-y-0 md:hidden"
+          className="md:hidden px-4 py-2 shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0"
         >
           Ver catálogo
-        </Link>
+        </ButtonLink>
       </Container>
     </header>
   )

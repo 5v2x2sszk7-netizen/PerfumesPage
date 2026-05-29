@@ -15,8 +15,8 @@ import { AdminShell } from "./AdminShell"
 import { useAdminData } from "@/lib/admin/hooks/useAdminData"
 import { useDraftValidation } from "@/lib/admin/hooks/useDraftValidation"
 import { useSingleUpload } from "@/lib/admin/hooks/useSingleUpload"
-import { useAdminUiState } from "@/features/admin/admin/uiState"
-import { useAdminActions } from "@/features/admin/admin/actions"
+import { useAdminUiState } from "@/features/admin/uiState"
+import { useAdminActions } from "@/features/admin/actions"
 
 export function AdminClient() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
