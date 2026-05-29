@@ -2,6 +2,14 @@ export function normalizeKey(value: string) {
   return value.trim().toLocaleLowerCase()
 }
 
+export function normalizeSearchText(value: string) {
+  return value
+    .toLocaleLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+}
+
 export function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   const letters = parts

@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/Button"
 import { Input, Label, Textarea } from "@/components/ui/Field"
-import { UploadButton } from "@/components/ui/UploadButton"
 import type { Dispatch, RefObject, SetStateAction } from "react"
 import type { Review, ReviewDraft } from "@/lib/admin/types"
-import Image from "next/image"
+import { AdminImagePicker } from "@/features/admin/components/AdminImagePicker"
+
+const adminReviewDateFormatter = new Intl.DateTimeFormat("es-MX", { timeZone: "America/Mexico_City" })
 
 type Props = {
   reviews: Review[]
@@ -51,7 +52,10 @@ export function ReviewsSection({
             <div className="mt-4 grid gap-4">
               <div className="grid gap-2">
                 <Label>Nombre del cliente *</Label>
-                <Input value={reviewDraft.customerName} onChange={(e) => setReviewDraft((d) => ({ ...d, customerName: e.target.value }))} />
+                <Input
+                  value={reviewDraft.customerName}
+                  onChange={(e) => setReviewDraft((d) => ({ ...d, customerName: e.target.value }))}
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Calificación (1–5)</Label>
@@ -67,60 +71,21 @@ export function ReviewsSection({
                 <Textarea value={reviewDraft.text} onChange={(e) => setReviewDraft((d) => ({ ...d, text: e.target.value }))} />
               </div>
               <div className="grid gap-2">
-                <Label>Imagen (captura)</Label>
-                <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
-                  <Input
-                    placeholder="/uploads/tu-reseña.jpg"
-                    value={reviewDraft.imageSrc}
-                    onChange={(e) => setReviewDraft((d) => ({ ...d, imageSrc: e.target.value }))}
-                  />
-                  <UploadButton
-                    inputRef={reviewFileInputRef}
-                    accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
-                    disabled={busy}
-                    onSelect={(files) => {
-                      const f = files[0]
-                      if (f) onUploadReview(f)
-                    }}
-                  >
-                    {reviewUploading ? (
-                      <span className="inline-flex items-center gap-2">
-                        <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
-                        Subiendo...
-                      </span>
-                    ) : reviewUploadedPath || reviewSelectedFileName ? (
-                      "Cambiar imagen"
-                    ) : (
-                      "Elegir imagen"
-                    )}
-                  </UploadButton>
-                </div>
-                <div className="grid gap-2 sm:grid-cols-[120px_1fr] sm:items-center">
-                  <div className="h-24 w-24 overflow-hidden rounded-2xl border border-black/8 bg-ink-50">
-                    {reviewLocalPreviewUrl || reviewDraft.imageSrc ? (
-                      <Image
-                        src={reviewLocalPreviewUrl ?? reviewDraft.imageSrc}
-                        alt="Preview"
-                        width={96}
-                        height={96}
-                        sizes="96px"
-                        className="h-full w-full object-cover"
-                        unoptimized={
-                          Boolean(reviewLocalPreviewUrl) ||
-                          (reviewDraft.imageSrc?.startsWith("data:") ?? false) ||
-                          (reviewDraft.imageSrc?.startsWith("blob:") ?? false)
-                        }
-                      />
-                    ) : null}
-                  </div>
-                  <div className="space-y-1">
-                    {reviewSelectedFileName ? <p className="text-xs text-ink-600">{reviewSelectedFileName}</p> : null}
-                    {reviewUploadedPath ? <p className="text-xs text-ink-500">Subida: {reviewUploadedPath}</p> : null}
-                    {!reviewSelectedFileName && !reviewUploadedPath ? (
-                      <p className="text-xs text-ink-500">Sube una captura para el carrusel del Home.</p>
-                    ) : null}
-                  </div>
-                </div>
+                <AdminImagePicker
+                  label="Imagen (captura)"
+                  value={reviewDraft.imageSrc}
+                  onChange={(next) => setReviewDraft((d) => ({ ...d, imageSrc: next }))}
+                  placeholder="/uploads/tu-reseña.jpg"
+                  busy={busy}
+                  uploading={reviewUploading}
+                  uploadedPath={reviewUploadedPath}
+                  selectedFileName={reviewSelectedFileName}
+                  localPreviewUrl={reviewLocalPreviewUrl}
+                  inputRef={reviewFileInputRef}
+                  accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
+                  helpEmpty="Sube una captura para el carrusel del Home."
+                  onUpload={onUploadReview}
+                />
               </div>
 
               <Button
@@ -146,7 +111,7 @@ export function ReviewsSection({
                   <div className="min-w-0">
                     <p className="text-xs tracking-ui text-ink-500">CLIENTE</p>
                     <p className="truncate font-display text-lg text-ink-950">{r.customerName}</p>
-                    <p className="mt-1 text-xs text-ink-500">{new Date(r.at).toLocaleDateString("es-MX")}</p>
+                    <p className="mt-1 text-xs text-ink-500">{adminReviewDateFormatter.format(new Date(r.at))}</p>
                     {r.rating ? <p className="mt-2 text-xs text-ink-700">{"★".repeat(r.rating)}</p> : null}
                     <p className="mt-2 text-sm text-ink-700">{r.text}</p>
                     {r.imageSrc ? <p className="mt-2 text-xs text-ink-500">{r.imageSrc}</p> : null}

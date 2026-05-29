@@ -5,10 +5,52 @@ import { cn, focusRing } from "@/lib/cn"
 import { formatPrice, availabilityLabel } from "@/lib/whatsapp"
 import { Badge, availabilityBadgeTone } from "@/components/ui/Badge"
 
-export function PerfumeCard({ perfume }: { perfume: Perfume }) {
+type PerfumeCardVariant = "grid" | "featured"
+
+export function PerfumeCard({
+  perfume,
+  variant = "grid",
+  className
+}: {
+  perfume: Perfume
+  variant?: PerfumeCardVariant
+  className?: string
+}) {
   const isOut = perfume.availability === "out_of_stock"
   const concentration = perfume.concentration?.trim() || "Eau de Parfum"
   const showConsult = perfume.price <= 0
+
+  if (variant === "featured") {
+    return (
+      <Link
+        href={`/catalog/${perfume.slug}`}
+        prefetch={false}
+        className={cn(
+          "group relative block w-full max-w-featured-card [transform:translateZ(0)] overflow-hidden rounded-2xl bg-white p-3 no-underline ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:ring-black/10 hover:shadow-home-featured-hover motion-safe:hover:-translate-y-0.5",
+          focusRing,
+          className
+        )}
+      >
+        <div className="pointer-events-none absolute inset-0 bg-home-featured-hover-glow opacity-0 transition-opacity duration-luxe-slow ease-luxe group-hover:opacity-100" />
+        <div className="relative aspect-[5/6] overflow-hidden rounded-xl bg-ink-50 ring-1 ring-inset ring-black/8">
+          <div className="pointer-events-none absolute inset-0 bg-home-featured-media-glow opacity-80" />
+          <Image
+            src={perfume.imageSrc}
+            alt={`${perfume.name} de ${perfume.brand}`}
+            fill
+            className="object-cover transition-luxe-media duration-luxe ease-luxe group-hover:scale-[1.02]"
+            sizes="(max-width: 768px) 80vw, 360px"
+          />
+        </div>
+        <p className="relative mt-4 text-xs tracking-ui text-ink-500">{perfume.brand}</p>
+        <p className="relative mt-1 font-display text-base text-ink-950">{perfume.name}</p>
+        <div className="relative mt-3 flex items-center justify-between gap-3">
+          <span className="text-sm text-ink-700">{perfume.sizeMl} ml</span>
+          <span className="text-sm font-medium text-ink-950">{formatPrice(perfume.price)}</span>
+        </div>
+      </Link>
+    )
+  }
 
   return (
     <Link
@@ -16,7 +58,8 @@ export function PerfumeCard({ perfume }: { perfume: Perfume }) {
       prefetch={false}
       className={cn(
         "group relative block [transform:translateZ(0)] overflow-hidden rounded-luxe-lg bg-white no-underline shadow-card ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:-translate-y-1 hover:ring-black/10 hover:shadow-perfume-hover",
-        focusRing
+        focusRing,
+        className
       )}
     >
       <div className="pointer-events-none absolute inset-0 bg-perfume-hover-gold opacity-0 transition-opacity duration-luxe-slow ease-luxe group-hover:opacity-100" />
@@ -35,7 +78,6 @@ export function PerfumeCard({ perfume }: { perfume: Perfume }) {
                 isOut ? "opacity-85" : "group-hover:scale-[1.02] group-hover:translate-y-[-1px]"
               )}
               sizes="(max-width: 640px) 90vw, (max-width: 1024px) 40vw, 360px"
-              priority={false}
             />
           </div>
 
@@ -67,7 +109,7 @@ export function PerfumeCard({ perfume }: { perfume: Perfume }) {
               {showConsult ? (
                 <p className="text-sm font-medium text-ink-700">
                   <span className="inline-flex items-center gap-2">
-                    <span className="tracking-[0.06em] text-ink-700">
+                    <span className="tracking-product text-ink-700">
                       Consultar disponibilidad
                     </span>
                     <span className="text-ink-500 transition-transform duration-luxe ease-luxe group-hover:translate-x-0.5">

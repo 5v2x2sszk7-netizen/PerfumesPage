@@ -1,66 +1,13 @@
-"use client"
-
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback } from "react"
 import type { Dispatch, SetStateAction } from "react"
 import type { Perfume } from "@/types/perfume"
-import { useRouter } from "next/navigation"
-import { api } from "@/lib/admin/api"
-import type { AdminSection, Draft, Review, ReviewDraft } from "@/lib/admin/types"
+import type { Draft, ReviewDraft } from "@/lib/admin/types"
 import { emptyDraft, emptyReviewDraft } from "@/lib/admin/types"
+import { api } from "@/lib/admin/api"
 import { fromCsv, toNotesCsv } from "@/lib/admin/utils"
-import { DeleteProductModal } from "./modals/DeleteProductModal"
-import { DeleteReviewModal } from "./modals/DeleteReviewModal"
-import { SellModal } from "./modals/SellModal"
-import { ProductFormSection } from "./sections/ProductFormSection"
-import { ProductsSection } from "./sections/ProductsSection"
-import { ReportSection } from "./sections/ReportSection"
-import { ReviewsSection } from "./sections/ReviewsSection"
-import { AdminShell } from "./AdminShell"
-import { useAdminData } from "@/lib/admin/hooks/useAdminData"
-import { useDraftValidation } from "@/lib/admin/hooks/useDraftValidation"
-import { useUploads } from "@/lib/admin/hooks/useUploads"
+import type { AdminUiState } from "@/features/admin/admin/uiState"
 
-function useAdminUiState() {
-  const [deleteTarget, setDeleteTarget] = useState<Perfume | null>(null)
-  const [sellTarget, setSellTarget] = useState<Perfume | null>(null)
-  const [deleteReviewTarget, setDeleteReviewTarget] = useState<Review | null>(null)
-  const [sellQty, setSellQty] = useState(1)
-  const [section, setSection] = useState<AdminSection>(() => {
-    if (typeof window === "undefined") return "products"
-    const stored = window.localStorage.getItem("admin_section")
-    if (stored === "products" || stored === "form" || stored === "report" || stored === "reviews") return stored
-    return "products"
-  })
-
-  useEffect(() => {
-    localStorage.setItem("admin_section", section)
-  }, [section])
-
-  const onDelete = useCallback((perfume: Perfume) => setDeleteTarget(perfume), [])
-  const onSell = useCallback((perfume: Perfume) => {
-    setSellTarget(perfume)
-    setSellQty(1)
-  }, [])
-  const onDeleteReview = useCallback((review: Review) => setDeleteReviewTarget(review), [])
-
-  return {
-    section,
-    setSection,
-    deleteTarget,
-    setDeleteTarget,
-    sellTarget,
-    setSellTarget,
-    deleteReviewTarget,
-    setDeleteReviewTarget,
-    sellQty,
-    setSellQty,
-    onDelete,
-    onSell,
-    onDeleteReview
-  }
-}
-
-function useAdminActions(opts: {
+export function useAdminActions(opts: {
   draft: Draft
   setDraft: Dispatch<SetStateAction<Draft>>
   reviewDraft: ReviewDraft
@@ -73,8 +20,8 @@ function useAdminActions(opts: {
   resetAdminData: () => void
   resetProductUpload: () => void
   resetReviewUpload: () => void
-  router: ReturnType<typeof useRouter>
-  ui: ReturnType<typeof useAdminUiState>
+  routerReplace: (href: string) => void
+  ui: AdminUiState
 }) {
   const {
     draft,
@@ -89,7 +36,7 @@ function useAdminActions(opts: {
     resetAdminData,
     resetProductUpload,
     resetReviewUpload,
-    router,
+    routerReplace,
     ui
   } = opts
 
@@ -262,9 +209,9 @@ function useAdminActions(opts: {
       setReviewDraft(emptyReviewDraft)
       resetProductUpload()
       resetReviewUpload()
-      router.replace("/admin/login")
+      routerReplace("/admin/login")
     })
-  }, [resetAdminData, resetProductUpload, resetReviewUpload, router, setDraft, setReviewDraft])
+  }, [resetAdminData, resetProductUpload, resetReviewUpload, routerReplace, setDraft, setReviewDraft])
 
   const onStartForm = useCallback(() => {
     setDraft(emptyDraft)
@@ -273,138 +220,4 @@ function useAdminActions(opts: {
   }, [resetProductUpload, setDraft, ui])
 
   return { onSave, onCreateReview, confirmDelete, confirmDeleteReview, confirmSell, onEdit, onLogout, onStartForm }
-}
-
-export function AdminClient() {
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const reviewFileInputRef = useRef<HTMLInputElement | null>(null)
-  const router = useRouter()
-  const [draft, setDraft] = useState<Draft>(emptyDraft)
-  const [reviewDraft, setReviewDraft] = useState<ReviewDraft>(emptyReviewDraft)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const ui = useAdminUiState()
-
-  const { perfumes, suggestions, sales, reviews, refresh, reset: resetAdminData } = useAdminData({
-    setBusy,
-    setError
-  })
-  const {
-    uploading,
-    uploadedPath,
-    selectedFileName,
-    localPreviewUrl,
-    reviewUploading,
-    reviewUploadedPath,
-    reviewSelectedFileName,
-    reviewLocalPreviewUrl,
-    onUpload,
-    onUploadReview,
-    resetProductUpload,
-    resetReviewUpload
-  } = useUploads({ setBusy, setError, setDraft, setReviewDraft })
-  const { isEditing, canSubmit, missingFields, finance, brandSuggestions, nameSuggestions } = useDraftValidation({
-    draft,
-    perfumes,
-    suggestions
-  })
-
-  const actions = useAdminActions({
-    draft,
-    setDraft,
-    reviewDraft,
-    setReviewDraft,
-    canSubmit,
-    isEditing,
-    setBusy,
-    setError,
-    refresh,
-    resetAdminData,
-    resetProductUpload,
-    resetReviewUpload,
-    router,
-    ui
-  })
-
-  return (
-    <div className="space-y-10 sm:space-y-12">
-      <SellModal
-        sellTarget={ui.sellTarget}
-        busy={busy}
-        sellQty={ui.sellQty}
-        setSellQty={ui.setSellQty}
-        onClose={() => ui.setSellTarget(null)}
-        onConfirm={actions.confirmSell}
-      />
-      <DeleteProductModal
-        deleteTarget={ui.deleteTarget}
-        busy={busy}
-        onClose={() => ui.setDeleteTarget(null)}
-        onConfirm={actions.confirmDelete}
-      />
-      <DeleteReviewModal
-        deleteReviewTarget={ui.deleteReviewTarget}
-        busy={busy}
-        onClose={() => ui.setDeleteReviewTarget(null)}
-        onConfirm={actions.confirmDeleteReview}
-      />
-      <AdminShell
-        busy={busy}
-        error={error}
-        section={ui.section}
-        onRefresh={refresh}
-        onLogout={actions.onLogout}
-        onSelectSection={ui.setSection}
-        onStartForm={actions.onStartForm}
-      />
-
-      {ui.section === "report" ? <ReportSection perfumes={perfumes} sales={sales} /> : null}
-      {ui.section === "reviews" ? (
-        <ReviewsSection
-          reviews={reviews}
-          reviewDraft={reviewDraft}
-          setReviewDraft={setReviewDraft}
-          busy={busy}
-          reviewUploading={reviewUploading}
-          reviewUploadedPath={reviewUploadedPath}
-          reviewSelectedFileName={reviewSelectedFileName}
-          reviewLocalPreviewUrl={reviewLocalPreviewUrl}
-          reviewFileInputRef={reviewFileInputRef}
-          onUploadReview={onUploadReview}
-          onCreateReview={actions.onCreateReview}
-          onDeleteReview={ui.onDeleteReview}
-        />
-      ) : null}
-      {ui.section === "form" ? (
-        <ProductFormSection
-          draft={draft}
-          setDraft={setDraft}
-          isEditing={isEditing}
-          canSubmit={canSubmit}
-          missingFields={missingFields}
-          finance={finance}
-          busy={busy}
-          uploading={uploading}
-          uploadedPath={uploadedPath}
-          selectedFileName={selectedFileName}
-          localPreviewUrl={localPreviewUrl}
-          fileInputRef={fileInputRef}
-          brandSuggestions={brandSuggestions}
-          nameSuggestions={nameSuggestions}
-          onUpload={onUpload}
-          onSave={actions.onSave}
-          onCancelEdit={() => setDraft(emptyDraft)}
-        />
-      ) : null}
-      {ui.section === "products" ? (
-        <ProductsSection
-          perfumes={perfumes}
-          busy={busy}
-          onEdit={actions.onEdit}
-          onSell={ui.onSell}
-          onDelete={ui.onDelete}
-        />
-      ) : null}
-    </div>
-  )
 }

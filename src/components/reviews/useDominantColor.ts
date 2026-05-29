@@ -1,10 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value))
-}
+import { clamp } from "@/lib/math"
 
 function rgbToHsl(r: number, g: number, b: number) {
   const rn = r / 255

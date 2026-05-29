@@ -9,16 +9,10 @@ import { LazyReveal } from "@/components/ui/LazyReveal"
 import { Pill } from "@/components/ui/Pill"
 import { cn, focusRing } from "@/lib/cn"
 import { availabilityLabel } from "@/lib/whatsapp"
+import { normalizeSearchText } from "@/lib/text"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
-
-function normalize(value: string) {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-}
 
 type SortKey = "recommended" | "name_asc" | "brand_asc" | "availability" | "price_asc" | "price_desc"
 type ViewMode = "grid" | "list"
@@ -122,13 +116,13 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
   }, [perfumes, category])
 
   const filtered = useMemo(() => {
-    const query = normalize(q).trim()
+    const query = normalizeSearchText(q)
     return perfumes.filter((p) => {
       if (p.category !== category) return false
       if (brand && p.brand !== brand) return false
       if (availability && p.availability !== availability) return false
       if (!query) return true
-      const haystack = normalize(`${p.brand} ${p.name}`)
+      const haystack = normalizeSearchText(`${p.brand} ${p.name}`)
       return haystack.includes(query)
     })
   }, [perfumes, q, category, brand, availability])
@@ -451,7 +445,6 @@ export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
               fill
               className="object-cover opacity-[0.08] blur-2xl grayscale"
               sizes="100vw"
-              priority={false}
             />
             <div className="absolute inset-0 bg-catalog-empty-overlay-1" />
             <div className="absolute inset-0 bg-catalog-empty-overlay-2" />

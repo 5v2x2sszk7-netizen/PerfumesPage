@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Container } from "@/components/ui/Container"
 import { ButtonExternal } from "@/components/ui/Button"
 import { availabilityLabel, buildWhatsAppLink, formatPerfumeWhatsAppMessage, formatPrice } from "@/lib/whatsapp"
-import { readPerfumes } from "@/lib/perfumeStore"
+import { readPerfumesCached } from "@/lib/perfumeStore"
 import { LazyReveal } from "@/components/ui/LazyReveal"
 import { guessOlfactoryFamily, renderDescription, splitSentences } from "@/lib/editorial"
 import { Badge, availabilityBadgeTone } from "@/components/ui/Badge"
@@ -28,7 +28,7 @@ export async function generateMetadata({
   params: { slug: string }
 }): Promise<Metadata> {
   const { slug: rawSlug } = params
-  const perfumes = await readPerfumes()
+  const perfumes = await readPerfumesCached()
   const perfume = resolvePerfume(perfumes, rawSlug)
   if (!perfume) return {}
 
@@ -48,7 +48,7 @@ export async function generateMetadata({
 
 export default async function PerfumeDetailPage({ params }: { params: { slug: string } }) {
   const { slug: rawSlug } = params
-  const perfumes = await readPerfumes()
+  const perfumes = await readPerfumesCached()
   const perfume = resolvePerfume(perfumes, rawSlug)
   if (!perfume) notFound()
 
@@ -83,14 +83,14 @@ export default async function PerfumeDetailPage({ params }: { params: { slug: st
               <div className="relative overflow-visible rounded-luxe-xl border border-black/8 bg-ink-50 p-4 shadow-media-xl sm:p-5 lg:justify-self-start">
                 <div className="pointer-events-none absolute inset-0 bg-perfume-detail-card-glow" />
                 <div className="relative overflow-visible rounded-luxe bg-white ring-1 ring-inset ring-black/8">
-                  <div className="pointer-events-none absolute left-1/2 bottom-6 h-10 w-[72%] -translate-x-1/2 rounded-full bg-black/30 opacity-[0.14] blur-2xl" />
+                  <div className="pointer-events-none absolute left-1/2 bottom-6 h-10 w-perfume-shadow -translate-x-1/2 rounded-full bg-black/30 opacity-[0.14] blur-2xl" />
                   <div className="relative -mt-4 overflow-hidden rounded-luxe sm:-mt-6">
                     <div className="relative aspect-[4/5]">
                       <Image
                         src={perfume.imageSrc}
                         alt={`${perfume.name} de ${perfume.brand}`}
                         fill
-                        className="object-cover [transform:translate3d(0,-6px,0)] sm:[transform:translate3d(0,-10px,0)]"
+                        className="object-cover transform-gpu -translate-y-1.5 sm:-translate-y-2.5"
                         sizes="(max-width: 1024px) 92vw, 720px"
                         priority
                       />
@@ -106,7 +106,7 @@ export default async function PerfumeDetailPage({ params }: { params: { slug: st
               <div className="space-y-8">
                 <div>
                   <p className="text-xs tracking-section text-ink-500">{perfume.brand}</p>
-                    <h1 className="mt-2 font-display text-4xl leading-display text-ink-950 sm:text-5xl">{perfume.name}</h1>
+                  <h1 className="mt-2 font-display text-4xl leading-display text-ink-950 sm:text-5xl">{perfume.name}</h1>
 
                   <div className="mt-5 flex flex-wrap gap-2">
                     <Badge>{concentration}</Badge>

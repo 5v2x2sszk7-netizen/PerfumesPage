@@ -3,11 +3,10 @@
 import type { Dispatch, RefObject, SetStateAction } from "react"
 import type { Perfume } from "@/types/perfume"
 import { Button } from "@/components/ui/Button"
-import { Input, Label, Textarea } from "@/components/ui/Field"
-import { UploadButton } from "@/components/ui/UploadButton"
+import { Input, Label, SelectWithCaret, Textarea } from "@/components/ui/Field"
 import type { Draft } from "@/lib/admin/types"
 import { formatMoney } from "@/lib/admin/utils"
-import Image from "next/image"
+import { AdminImagePicker } from "@/features/admin/components/AdminImagePicker"
 
 type Finance = {
   price: number
@@ -70,11 +69,19 @@ export function ProductFormSection({
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <div className="grid gap-2">
             <Label>Nombre *</Label>
-            <Input list="admin-perfume-name-suggestions" value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
+            <Input
+              list="admin-perfume-name-suggestions"
+              value={draft.name}
+              onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+            />
           </div>
           <div className="grid gap-2">
             <Label>Marca *</Label>
-            <Input list="admin-perfume-brand-suggestions" value={draft.brand} onChange={(e) => setDraft((d) => ({ ...d, brand: e.target.value }))} />
+            <Input
+              list="admin-perfume-brand-suggestions"
+              value={draft.brand}
+              onChange={(e) => setDraft((d) => ({ ...d, brand: e.target.value }))}
+            />
           </div>
           <datalist id="admin-perfume-name-suggestions">
             {nameSuggestions.map((name) => (
@@ -88,42 +95,56 @@ export function ProductFormSection({
           </datalist>
           <div className="grid gap-2">
             <Label>Categoría</Label>
-            <select
+            <SelectWithCaret
               value={draft.category}
               onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value as Perfume["category"] }))}
-              className="h-11 w-full rounded-xl border border-black/8 bg-white px-4 text-sm text-ink-950 outline-none transition focus:border-antiqueGold/60 focus:ring-4 focus:ring-antiqueGold/15"
             >
               <option value="niche">Nicho</option>
               <option value="designer">Diseñador</option>
-            </select>
+            </SelectWithCaret>
           </div>
           <div className="grid gap-2">
             <Label>Disponibilidad</Label>
-            <select
+            <SelectWithCaret
               value={draft.availability}
               onChange={(e) => setDraft((d) => ({ ...d, availability: e.target.value as Perfume["availability"] }))}
-              className="h-11 w-full rounded-xl border border-black/8 bg-white px-4 text-sm text-ink-950 outline-none transition focus:border-antiqueGold/60 focus:ring-4 focus:ring-antiqueGold/15"
             >
               <option value="in_stock">Disponible</option>
               <option value="low_stock">Pocas piezas</option>
               <option value="out_of_stock">Agotado</option>
-            </select>
+            </SelectWithCaret>
           </div>
           <div className="grid gap-2">
             <Label>Tamaño (ml) *</Label>
-            <Input inputMode="numeric" value={draft.sizeMl} onChange={(e) => setDraft((d) => ({ ...d, sizeMl: e.target.value }))} />
+            <Input
+              inputMode="numeric"
+              value={draft.sizeMl}
+              onChange={(e) => setDraft((d) => ({ ...d, sizeMl: e.target.value }))}
+            />
           </div>
           <div className="grid gap-2">
             <Label>Precio *</Label>
-            <Input inputMode="numeric" value={draft.price} onChange={(e) => setDraft((d) => ({ ...d, price: e.target.value }))} />
+            <Input
+              inputMode="numeric"
+              value={draft.price}
+              onChange={(e) => setDraft((d) => ({ ...d, price: e.target.value }))}
+            />
           </div>
           <div className="grid gap-2">
             <Label>Costo (tu compra)</Label>
-            <Input inputMode="numeric" value={draft.cost} onChange={(e) => setDraft((d) => ({ ...d, cost: e.target.value }))} />
+            <Input
+              inputMode="numeric"
+              value={draft.cost}
+              onChange={(e) => setDraft((d) => ({ ...d, cost: e.target.value }))}
+            />
           </div>
           <div className="grid gap-2">
             <Label>Stock (piezas)</Label>
-            <Input inputMode="numeric" value={draft.stock} onChange={(e) => setDraft((d) => ({ ...d, stock: e.target.value }))} />
+            <Input
+              inputMode="numeric"
+              value={draft.stock}
+              onChange={(e) => setDraft((d) => ({ ...d, stock: e.target.value }))}
+            />
           </div>
           <div className="md:col-span-2 grid gap-3 rounded-2xl border border-black/8 bg-white p-4">
             <p className="text-xs tracking-ui text-ink-500">GANANCIA</p>
@@ -142,8 +163,12 @@ export function ProductFormSection({
               </div>
               <div className="rounded-xl border border-black/8 bg-ink-50/40 px-4 py-3">
                 <p className="text-xs text-ink-600">Ganancia</p>
-                <p className="mt-1 font-display text-lg text-antiqueGold">{Number.isFinite(finance.profit) ? formatMoney(finance.profit) : "—"}</p>
-                <p className="mt-1 text-xs text-ink-600">{Number.isFinite(finance.margin) ? `${Math.round(finance.margin * 100)}% margen` : ""}</p>
+                <p className="mt-1 font-display text-lg text-antiqueGold">
+                  {Number.isFinite(finance.profit) ? formatMoney(finance.profit) : "—"}
+                </p>
+                <p className="mt-1 text-xs text-ink-600">
+                  {Number.isFinite(finance.margin) ? `${Math.round(finance.margin * 100)}% margen` : ""}
+                </p>
               </div>
             </div>
           </div>
@@ -153,56 +178,21 @@ export function ProductFormSection({
           </div>
 
           <div className="md:col-span-2 grid gap-2">
-            <Label>Imagen</Label>
-            <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
-              <Input placeholder="/uploads/tu-imagen.jpg" value={draft.imageSrc} onChange={(e) => setDraft((d) => ({ ...d, imageSrc: e.target.value }))} />
-              <UploadButton
-                inputRef={fileInputRef}
-                accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
-                disabled={busy}
-                onSelect={(files) => {
-                  const f = files[0]
-                  if (f) onUpload(f)
-                }}
-              >
-                {uploading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
-                    Subiendo...
-                  </span>
-                ) : uploadedPath || selectedFileName ? (
-                  "Cambiar imagen"
-                ) : (
-                  "Elegir imagen"
-                )}
-              </UploadButton>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-[120px_1fr] sm:items-center">
-              <div className="h-24 w-24 overflow-hidden rounded-2xl border border-black/8 bg-ink-50">
-                {localPreviewUrl || draft.imageSrc ? (
-                  <Image
-                    src={localPreviewUrl ?? draft.imageSrc}
-                    alt="Preview"
-                    width={96}
-                    height={96}
-                    sizes="96px"
-                    className="h-full w-full object-cover"
-                    unoptimized={
-                      Boolean(localPreviewUrl) ||
-                      (draft.imageSrc?.startsWith("data:") ?? false) ||
-                      (draft.imageSrc?.startsWith("blob:") ?? false)
-                    }
-                  />
-                ) : null}
-              </div>
-              <div className="space-y-1">
-                {selectedFileName ? <p className="text-xs text-ink-600">{selectedFileName}</p> : null}
-                {uploadedPath ? <p className="text-xs text-ink-500">Subida: {uploadedPath}</p> : null}
-                {!selectedFileName && !uploadedPath ? (
-                  <p className="text-xs text-ink-500">Selecciona una imagen para que aquí aparezca “Cambiar imagen”.</p>
-                ) : null}
-              </div>
-            </div>
+            <AdminImagePicker
+              label="Imagen"
+              value={draft.imageSrc}
+              onChange={(next) => setDraft((d) => ({ ...d, imageSrc: next }))}
+              placeholder="/uploads/tu-imagen.jpg"
+              busy={busy}
+              uploading={uploading}
+              uploadedPath={uploadedPath}
+              selectedFileName={selectedFileName}
+              localPreviewUrl={localPreviewUrl}
+              inputRef={fileInputRef}
+              accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
+              helpEmpty="Selecciona una imagen para que aquí aparezca “Cambiar imagen”."
+              onUpload={onUpload}
+            />
           </div>
 
           <div className="grid gap-2">
@@ -211,7 +201,10 @@ export function ProductFormSection({
           </div>
           <div className="grid gap-2">
             <Label>Notas (corazón) CSV</Label>
-            <Input value={draft.notesHeart} onChange={(e) => setDraft((d) => ({ ...d, notesHeart: e.target.value }))} />
+            <Input
+              value={draft.notesHeart}
+              onChange={(e) => setDraft((d) => ({ ...d, notesHeart: e.target.value }))}
+            />
           </div>
           <div className="grid gap-2">
             <Label>Notas (fondo) CSV</Label>

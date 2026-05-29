@@ -1,5 +1,5 @@
 import { Container } from "@/components/ui/Container"
-import { AdminClient } from "@/app/admin/AdminClient"
+import { AdminClient } from "@/features/admin/AdminClient"
 
 export default function AdminPage() {
   return (

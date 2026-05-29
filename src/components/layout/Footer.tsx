@@ -15,7 +15,7 @@ export function Footer() {
                 <p className="font-display text-lg uppercase tracking-luxe text-ink-950">
                   {siteConfig.wordmark}
                 </p>
-                <p className="mt-1 text-ui-2xs tracking-[0.45em] text-ink-600">
+                <p className="mt-1 text-ui-2xs tracking-descriptorFooter text-ink-600">
                   {siteConfig.descriptor}
                 </p>
               </div>

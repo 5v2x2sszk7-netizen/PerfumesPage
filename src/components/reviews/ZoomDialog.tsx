@@ -3,15 +3,12 @@
 import Image from "next/image"
 import { useEffect, useRef, useState, type CSSProperties } from "react"
 import { ModalShell } from "@/components/ui/ModalShell"
+import { clamp } from "@/lib/math"
 
 export type GalleryItem = {
   src: string
   alt: string
   meta?: string
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value))
 }
 
 export type ZoomDialogProps = {
@@ -118,7 +115,7 @@ export function ZoomDialog({
         }}
       >
         <div
-          className="group relative h-[86vh] overflow-hidden rounded-luxe-dialog border border-whiteA-4 bg-inkModal shadow-zoom-modal sm:h-[88vh]"
+          className="group relative h-zoom-dialog overflow-hidden rounded-luxe-dialog border border-whiteA-4 bg-inkModal shadow-zoom-modal sm:h-zoom-dialog-sm"
           style={
             glowRgb
               ? ({
@@ -171,7 +168,7 @@ export function ZoomDialog({
           />
 
           {total > 1 ? (
-            <div className="pointer-events-none absolute left-6 top-6 rounded-full bg-black/0 px-3 py-1 text-ui-xs font-medium tracking-[0.16em] text-white/66 ring-1 ring-white/3">
+            <div className="pointer-events-none absolute left-6 top-6 rounded-full bg-black/0 px-3 py-1 text-ui-xs font-medium tracking-counter text-white/66 ring-1 ring-white/3">
               {String(activeIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
             </div>
           ) : null}
@@ -219,7 +216,7 @@ export function ZoomDialog({
                       ? "text-white/72"
                       : idx === 1
                         ? "text-white/62"
-                        : "text-ui-lg text-white/66 tracking-[0.21em]"
+                        : "text-ui-lg text-white/66 tracking-meta"
                   return (
                     <div key={`${idx}-${part}`} className={"leading-[1.30] " + lineClass}>
                       {part}

@@ -10,9 +10,8 @@ const ReviewCarousel = dynamic(() => import("./ReviewCarousel").then((m) => m.Re
 
 export function ReviewCarouselLazy({ items }: { items: ReviewCarouselItem[] }) {
   return (
-    <LazyMount fallback={<div className="h-[340px] w-full" aria-hidden="true" />}>
+    <LazyMount fallback={<div className="h-review-carousel w-full" aria-hidden="true" />}>
       <ReviewCarousel items={items} />
     </LazyMount>
   )
 }
-

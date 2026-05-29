@@ -8,6 +8,8 @@ import { ReviewWriteEntry } from "@/components/reviews/ReviewWriteEntry"
 import { formatCustomerDisplayName, getInitials } from "@/lib/text"
 import { formatReviewSnippet, type ReviewCarouselItem } from "@/lib/reviews"
 
+const reviewDateFormatter = new Intl.DateTimeFormat("es-MX", { timeZone: "America/Mexico_City" })
+
 export function HomeReviewsSection({
   reviews,
   carouselItems,
@@ -74,7 +76,7 @@ export function HomeReviewsSection({
               const deliveryImages = (
                 r.deliveryImageSrcs?.length ? r.deliveryImageSrcs : r.deliveryImageSrc ? [r.deliveryImageSrc] : []
               ).slice(0, 5)
-              const dateLabel = new Date(r.at).toLocaleDateString("es-MX")
+              const dateLabel = reviewDateFormatter.format(new Date(r.at))
               const metaLabel = `${displayName} • ${dateLabel} • Entrega confirmada`
 
               return (

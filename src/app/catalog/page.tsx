@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { Container } from "@/components/ui/Container"
 import { CatalogClient } from "@/components/catalog/CatalogClient"
 import { readPerfumes } from "@/lib/perfumeStore"
-import { Suspense } from "react"
 
 export const revalidate = 60
 
@@ -26,9 +25,7 @@ export default async function CatalogPage() {
           pide por WhatsApp.
         </p>
       </div>
-      <Suspense>
-        <CatalogClient perfumes={perfumes} />
-      </Suspense>
+      <CatalogClient perfumes={perfumes} />
     </Container>
   )
 }

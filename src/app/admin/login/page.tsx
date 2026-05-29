@@ -6,7 +6,14 @@ export default function AdminLoginPage() {
   return (
     <div className="bg-white">
       <Container className="py-12 sm:py-16">
-        <Suspense>
+        <Suspense
+          fallback={
+            <div
+              className="shimmer mx-auto h-64 w-full max-w-lg rounded-3xl border border-black/8 bg-white p-6"
+              aria-hidden="true"
+            />
+          }
+        >
           <AdminLoginClient />
         </Suspense>
       </Container>

@@ -37,10 +37,10 @@ export function Header() {
     >
       <Container className="flex h-14 items-center justify-between">
         <Link href="/" prefetch={false} className="group inline-flex flex-col leading-none">
-          <span className="font-display text-logo uppercase tracking-brand text-ink-950 sm:text-logo-sm sm:tracking-[0.30em]">
+          <span className="font-display text-logo uppercase tracking-brand text-ink-950 sm:text-logo-sm sm:tracking-brandSm">
             {siteConfig.wordmark}
           </span>
-          <span className="mt-1 text-ui-2xs font-extralight tracking-[0.52em] text-ink-500">
+          <span className="mt-1 text-ui-2xs font-extralight tracking-descriptor text-ink-500">
             {siteConfig.descriptor}
           </span>
         </Link>

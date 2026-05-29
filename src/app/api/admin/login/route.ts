@@ -1,9 +1,22 @@
 import { adminCookieName, createAdminSessionValue, expectedAdminToken } from "@/lib/adminSession"
 import { jsonError, jsonOk } from "@/lib/apiResponse"
+import { checkRateLimit } from "@/lib/rateLimit"
 
 export async function POST(req: Request) {
   const expected = expectedAdminToken()
   if (!expected) return jsonError("Server not configured", 500)
+
+  const rate = await checkRateLimit(req, { keyPrefix: "admin-login", windowMs: 10 * 60 * 1000, max: 20 })
+  if (!rate.allowed) {
+    return jsonError("Rate limited", 429, {
+      headers: {
+        "Retry-After": String(Math.ceil(rate.retryAfterMs / 1000)),
+        "X-RateLimit-Limit": String(rate.limit),
+        "X-RateLimit-Remaining": "0",
+        "X-RateLimit-Reset": String(Math.ceil(rate.resetAt / 1000))
+      }
+    })
+  }
 
   const body = (await req.json().catch(() => null)) as { token?: string } | null
   const token = body?.token?.trim()

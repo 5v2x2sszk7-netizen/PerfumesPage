@@ -48,6 +48,9 @@ export default {
         "home-hero": "420px",
         "home-hero-sm": "520px",
         "home-hero-lg": "680px",
+        "review-carousel": "340px",
+        "zoom-dialog": "86vh",
+        "zoom-dialog-sm": "88vh",
         "zoom-glow-1": "640px",
         "zoom-glow-1-sm": "820px",
         "zoom-glow-2": "760px",
@@ -56,6 +59,7 @@ export default {
       width: {
         thumb: "160px",
         "thumb-sm": "172px",
+        "perfume-shadow": "72%",
         "zoom-glow-1": "640px",
         "zoom-glow-1-sm": "820px",
         "zoom-glow-2": "760px",
@@ -77,7 +81,13 @@ export default {
         ui: "0.18em",
         kicker: "0.22em",
         section: "0.25em",
-        brand: "0.32em"
+        brand: "0.32em",
+        brandSm: "0.30em",
+        descriptor: "0.52em",
+        descriptorFooter: "0.45em",
+        counter: "0.16em",
+        meta: "0.21em",
+        product: "0.06em"
       },
       zIndex: {
         sticky: "30",

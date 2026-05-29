@@ -5,6 +5,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { useDominantColor } from "@/components/reviews/useDominantColor"
 import type { GalleryItem, ZoomDialogProps } from "@/components/reviews/ZoomDialog"
+import { clamp } from "@/lib/math"
 
 const ZoomDialog = dynamic<ZoomDialogProps>(
   () => import("@/components/reviews/ZoomDialog").then((mod) => mod.ZoomDialog),
@@ -21,10 +22,6 @@ type ZoomableImageProps = {
   frameClassName?: string
   imageClassName?: string
   dialogImageClassName?: string
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value))
 }
 
 export function ZoomableImage({
