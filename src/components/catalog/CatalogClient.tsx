@@ -51,7 +51,7 @@ function CatalogToolbar({
               onClick={() => {
                 replaceQuery((next) => {
                   next.delete("brand")
-                  next.delete("category")
+                  next.set("category", "niche")
                 })
               }}
             >
@@ -233,7 +233,7 @@ function CatalogFiltersPanel({
                 type="button"
                 onClick={() => {
                   replaceQuery((next) => {
-                    next.delete("view")
+                    next.set("view", "grid")
                   })
                 }}
                 className={cn(

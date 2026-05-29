@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import type { PerfumeCardModel } from "@/components/perfume/PerfumeCard"
 
@@ -62,8 +62,12 @@ export function useCatalogQueryState() {
 export function useCatalogPreferences(searchParams: ReturnType<typeof useSearchParams>, replaceQuery: ReplaceQuery) {
   const view = parseViewMode(searchParams.get("view"))
   const category = parseCategory(searchParams.get("category"))
+  const didHydrateDefaultsRef = useRef(false)
 
   useEffect(() => {
+    if (didHydrateDefaultsRef.current) return
+    didHydrateDefaultsRef.current = true
+
     const storedViewRaw = localStorage.getItem("catalog_view")
     const viewToSet = storedViewRaw === "grid" || storedViewRaw === "list" ? storedViewRaw : null
 
@@ -91,4 +95,3 @@ export function useCatalogPreferences(searchParams: ReturnType<typeof useSearchP
 
   return { view, category }
 }
-
