@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Field"
 import { formatMoney } from "@/lib/admin/utils"
 import { ModalCard } from "@/components/ui/ModalShell"
+import { Card } from "@/components/ui/Surface"
 import { profitForQty, profitPerUnit } from "@/lib/admin/finance"
 
 type Props = {
@@ -36,7 +37,7 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
         </>
       }
     >
-      <div className="mt-4 grid gap-3 rounded-2xl border border-black/8 bg-white p-4">
+      <Card radius="lg" className="mt-4 grid gap-3 p-4">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-ink-700">Stock actual</p>
           <p className="text-sm font-medium text-ink-950">{sellTarget.stock}</p>
@@ -51,7 +52,7 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
               const num = raw ? Number(raw) : 1
               setSellQty(Number.isFinite(num) ? num : 1)
             }}
-            className="h-11 w-[120px] text-right"
+            className="h-11 w-qty-input text-right"
           />
         </div>
         <div className="flex items-center justify-between gap-3">
@@ -80,12 +81,13 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
         {nextStock <= 0 ? (
           <p className="text-xs text-ink-600">Al confirmar, el producto se eliminará del catálogo.</p>
         ) : null}
-      </div>
+      </Card>
       <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Button
           type="button"
           variant="ghost"
-          className="w-full rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
+          radius="xl"
+          className="w-full border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
           onClick={onClose}
           disabled={busy}
         >
@@ -96,6 +98,7 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
           onClick={onConfirm}
           disabled={busy || qty < 1 || qty > currentStock}
           variant="gold"
+          radius="xl"
           className="w-full hover:shadow-cta-hover sm:w-auto"
         >
           Confirmar pago

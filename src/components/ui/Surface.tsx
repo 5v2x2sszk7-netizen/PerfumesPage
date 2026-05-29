@@ -37,3 +37,37 @@ export function Surface({
     />
   )
 }
+
+type CardTone = "solid" | "glass"
+type CardRadius = "lg" | "xl" | "luxe" | "luxe-lg" | "luxe-xl"
+
+function cardRadiusClass(radius: CardRadius) {
+  if (radius === "lg") return "rounded-2xl"
+  if (radius === "xl") return "rounded-3xl"
+  if (radius === "luxe") return "rounded-luxe"
+  if (radius === "luxe-xl") return "rounded-luxe-xl"
+  return "rounded-luxe-lg"
+}
+
+function cardToneClass(tone: CardTone) {
+  return tone === "glass" ? "bg-white/70" : "bg-white"
+}
+
+export function Card({
+  className,
+  tone = "solid",
+  radius = "xl",
+  ...props
+}: ComponentPropsWithoutRef<"div"> & { className?: string; tone?: CardTone; radius?: CardRadius }) {
+  return (
+    <div
+      className={cn(
+        cardRadiusClass(radius),
+        cardToneClass(tone),
+        "border border-black/8",
+        className
+      )}
+      {...props}
+    />
+  )
+}

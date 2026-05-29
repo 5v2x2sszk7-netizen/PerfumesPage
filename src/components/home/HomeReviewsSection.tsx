@@ -1,7 +1,7 @@
 import type { Review } from "@/lib/perfumeStore"
 import { Container } from "@/components/ui/Container"
 import { LazyReveal } from "@/components/ui/LazyReveal"
-import { Surface } from "@/components/ui/Surface"
+import { Card, Surface } from "@/components/ui/Surface"
 import { ZoomableImage } from "@/components/reviews/ZoomableImage"
 import { ReviewCarouselLazy } from "@/components/reviews/ReviewCarouselLazy"
 import { ReviewWriteEntry } from "@/components/reviews/ReviewWriteEntry"
@@ -81,7 +81,7 @@ export function HomeReviewsSection({
 
               return (
                 <LazyReveal key={r.id} delayMs={Math.min(idx, 8) * 55} className="w-full">
-                  <div className="group w-full rounded-3xl border border-black/8 bg-white px-6 py-6 transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-review-hover sm:px-7 sm:py-7">
+                  <Card className="group w-full px-6 py-6 transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-review-hover sm:px-7 sm:py-7">
                     <div className="grid gap-4 md:grid-cols-[240px_1fr] md:gap-8">
                       <div className="space-y-1">
                         <div className="flex items-center gap-3">
@@ -149,7 +149,7 @@ export function HomeReviewsSection({
                                             index: imageIdx
                                           }}
                                           wrapperClassName={
-                                            "group relative shrink-0 snap-start overflow-hidden rounded-2xl border border-black/8 bg-white flex-shrink-0 transition-shadow duration-700 ease-out hover:shadow-thumb-hover " +
+                                            "group relative shrink-0 snap-start overflow-hidden rounded-ui border border-black/8 bg-white flex-shrink-0 transition-shadow duration-700 ease-out hover:shadow-thumb-hover " +
                                             itemClass
                                           }
                                           frameClassName="relative aspect-[16/9] w-full bg-ink-50"
@@ -166,7 +166,7 @@ export function HomeReviewsSection({
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </Card>
                 </LazyReveal>
               )
             })}

@@ -7,8 +7,8 @@ import { jsonError, jsonOk } from "@/lib/apiResponse"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
+  const { id } = params
 
   const action = req.headers.get("x-perfimes-action")?.trim().toLowerCase()
   const body = (await req.json()) as Partial<Perfume>
@@ -82,8 +82,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  const { id } = params
 
   try {
     const deleted = await withPerfumesLock(async () => {

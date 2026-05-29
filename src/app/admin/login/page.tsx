@@ -1,6 +1,7 @@
 import { Container } from "@/components/ui/Container"
 import { AdminLoginClient } from "@/app/admin/login/AdminLoginClient"
 import { Suspense } from "react"
+import { Card } from "@/components/ui/Surface"
 
 export default function AdminLoginPage() {
   return (
@@ -8,10 +9,7 @@ export default function AdminLoginPage() {
       <Container className="py-12 sm:py-16">
         <Suspense
           fallback={
-            <div
-              className="shimmer mx-auto h-64 w-full max-w-lg rounded-3xl border border-black/8 bg-white p-6"
-              aria-hidden="true"
-            />
+            <Card className="shimmer mx-auto h-64 w-full max-w-lg p-6" aria-hidden="true" />
           }
         >
           <AdminLoginClient />

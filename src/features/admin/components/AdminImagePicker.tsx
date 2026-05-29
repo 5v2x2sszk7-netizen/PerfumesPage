@@ -64,7 +64,7 @@ export function AdminImagePicker({
         </UploadButton>
       </div>
       <div className="grid gap-2 sm:grid-cols-[120px_1fr] sm:items-center">
-        <div className="h-24 w-24 overflow-hidden rounded-2xl border border-black/8 bg-ink-50">
+        <div className="h-24 w-24 overflow-hidden rounded-ui border border-black/8 bg-ink-50">
           {src ? (
             <Image
               src={src}

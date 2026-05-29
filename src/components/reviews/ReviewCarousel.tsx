@@ -16,6 +16,13 @@ export type ReviewCarouselItem = {
 
 export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
   const safeItems = useMemo(() => items.filter((i) => Boolean(i.src)), [items])
+  const galleryItems = useMemo(() => {
+    return safeItems.map((v) => ({
+      src: v.src,
+      alt: v.alt,
+      meta: `${v.customerName} • Compra verificada`
+    }))
+  }, [safeItems])
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const itemRefs = useRef<Array<HTMLDivElement | null>>([])
   const [activeIndex, setActiveIndex] = useState(0)
@@ -101,7 +108,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
               (visibleItems.length ? (visibleItems[i] ? "is-visible " : "") : i === 0 ? "is-visible " : "")
             }
           >
-            <div className="group grid gap-6 rounded-2xl bg-paper-50 p-8 transition-shadow duration-300 hover:shadow-review-hover md:grid-cols-[1.2fr_0.8fr] md:items-center">
+            <div className="group grid gap-6 rounded-ui bg-paper-50 p-8 transition-shadow duration-300 hover:shadow-review-hover md:grid-cols-[1.2fr_0.8fr] md:items-center">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-3">
                   <Badge
@@ -131,21 +138,17 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
               </div>
 
               <div className="w-full">
-                <div className="group relative mx-auto w-full max-w-review-media overflow-hidden rounded-2xl bg-sage-50 shadow-review-media ring-1 ring-black/8 transition-shadow duration-700 ease-out hover:shadow-review-media-hover md:max-w-review-media">
+                <div className="group relative mx-auto w-full max-w-review-media overflow-hidden rounded-ui bg-sage-50 shadow-review-media ring-1 ring-black/8 transition-shadow duration-700 ease-out hover:shadow-review-media-hover md:max-w-review-media">
                   <div className="pointer-events-none absolute inset-0 bg-review-media-shine" />
                   <div className="p-4">
-                    <div className="relative aspect-[4/3] w-full max-h-review-media overflow-hidden rounded-2xl bg-white/35 sm:max-h-review-media-sm">
+                    <div className="relative aspect-[4/3] w-full max-h-review-media overflow-hidden rounded-ui bg-white/35 sm:max-h-review-media-sm">
                       <ZoomableImage
                         src={item.src}
                         alt={item.alt}
                         sizes="(max-width: 768px) 92vw, 520px"
                         meta={`${item.customerName} • Compra verificada`}
                         gallery={{
-                          items: safeItems.map((v) => ({
-                            src: v.src,
-                            alt: v.alt,
-                            meta: `${v.customerName} • Compra verificada`
-                          })),
+                          items: galleryItems,
                           index: i
                         }}
                         wrapperClassName="absolute inset-0"

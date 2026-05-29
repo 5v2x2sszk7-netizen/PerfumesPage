@@ -3,10 +3,11 @@ import Link from "next/link"
 import type { ComponentPropsWithoutRef } from "react"
 
 type ButtonVariant = "primary" | "ghost" | "soft" | "gold"
+type ButtonRadius = "pill" | "xl"
 
 const base =
   cn(
-    "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium tracking-wide transition disabled:opacity-50",
+    "inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium tracking-wide transition disabled:opacity-50",
     focusRing
   )
 
@@ -19,15 +20,22 @@ function variantClasses(variant: ButtonVariant) {
   return "bg-ink-950 text-white hover:bg-ink-900 active:bg-ink-950"
 }
 
+function radiusClasses(radius: ButtonRadius) {
+  if (radius === "xl") return "rounded-control"
+  return "rounded-full"
+}
+
 export function Button({
   className,
   variant = "primary",
+  radius = "pill",
   ...props
-}: ComponentPropsWithoutRef<"button"> & { className?: string; variant?: ButtonVariant }) {
+}: ComponentPropsWithoutRef<"button"> & { className?: string; variant?: ButtonVariant; radius?: ButtonRadius }) {
   return (
     <button
       className={cn(
         base,
+        radiusClasses(radius),
         variantClasses(variant),
         className
       )}
@@ -39,12 +47,14 @@ export function Button({
 export function ButtonLink({
   className,
   variant = "primary",
+  radius = "pill",
   ...props
-}: ComponentPropsWithoutRef<typeof Link> & { className?: string; variant?: ButtonVariant }) {
+}: ComponentPropsWithoutRef<typeof Link> & { className?: string; variant?: ButtonVariant; radius?: ButtonRadius }) {
   return (
     <Link
       className={cn(
         base,
+        radiusClasses(radius),
         variantClasses(variant),
         className
       )}
@@ -56,12 +66,14 @@ export function ButtonLink({
 export function ButtonExternal({
   className,
   variant = "primary",
+  radius = "pill",
   ...props
-}: ComponentPropsWithoutRef<"a"> & { className?: string; variant?: ButtonVariant }) {
+}: ComponentPropsWithoutRef<"a"> & { className?: string; variant?: ButtonVariant; radius?: ButtonRadius }) {
   return (
     <a
       className={cn(
         base,
+        radiusClasses(radius),
         variantClasses(variant),
         className
       )}

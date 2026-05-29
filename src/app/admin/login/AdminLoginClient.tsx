@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Input, Label } from "@/components/ui/Field"
 import { Button } from "@/components/ui/Button"
+import { Card } from "@/components/ui/Surface"
 
 export function AdminLoginClient() {
   const router = useRouter()
@@ -39,7 +40,7 @@ export function AdminLoginClient() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-lg rounded-3xl border border-black/8 bg-white p-6">
+    <Card className="mx-auto w-full max-w-lg p-6">
       <p className="text-xs tracking-section text-ink-500">ADMIN</p>
       <h1 className="mt-2 font-display text-3xl text-ink-950">Iniciar sesión</h1>
       <div className="mt-6 grid gap-2">
@@ -60,6 +61,6 @@ export function AdminLoginClient() {
           Entrar
         </Button>
       </div>
-    </div>
+    </Card>
   )
 }

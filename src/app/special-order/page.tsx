@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Container } from "@/components/ui/Container"
 import { SpecialOrderForm } from "@/components/specialOrder/SpecialOrderForm"
+import { Card } from "@/components/ui/Surface"
 
 export const metadata: Metadata = {
   title: "Pedidos especiales",
@@ -21,9 +22,9 @@ export default function SpecialOrderPage() {
           confirmamos disponibilidad, tiempo estimado y precio.
         </p>
 
-        <div className="mt-8 rounded-3xl border border-black/8 bg-white p-6 sm:p-8">
+        <Card className="mt-8 p-6 sm:p-8">
           <SpecialOrderForm />
-        </div>
+        </Card>
       </Container>
     </div>
   )

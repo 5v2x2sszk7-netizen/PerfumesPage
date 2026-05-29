@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button"
 import { formatMoney } from "@/lib/admin/utils"
 import { AdminPanel } from "@/features/admin/components/AdminPanel"
 import { perfumeSoldUnits, profitForQty, profitPerUnit } from "@/lib/admin/finance"
+import { Card } from "@/components/ui/Surface"
 
 type Props = {
   perfumes: Perfume[]
@@ -26,9 +27,10 @@ export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Pr
           const perUnit = profitPerUnit(p.price, p.cost)
           const realized = profitForQty(p.price, p.cost, soldUnits)
           return (
-            <div
+            <Card
               key={p.id}
-              className="flex flex-col gap-3 rounded-2xl border border-black/8 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+              radius="lg"
+              className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
                 <p className="text-xs tracking-ui text-ink-500">{p.brand}</p>
@@ -45,7 +47,8 @@ export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Pr
                 <Button
                   type="button"
                   variant="ghost"
-                  className="rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
+                  radius="xl"
+                  className="border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
                   onClick={() => onEdit(p)}
                   disabled={busy}
                 >
@@ -63,14 +66,15 @@ export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Pr
                 <Button
                   type="button"
                   variant="ghost"
-                  className="rounded-xl border border-red-200 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
+                  radius="xl"
+                  className="border border-red-200 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
                   onClick={() => onDelete(p)}
                   disabled={busy}
                 >
                   Eliminar
                 </Button>
               </div>
-            </div>
+            </Card>
           )
         })}
       </div>

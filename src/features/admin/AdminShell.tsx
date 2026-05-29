@@ -25,7 +25,8 @@ export function AdminShell({ busy, error, section, onRefresh, onLogout, onSelect
           <Button
             type="button"
             variant="ghost"
-            className="rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
+            radius="xl"
+            className="border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
             onClick={onRefresh}
             disabled={busy}
           >
@@ -34,7 +35,8 @@ export function AdminShell({ busy, error, section, onRefresh, onLogout, onSelect
           <Button
             type="button"
             variant="ghost"
-            className="rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
+            radius="xl"
+            className="border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
             onClick={onLogout}
             disabled={busy}
           >

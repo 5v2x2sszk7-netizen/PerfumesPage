@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button"
 import { Input, Label, Textarea } from "@/components/ui/Field"
+import { Card } from "@/components/ui/Surface"
 import type { Dispatch, RefObject, SetStateAction } from "react"
 import type { Review, ReviewDraft } from "@/lib/admin/types"
 import { AdminImagePicker } from "@/features/admin/components/AdminImagePicker"
@@ -37,7 +38,7 @@ export function ReviewsSection({
 }: Props) {
   return (
     <section className="rounded-luxe-xl bg-ink-50/60 p-3 ring-1 ring-inset ring-black/8 sm:p-5">
-      <div className="rounded-3xl border border-black/8 bg-white p-6">
+      <Card className="p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1">
             <p className="text-xs tracking-section text-ink-500">RESEÑAS</p>
@@ -47,7 +48,7 @@ export function ReviewsSection({
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-black/8 bg-white p-5">
+          <Card className="p-5">
             <h3 className="font-display text-xl text-ink-950">Añadir reseña</h3>
             <div className="mt-4 grid gap-4">
               <div className="grid gap-2">
@@ -98,15 +99,16 @@ export function ReviewsSection({
                 Guardar reseña
               </Button>
             </div>
-          </div>
+          </Card>
 
-          <div className="rounded-3xl border border-black/8 bg-white p-5">
+          <Card className="p-5">
             <h3 className="font-display text-xl text-ink-950">Listado</h3>
             <div className="mt-4 grid gap-3">
               {reviews.map((r) => (
-                <div
+                <Card
                   key={r.id}
-                  className="flex flex-col gap-3 rounded-2xl border border-black/8 bg-white p-4 sm:flex-row sm:items-start sm:justify-between"
+                  radius="lg"
+                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between"
                 >
                   <div className="min-w-0">
                     <p className="text-xs tracking-ui text-ink-500">CLIENTE</p>
@@ -120,20 +122,21 @@ export function ReviewsSection({
                     <Button
                       type="button"
                       variant="ghost"
-                      className="rounded-xl border border-red-200 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
+                      radius="xl"
+                      className="border border-red-200 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
                       onClick={() => onDeleteReview(r)}
                       disabled={busy}
                     >
                       Eliminar
                     </Button>
                   </div>
-                </div>
+                </Card>
               ))}
               {!reviews.length ? <p className="text-sm text-ink-600">Aún no hay reseñas.</p> : null}
             </div>
-          </div>
+          </Card>
         </div>
-      </div>
+      </Card>
     </section>
   )
 }

@@ -6,8 +6,8 @@ import { jsonError, jsonOk } from "@/lib/apiResponse"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
+  const { id } = params
   const body = (await req.json()) as Partial<Review>
 
   try {
@@ -27,8 +27,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  const { id } = params
   try {
     const ok = await deleteReview(id)
     if (!ok) return jsonError("Not found", 404)

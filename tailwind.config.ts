@@ -59,18 +59,24 @@ export default {
       width: {
         thumb: "160px",
         "thumb-sm": "172px",
+        "qty-input": "120px",
         "perfume-shadow": "72%",
         "zoom-glow-1": "640px",
         "zoom-glow-1-sm": "820px",
         "zoom-glow-2": "760px",
         "zoom-glow-2-sm": "960px"
       },
+      inset: {
+        "zoom-glow-1": "60%",
+        "zoom-glow-2": "68%"
+      },
       minWidth: {
         thumb: "160px"
       },
       maxHeight: {
         "review-media": "260px",
-        "review-media-sm": "300px"
+        "review-media-sm": "300px",
+        "modal-sheet": "90vh"
       },
       fontFamily: {
         display: ["var(--font-display)"],
@@ -154,6 +160,8 @@ export default {
         "zoom-inset": "inset 0 0 84px rgba(0,0,0,0.18)"
       },
       borderRadius: {
+        ui: "1rem",
+        control: "0.75rem",
         luxe: "2.25rem",
         "luxe-lg": "2.5rem",
         "luxe-xl": "2.75rem",

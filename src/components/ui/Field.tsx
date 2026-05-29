@@ -15,7 +15,7 @@ function fieldClasses(opts: { variant: FieldVariant; size: FieldSize }) {
   }
   return cn(
     size,
-    "w-full rounded-xl border border-black/8 bg-white px-4 text-sm text-ink-950 outline-none transition duration-luxe-fast ease-luxe placeholder:text-ink-400",
+    "w-full rounded-control border border-black/8 bg-white px-4 text-sm text-ink-950 outline-none transition duration-luxe-fast ease-luxe placeholder:text-ink-400",
     "focus:border-antiqueGold/60 focus:ring-1 focus:ring-antiqueGold/35"
   )
 }
@@ -53,7 +53,7 @@ export function Textarea({
   return (
     <textarea
       className={cn(
-        "min-h-28 w-full resize-y rounded-xl border border-black/8 bg-white px-4 py-3 text-sm text-ink-950 outline-none transition duration-luxe-fast ease-luxe placeholder:text-ink-400 focus:border-antiqueGold/60 focus:ring-1 focus:ring-antiqueGold/35",
+        "min-h-28 w-full resize-y rounded-control border border-black/8 bg-white px-4 py-3 text-sm text-ink-950 outline-none transition duration-luxe-fast ease-luxe placeholder:text-ink-400 focus:border-antiqueGold/60 focus:ring-1 focus:ring-antiqueGold/35",
         className
       )}
       {...props}

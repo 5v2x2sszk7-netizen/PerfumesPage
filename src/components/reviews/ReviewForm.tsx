@@ -4,6 +4,7 @@ import { useEffect, useMemo, useReducer, useRef } from "react"
 import { Button } from "@/components/ui/Button"
 import { Input, Label, SelectWithCaret, Textarea } from "@/components/ui/Field"
 import { UploadButton } from "@/components/ui/UploadButton"
+import { Card } from "@/components/ui/Surface"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 
@@ -215,7 +216,7 @@ export function ReviewForm() {
   }
 
   return (
-    <div className="rounded-3xl border border-black/8 bg-white p-6 pb-8">
+    <Card className="p-6 pb-8">
       <h3 className="font-display text-xl text-ink-950">Deja tu reseña</h3>
       <p className="mt-2 text-sm text-ink-700">Cuéntanos tu experiencia. Se publicará aquí al enviarla.</p>
 
@@ -230,7 +231,7 @@ export function ReviewForm() {
         </div>
         <div className="grid gap-2">
           <Label>Calificación</Label>
-          <div className="flex h-11 items-center justify-between gap-4 rounded-xl border border-black/8 bg-white px-4">
+          <div className="flex h-11 items-center justify-between gap-4 rounded-control border border-black/8 bg-white px-4">
             <div
               className="flex items-center gap-1"
               role="radiogroup"
@@ -300,7 +301,7 @@ export function ReviewForm() {
             />
           </div>
 
-          <div className="grid gap-3 rounded-2xl border border-black/8 bg-white p-4">
+          <Card radius="lg" className="grid gap-3 p-4">
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
               <Input
                 placeholder="Ningún archivo seleccionado"
@@ -342,7 +343,7 @@ export function ReviewForm() {
               </div>
               <div className="grid grid-cols-5 gap-2">
                 {state.deliveryPhotos.slice(0, 5).map((p) => (
-                  <div key={p.id} className="relative h-12 w-12 overflow-hidden rounded-xl border border-black/8 bg-ink-50">
+                  <div key={p.id} className="relative h-12 w-12 overflow-hidden rounded-control border border-black/8 bg-ink-50">
                     <Image
                       src={p.localUrl}
                       alt="Foto al recibir"
@@ -364,7 +365,7 @@ export function ReviewForm() {
                 ))}
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 
@@ -383,6 +384,6 @@ export function ReviewForm() {
           Enviar reseña
         </Button>
       </div>
-    </div>
+    </Card>
   )
 }

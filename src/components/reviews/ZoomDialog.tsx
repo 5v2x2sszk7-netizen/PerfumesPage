@@ -129,8 +129,8 @@ export function ZoomDialog({
           </p>
 
           <div className="pointer-events-none absolute inset-0 bg-zoom-overlay" />
-          <div className="pointer-events-none absolute left-1/2 top-[60%] h-zoom-glow-1 w-zoom-glow-1 -translate-x-1/2 rounded-full bg-zoom-glow-1 opacity-32 blur-zoom-1 sm:h-zoom-glow-1-sm sm:w-zoom-glow-1-sm" />
-          <div className="pointer-events-none absolute left-1/2 top-[68%] h-zoom-glow-2 w-zoom-glow-2 -translate-x-1/2 rounded-full bg-zoom-glow-2 opacity-24 blur-zoom-2 sm:h-zoom-glow-2-sm sm:w-zoom-glow-2-sm" />
+          <div className="pointer-events-none absolute left-1/2 top-zoom-glow-1 h-zoom-glow-1 w-zoom-glow-1 -translate-x-1/2 rounded-full bg-zoom-glow-1 opacity-32 blur-zoom-1 sm:h-zoom-glow-1-sm sm:w-zoom-glow-1-sm" />
+          <div className="pointer-events-none absolute left-1/2 top-zoom-glow-2 h-zoom-glow-2 w-zoom-glow-2 -translate-x-1/2 rounded-full bg-zoom-glow-2 opacity-24 blur-zoom-2 sm:h-zoom-glow-2-sm sm:w-zoom-glow-2-sm" />
           {glowRgb ? (
             <div className="pointer-events-none absolute inset-0 bg-zoom-dynamic-glow opacity-65 transition-opacity duration-luxe-fast ease-luxe" />
           ) : null}

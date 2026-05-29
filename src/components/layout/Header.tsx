@@ -36,7 +36,7 @@ export function Header() {
       ].join(" ")}
     >
       <Container className="flex h-14 items-center justify-between">
-        <Link href="/" prefetch={false} className="group inline-flex flex-col leading-none">
+        <Link href="/" className="group inline-flex flex-col leading-none">
           <span className="font-display text-logo uppercase tracking-brand text-ink-950 sm:text-logo-sm sm:tracking-brandSm">
             {siteConfig.wordmark}
           </span>
@@ -45,17 +45,15 @@ export function Header() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-[450] tracking-ui text-ink-700 md:flex">
+        <nav className="hidden items-center gap-6 text-sm font-medium tracking-ui text-ink-700 md:flex">
           <Link
             href="/catalog"
-            prefetch={false}
             className="text-ui-sm text-ink-600 transition-colors duration-700 ease-luxe hover:text-ink-950"
           >
             Catálogo
           </Link>
           <Link
             href="/special-order"
-            prefetch={false}
             className="text-ui-sm text-ink-600 transition-colors duration-700 ease-luxe hover:text-ink-950"
           >
             Pedidos especiales
@@ -64,8 +62,7 @@ export function Header() {
 
         <Link
           href="/catalog"
-          prefetch={false}
-          className="rounded-full bg-ink-950 px-4 py-2 text-sm font-[450] tracking-ui text-white shadow-header-cta transition-luxe duration-700 ease-luxe hover:-translate-y-0.5 hover:bg-ink-900 hover:shadow-header-cta-hover active:translate-y-0 md:hidden"
+          className="rounded-full bg-ink-950 px-4 py-2 text-sm font-medium tracking-ui text-white shadow-header-cta transition-luxe duration-700 ease-luxe hover:-translate-y-0.5 hover:bg-ink-900 hover:shadow-header-cta-hover active:translate-y-0 md:hidden"
         >
           Ver catálogo
         </Link>

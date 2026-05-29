@@ -24,15 +24,14 @@ export function PerfumeCard({
     return (
       <Link
         href={`/catalog/${perfume.slug}`}
-        prefetch={false}
         className={cn(
-          "group relative block w-full max-w-featured-card [transform:translateZ(0)] overflow-hidden rounded-2xl bg-white p-3 no-underline ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:ring-black/10 hover:shadow-home-featured-hover motion-safe:hover:-translate-y-0.5",
+          "group relative block w-full max-w-featured-card [transform:translateZ(0)] overflow-hidden rounded-ui bg-white p-3 no-underline ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:ring-black/10 hover:shadow-home-featured-hover motion-safe:hover:-translate-y-0.5",
           focusRing,
           className
         )}
       >
         <div className="pointer-events-none absolute inset-0 bg-home-featured-hover-glow opacity-0 transition-opacity duration-luxe-slow ease-luxe group-hover:opacity-100" />
-        <div className="relative aspect-[5/6] overflow-hidden rounded-xl bg-ink-50 ring-1 ring-inset ring-black/8">
+        <div className="relative aspect-[5/6] overflow-hidden rounded-control bg-ink-50 ring-1 ring-inset ring-black/8">
           <div className="pointer-events-none absolute inset-0 bg-home-featured-media-glow opacity-80" />
           <Image
             src={perfume.imageSrc}
@@ -55,7 +54,6 @@ export function PerfumeCard({
   return (
     <Link
       href={`/catalog/${perfume.slug}`}
-      prefetch={false}
       className={cn(
         "group relative block [transform:translateZ(0)] overflow-hidden rounded-luxe-lg bg-white no-underline shadow-card ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:-translate-y-1 hover:ring-black/10 hover:shadow-perfume-hover",
         focusRing,

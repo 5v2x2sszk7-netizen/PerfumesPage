@@ -90,19 +90,21 @@ export function ZoomableImage({
         </div>
       </button>
 
-      <ZoomDialog
-        open={open}
-        closing={closing}
-        dialogId={dialogId}
-        titleId={titleId}
-        items={items}
-        activeIndex={clamp(activeIndex, 0, total - 1)}
-        setActiveIndex={setActiveIndex}
-        activeItem={activeItem}
-        glowRgb={glowRgb}
-        onClose={close}
-        dialogImageClassName={dialogImageClassName}
-      />
+      {open || closing ? (
+        <ZoomDialog
+          open={open}
+          closing={closing}
+          dialogId={dialogId}
+          titleId={titleId}
+          items={items}
+          activeIndex={clamp(activeIndex, 0, total - 1)}
+          setActiveIndex={setActiveIndex}
+          activeItem={activeItem}
+          glowRgb={glowRgb}
+          onClose={close}
+          dialogImageClassName={dialogImageClassName}
+        />
+      ) : null}
     </>
   )
 }

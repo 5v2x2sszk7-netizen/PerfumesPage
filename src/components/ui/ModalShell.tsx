@@ -170,7 +170,8 @@ export function ConfirmModal({
           <Button
             type="button"
             variant="ghost"
-            className="w-full rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
+            radius="xl"
+            className="w-full border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
             onClick={onClose}
             disabled={busy}
           >
@@ -179,8 +180,9 @@ export function ConfirmModal({
           <Button
             type="button"
             variant={confirmTone === "gold" ? "gold" : "ghost"}
+            radius="xl"
             className={cn(
-              "w-full rounded-xl px-4 py-2.5 text-sm sm:w-auto",
+              "w-full px-4 py-2.5 text-sm sm:w-auto",
               confirmTone === "danger"
                 ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
                 : "hover:shadow-cta-hover"
@@ -214,7 +216,7 @@ export function ModalSheet({
   return (
     <ModalShell open={open} onClose={onClose} placement="top" contentClassName={contentClassName}>
       <Surface variant="glass" radius="luxe-xl" className="bg-ink-50/60 p-3">
-        <div className="relative max-h-[90vh] overflow-y-auto rounded-3xl border border-black/8 bg-white px-6 pb-6 pt-5 shadow-modal-soft">
+        <div className="relative max-h-modal-sheet overflow-y-auto rounded-luxe-xl border border-black/8 bg-white px-6 pb-6 pt-5 shadow-modal-soft">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <p className="text-xs tracking-section text-ink-500">{kicker}</p>
@@ -225,6 +227,7 @@ export function ModalSheet({
             type="button"
             variant="ghost"
             onClick={onClose}
+            radius="xl"
             className="absolute right-4 top-4 h-11 w-11 border border-black/8 bg-white px-0 hover:bg-ink-50"
             aria-label="Cerrar"
           >

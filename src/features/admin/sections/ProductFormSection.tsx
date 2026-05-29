@@ -4,6 +4,7 @@ import type { Dispatch, RefObject, SetStateAction } from "react"
 import type { Perfume } from "@/types/perfume"
 import { Button } from "@/components/ui/Button"
 import { Input, Label, SelectWithCaret, Textarea } from "@/components/ui/Field"
+import { Card } from "@/components/ui/Surface"
 import type { Draft } from "@/lib/admin/types"
 import { formatMoney } from "@/lib/admin/utils"
 import { AdminImagePicker } from "@/features/admin/components/AdminImagePicker"
@@ -56,7 +57,7 @@ export function ProductFormSection({
 }: Props) {
   return (
     <section className="rounded-luxe-xl bg-ink-50/60 p-3 ring-1 ring-inset ring-black/8 sm:p-5">
-      <div className="rounded-3xl border border-black/8 bg-white p-6">
+      <Card className="p-6">
         <div className="-mx-6 -mt-6 sticky top-3 z-sticky border-b border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-2xl text-ink-950">{isEditing ? "Editar perfume" : "Nuevo perfume"}</h2>
@@ -146,22 +147,22 @@ export function ProductFormSection({
               onChange={(e) => setDraft((d) => ({ ...d, stock: e.target.value }))}
             />
           </div>
-          <div className="md:col-span-2 grid gap-3 rounded-2xl border border-black/8 bg-white p-4">
+          <Card radius="lg" className="md:col-span-2 grid gap-3 p-4">
             <p className="text-xs tracking-ui text-ink-500">GANANCIA</p>
             <div className="grid gap-2 sm:grid-cols-3">
-              <div className="rounded-xl border border-black/8 bg-ink-50/40 px-4 py-3">
+              <div className="rounded-control border border-black/8 bg-ink-50/40 px-4 py-3">
                 <p className="text-xs text-ink-600">Tu costo</p>
                 <p className="mt-1 font-display text-lg text-ink-950">
                   {Number.isFinite(finance.cost) && finance.cost >= 0 ? formatMoney(finance.cost) : "—"}
                 </p>
               </div>
-              <div className="rounded-xl border border-black/8 bg-ink-50/40 px-4 py-3">
+              <div className="rounded-control border border-black/8 bg-ink-50/40 px-4 py-3">
                 <p className="text-xs text-ink-600">Precio venta</p>
                 <p className="mt-1 font-display text-lg text-ink-950">
                   {Number.isFinite(finance.price) && finance.price >= 0 ? formatMoney(finance.price) : "—"}
                 </p>
               </div>
-              <div className="rounded-xl border border-black/8 bg-ink-50/40 px-4 py-3">
+              <div className="rounded-control border border-black/8 bg-ink-50/40 px-4 py-3">
                 <p className="text-xs text-ink-600">Ganancia</p>
                 <p className="mt-1 font-display text-lg text-antiqueGold">
                   {Number.isFinite(finance.profit) ? formatMoney(finance.profit) : "—"}
@@ -171,7 +172,7 @@ export function ProductFormSection({
                 </p>
               </div>
             </div>
-          </div>
+          </Card>
           <div className="md:col-span-2 grid gap-2">
             <Label>Descripción *</Label>
             <Textarea value={draft.description} onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))} />
@@ -229,7 +230,8 @@ export function ProductFormSection({
                 <Button
                   type="button"
                   variant="ghost"
-                  className="w-full rounded-xl border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
+                  radius="xl"
+                  className="w-full border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
                   onClick={onCancelEdit}
                   disabled={busy}
                 >
@@ -239,7 +241,7 @@ export function ProductFormSection({
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     </section>
   )
 }
