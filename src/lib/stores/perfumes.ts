@@ -1,5 +1,6 @@
 import type { Perfume } from "@/types/perfume"
 import { dataFilePath, readJsonArray, withStorageLock, writeJson } from "@/lib/storage/jsonFile"
+import { availabilityFromStock } from "@/lib/perfume/parsers"
 
 const perfumesPath = dataFilePath("perfumes.json")
 
@@ -40,11 +41,7 @@ function normalizePerfume(input: unknown): Perfume | null {
 
   const availability =
     stockParsed != null
-      ? stockParsed <= 0
-        ? "out_of_stock"
-        : stockParsed <= 2
-          ? "low_stock"
-          : "in_stock"
+      ? availabilityFromStock(stockParsed)
       : availabilityRaw ?? "in_stock"
 
   const stock = stockParsed ?? (availability === "out_of_stock" ? 0 : 1)

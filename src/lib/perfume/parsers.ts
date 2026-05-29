@@ -58,6 +58,6 @@ export function parseSold(value: unknown): number | null {
 
 export function availabilityFromStock(stock: number): PerfumeAvailability {
   if (stock <= 0) return "out_of_stock"
-  if (stock <= 3) return "low_stock"
+  if (stock <= 2) return "low_stock"
   return "in_stock"
 }

@@ -83,7 +83,7 @@ export default async function PerfumeDetailPage({ params }: { params: { slug: st
               <div className="relative overflow-visible rounded-luxe-xl border border-black/8 bg-ink-50 p-4 shadow-media-xl sm:p-5 lg:justify-self-start">
                 <div className="pointer-events-none absolute inset-0 bg-perfume-detail-card-glow" />
                 <div className="relative overflow-visible rounded-luxe bg-white ring-1 ring-inset ring-black/8">
-                  <div className="pointer-events-none absolute left-1/2 bottom-6 h-10 w-perfume-shadow -translate-x-1/2 rounded-full bg-black/30 opacity-[0.14] blur-2xl" />
+                  <div className="pointer-events-none absolute left-1/2 bottom-6 h-10 w-perfume-shadow -translate-x-1/2 rounded-full bg-black/30 opacity-ink-14 blur-2xl" />
                   <div className="relative -mt-4 overflow-hidden rounded-luxe sm:-mt-6">
                     <div className="relative aspect-[4/5]">
                       <Image

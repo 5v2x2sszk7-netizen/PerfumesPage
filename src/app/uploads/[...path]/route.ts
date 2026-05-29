@@ -1,6 +1,8 @@
 import { getStorageDriver } from "@/lib/storage/driver"
 import type { NextRequest } from "next/server"
 
+export const runtime = "nodejs"
+
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 

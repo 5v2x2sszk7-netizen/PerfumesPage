@@ -148,7 +148,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
               </div>
 
               <div className="w-full">
-                <div className="group relative mx-auto w-full max-w-review-media overflow-hidden rounded-ui bg-sage-50 shadow-review-media ring-1 ring-black/8 transition-shadow duration-700 ease-out hover:shadow-review-media-hover md:max-w-review-media">
+                <div className="group relative mx-auto w-full max-w-review-media overflow-hidden rounded-ui bg-sage-50 shadow-review-media ring-1 ring-black/8 transition-shadow duration-luxe-fast ease-out hover:shadow-review-media-hover md:max-w-review-media">
                   <div className="pointer-events-none absolute inset-0 bg-review-media-shine" />
                   <div className="p-4">
                     <div className="relative aspect-[4/3] w-full max-h-review-media overflow-hidden rounded-ui bg-white/35 sm:max-h-review-media-sm">
@@ -164,7 +164,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
                         wrapperClassName="absolute inset-0"
                         frameClassName="relative h-full w-full"
                         imageClassName={
-                          "object-contain transition-transform duration-700 ease-out group-hover:scale-[1.03] " +
+                          "object-contain transition-transform duration-luxe-fast ease-out group-hover:scale-[1.03] " +
                           (i === activeIndex ? "ken-burns-soft" : "")
                         }
                         dialogImageClassName="object-contain"

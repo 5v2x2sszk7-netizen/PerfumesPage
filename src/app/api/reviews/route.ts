@@ -4,6 +4,8 @@ import { checkRateLimit } from "@/lib/rateLimit"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { jsonError, jsonOk, readJsonBody } from "@/lib/apiResponse"
 
+export const runtime = "nodejs"
+
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 

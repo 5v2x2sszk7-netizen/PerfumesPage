@@ -4,26 +4,84 @@ import { cn } from "@/lib/cn"
 import type { CSSProperties, ReactNode } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 
-const lazyRevealCallbacks = new WeakMap<Element, () => void>()
-let lazyRevealObserver: IntersectionObserver | null = null
+type InViewOnceOptions = {
+  rootMargin: string
+  threshold: number | number[]
+  initialInView?: (rect: DOMRect, viewportHeight: number) => boolean
+}
 
-function getLazyRevealObserver() {
+type ObserverEntry = {
+  observer: IntersectionObserver
+  callbacks: WeakMap<Element, () => void>
+}
+
+const inViewOnceRegistry = new Map<string, ObserverEntry>()
+
+function getObserverEntry(opts: Pick<InViewOnceOptions, "rootMargin" | "threshold">) {
   if (typeof window === "undefined") return null
-  if (lazyRevealObserver) return lazyRevealObserver
-  lazyRevealObserver = new IntersectionObserver(
+  const key = `${opts.rootMargin}|${Array.isArray(opts.threshold) ? opts.threshold.join(",") : String(opts.threshold)}`
+  const cached = inViewOnceRegistry.get(key)
+  if (cached) return cached
+
+  const callbacks = new WeakMap<Element, () => void>()
+  const observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue
-        const cb = lazyRevealCallbacks.get(entry.target)
+        const cb = callbacks.get(entry.target)
         if (!cb) continue
-        lazyRevealCallbacks.delete(entry.target)
-        lazyRevealObserver?.unobserve(entry.target)
+        callbacks.delete(entry.target)
+        observer.unobserve(entry.target)
         cb()
       }
     },
-    { root: null, rootMargin: "0px 0px -10% 0px", threshold: 0.12 }
+    { root: null, rootMargin: opts.rootMargin, threshold: opts.threshold }
   )
-  return lazyRevealObserver
+  const entry = { observer, callbacks }
+  inViewOnceRegistry.set(key, entry)
+  return entry
+}
+
+export function useInViewOnce<T extends Element>(opts: InViewOnceOptions) {
+  const { rootMargin, threshold, initialInView } = opts
+  const ref = useRef<T | null>(null)
+  const [ready, setReady] = useState(false)
+  const [inView, setInView] = useState(false)
+  const initialInViewRef = useRef<InViewOnceOptions["initialInView"]>(initialInView)
+  const thresholdKey = Array.isArray(threshold) ? threshold.join(",") : String(threshold)
+
+  useEffect(() => {
+    initialInViewRef.current = initialInView
+  }, [initialInView])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const entry = getObserverEntry({ rootMargin, threshold })
+    if (!entry) return
+
+    const rect = el.getBoundingClientRect()
+    const viewportHeight = window.innerHeight || 0
+    const initialInView = initialInViewRef.current
+    const isInitiallyInView = initialInView ? initialInView(rect, viewportHeight) : rect.top < viewportHeight && rect.bottom > 0
+
+    entry.callbacks.set(el, () => setInView(true))
+    const raf = window.requestAnimationFrame(() => {
+      if (isInitiallyInView) setInView(true)
+      setReady(true)
+    })
+
+    if (!isInitiallyInView) entry.observer.observe(el)
+
+    return () => {
+      window.cancelAnimationFrame(raf)
+      entry.callbacks.delete(el)
+      entry.observer.unobserve(el)
+    }
+  }, [rootMargin, thresholdKey, threshold])
+
+  return { ref, ready, inView }
 }
 
 export function LazyReveal({
@@ -37,41 +95,21 @@ export function LazyReveal({
   delayMs?: number
   style?: CSSProperties
 }) {
-  const ref = useRef<HTMLDivElement | null>(null)
-  const [mounted, setMounted] = useState(false)
-  const [visible, setVisible] = useState(false)
+  const { ref, ready, inView } = useInViewOnce<HTMLDivElement>({
+    rootMargin: "0px 0px -10% 0px",
+    threshold: 0.12,
+    initialInView: (rect, viewportHeight) => rect.top < viewportHeight * 0.92 && rect.bottom > 0
+  })
 
   const mergedStyle = useMemo(() => {
     if (!delayMs) return style
     return { ...(style ?? {}), transitionDelay: `${delayMs}ms` }
   }, [delayMs, style])
 
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-
-    const observer = getLazyRevealObserver()
-    if (!observer) return
-
-    const rect = el.getBoundingClientRect()
-    const inView = rect.top < window.innerHeight * 0.92 && rect.bottom > 0
-    lazyRevealCallbacks.set(el, () => setVisible(true))
-    const raf = window.requestAnimationFrame(() => {
-      if (inView) setVisible(true)
-      setMounted(true)
-    })
-    if (!inView) observer.observe(el)
-    return () => {
-      window.cancelAnimationFrame(raf)
-      lazyRevealCallbacks.delete(el)
-      observer.unobserve(el)
-    }
-  }, [])
-
   return (
     <div
       ref={ref}
-      className={cn(mounted ? "reveal" : "", mounted && visible ? "is-visible" : "", className)}
+      className={cn(ready ? "reveal" : "", ready && inView ? "is-visible" : "", className)}
       style={mergedStyle}
     >
       {children}

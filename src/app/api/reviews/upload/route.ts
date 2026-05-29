@@ -1,5 +1,7 @@
 import { processUpload } from "@/lib/uploads/processUpload"
 
+export const runtime = "nodejs"
+
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 

@@ -3,14 +3,20 @@ import { Container } from "@/components/ui/Container"
 import { ButtonLink } from "@/components/ui/Button"
 import { LazyReveal } from "@/components/ui/LazyReveal"
 import { PerfumeCard } from "@/components/perfume/PerfumeCard"
+import { SectionHeader } from "@/components/ui/SectionHeader"
 
 export function HomeFeaturedSection({ featured }: { featured: Perfume[] }) {
   return (
     <section className="relative bg-white">
       <Container className="pt-14 pb-16 sm:pt-16 sm:pb-20">
         <div className="max-w-home-hero">
-          <p className="text-xs tracking-brand text-ink-500">AGREGADOS RECIENTEMENTE</p>
-          <h2 className="mt-4 font-display text-2xl leading-display text-ink-950">Nuevas incorporaciones</h2>
+          <SectionHeader
+            kicker="AGREGADOS RECIENTEMENTE"
+            title={<h2>Nuevas incorporaciones</h2>}
+            className="gap-0"
+            kickerClassName="tracking-brand"
+            titleClassName="mt-4 text-2xl"
+          />
 
           <div className="mt-8 grid grid-cols-1 gap-4">
             {featured.map((p, idx) => (

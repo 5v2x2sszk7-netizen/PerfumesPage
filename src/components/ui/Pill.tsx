@@ -6,7 +6,7 @@ type PillVariant = "catalog" | "admin"
 function baseClass(variant: PillVariant) {
   if (variant === "catalog") {
     return cn(
-      "inline-flex h-10 items-center justify-center rounded-full px-5 text-ui-sm font-medium tracking-ui ring-1 ring-inset transition-luxe-wide duration-700 ease-luxe",
+      "inline-flex h-10 items-center justify-center rounded-full px-5 text-ui-sm font-medium tracking-ui ring-1 ring-inset transition-luxe-wide duration-luxe-fast ease-luxe",
       focusRing
     )
   }

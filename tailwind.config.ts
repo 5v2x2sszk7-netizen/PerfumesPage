@@ -38,7 +38,9 @@ export default {
       },
       opacity: {
         glass: "0.78",
-        "glass-scrolled": "0.72"
+        "glass-scrolled": "0.72",
+        "ink-8": "0.08",
+        "ink-14": "0.14"
       },
       lineHeight: {
         display: "0.95",

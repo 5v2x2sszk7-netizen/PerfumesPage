@@ -8,6 +8,7 @@ import { ReviewWriteEntry } from "@/components/reviews/ReviewWriteEntry"
 import { formatCustomerDisplayName, getInitials } from "@/lib/text"
 import { formatReviewSnippet, type ReviewCarouselItem } from "@/lib/reviews"
 import { StarRating } from "@/components/ui/StarRating"
+import { SectionHeader } from "@/components/ui/SectionHeader"
 
 const reviewDateFormatter = new Intl.DateTimeFormat("es-MX", { timeZone: "America/Mexico_City" })
 
@@ -29,8 +30,12 @@ export function HomeReviewsSection({
       <Container className="py-16 pt-24">
         <div className="space-y-8">
           <div className="mb-6">
-            <p className="text-xs tracking-section text-ink-500">RESEÑAS</p>
-            <h2 className="mt-3 font-display text-2xl leading-display text-ink-950">Lo que dicen nuestros clientes</h2>
+            <SectionHeader
+              kicker="RESEÑAS"
+              title={<h2>Lo que dicen nuestros clientes</h2>}
+              className="gap-0"
+              titleClassName="mt-3 text-2xl"
+            />
             {ratingCount ? (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <StarRating value={roundedStars} className="text-base leading-none text-goldSoft" ariaLabel={`${avgRatingLabel} de 5`} />
@@ -142,11 +147,11 @@ export function HomeReviewsSection({
                                             index: imageIdx
                                           }}
                                           wrapperClassName={
-                                            "group relative shrink-0 snap-start overflow-hidden rounded-ui border border-black/8 bg-white flex-shrink-0 transition-shadow duration-700 ease-out hover:shadow-thumb-hover " +
+                                            "group relative shrink-0 snap-start overflow-hidden rounded-ui border border-black/8 bg-white flex-shrink-0 transition-shadow duration-luxe-fast ease-out hover:shadow-thumb-hover " +
                                             itemClass
                                           }
                                           frameClassName="relative aspect-[16/9] w-full bg-ink-50"
-                                          imageClassName="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                                          imageClassName="object-cover transition-transform duration-luxe-fast ease-out group-hover:scale-[1.03]"
                                           dialogImageClassName="object-contain"
                                         />
                                       )

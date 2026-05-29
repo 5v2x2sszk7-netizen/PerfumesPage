@@ -4,13 +4,19 @@ import type { ComponentPropsWithoutRef } from "react"
 type SurfaceVariant = "glass" | "solid" | "modal"
 type SurfaceRadius = "md" | "lg" | "xl" | "luxe" | "luxe-lg" | "luxe-xl"
 
-function radiusClass(radius: SurfaceRadius) {
-  if (radius === "md") return "rounded-xl"
+type SharedRadius = Exclude<SurfaceRadius, "md">
+
+function sharedRadiusClass(radius: SharedRadius) {
   if (radius === "lg") return "rounded-2xl"
   if (radius === "xl") return "rounded-3xl"
   if (radius === "luxe") return "rounded-luxe"
   if (radius === "luxe-xl") return "rounded-luxe-xl"
   return "rounded-luxe-lg"
+}
+
+function radiusClass(radius: SurfaceRadius) {
+  if (radius === "md") return "rounded-xl"
+  return sharedRadiusClass(radius)
 }
 
 function variantClass(variant: SurfaceVariant) {
@@ -39,15 +45,7 @@ export function Surface({
 }
 
 type CardTone = "solid" | "glass"
-type CardRadius = "lg" | "xl" | "luxe" | "luxe-lg" | "luxe-xl"
-
-function cardRadiusClass(radius: CardRadius) {
-  if (radius === "lg") return "rounded-2xl"
-  if (radius === "xl") return "rounded-3xl"
-  if (radius === "luxe") return "rounded-luxe"
-  if (radius === "luxe-xl") return "rounded-luxe-xl"
-  return "rounded-luxe-lg"
-}
+type CardRadius = SharedRadius
 
 function cardToneClass(tone: CardTone) {
   return tone === "glass" ? "bg-white/70" : "bg-white"
@@ -62,7 +60,7 @@ export function Card({
   return (
     <div
       className={cn(
-        cardRadiusClass(radius),
+        sharedRadiusClass(radius),
         cardToneClass(tone),
         "border border-black/8",
         className

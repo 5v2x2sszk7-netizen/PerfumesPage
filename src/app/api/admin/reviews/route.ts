@@ -3,6 +3,8 @@ import type { Review } from "@/lib/perfumeStore"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { jsonError, jsonNoStoreOk, jsonOk, readJsonBody } from "@/lib/apiResponse"
 
+export const runtime = "nodejs"
+
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
