@@ -121,9 +121,9 @@ export function ReviewsSection({
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="danger"
                       radius="xl"
-                      className="border border-red-200 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
+                      className="px-4 py-2.5 text-sm"
                       onClick={() => onDeleteReview(r)}
                       disabled={busy}
                     >

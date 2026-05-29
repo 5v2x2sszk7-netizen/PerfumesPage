@@ -2,16 +2,17 @@ import type { Perfume } from "@/types/perfume"
 import { addSuggestion, appendSale, readPerfumes, withPerfumesLock, writePerfumes } from "@/lib/perfumeStore"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { availabilityFromStock, isAllowedPerfumeImageSrc, parseCost, parseNotes, parseSold, parseStock } from "@/lib/perfume/parsers"
-import { jsonError, jsonOk } from "@/lib/apiResponse"
+import { jsonError, jsonOk, readJsonBody } from "@/lib/apiResponse"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params
 
   const action = req.headers.get("x-perfimes-action")?.trim().toLowerCase()
-  const body = (await req.json()) as Partial<Perfume>
+  const body = await readJsonBody<Partial<Perfume>>(req)
+  if (!body) return jsonError("Invalid body", 400)
   if (body.imageSrc != null && typeof body.imageSrc === "string" && body.imageSrc.trim()) {
     if (!isAllowedPerfumeImageSrc(body.imageSrc)) {
       return jsonError("Invalid imageSrc", 400)
@@ -82,8 +83,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params
 
   try {
     const deleted = await withPerfumesLock(async () => {

@@ -2,10 +2,7 @@ import Image from "next/image"
 import type { CSSProperties } from "react"
 
 export function HomeHeroSection() {
-  const noiseStyle = {
-    ["--noise-size" as never]: "280px 280px",
-    ["--noise-opacity" as never]: "0.045"
-  } satisfies CSSProperties
+  const noiseStyle = { "--noise-size": "280px 280px", "--noise-opacity": "0.045" } as CSSProperties
 
   return (
     <section className="relative h-home-hero overflow-hidden border-b border-black/6 bg-white sm:h-home-hero-sm lg:h-home-hero-lg">
@@ -26,4 +23,3 @@ export function HomeHeroSection() {
     </section>
   )
 }
-

@@ -24,9 +24,9 @@ export function AdminShell({ busy, error, section, onRefresh, onLogout, onSelect
         <div className="flex items-center gap-2">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             radius="xl"
-            className="border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
+            className="px-4 py-2.5 text-sm"
             onClick={onRefresh}
             disabled={busy}
           >
@@ -34,9 +34,9 @@ export function AdminShell({ busy, error, section, onRefresh, onLogout, onSelect
           </Button>
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             radius="xl"
-            className="border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
+            className="px-4 py-2.5 text-sm"
             onClick={onLogout}
             disabled={busy}
           >

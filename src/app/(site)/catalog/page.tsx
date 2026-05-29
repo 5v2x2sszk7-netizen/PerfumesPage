@@ -1,7 +1,10 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import { Container } from "@/components/ui/Container"
 import { CatalogClient } from "@/components/catalog/CatalogClient"
 import { readPerfumes } from "@/lib/perfumeStore"
+import type { PerfumeCardModel } from "@/components/perfume/PerfumeCard"
+import { Card } from "@/components/ui/Surface"
 
 export const revalidate = 60
 
@@ -11,7 +14,18 @@ export const metadata: Metadata = {
 }
 
 export default async function CatalogPage() {
-  const perfumes = await readPerfumes()
+  const perfumes: PerfumeCardModel[] = (await readPerfumes()).map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    brand: p.brand,
+    category: p.category,
+    concentration: p.concentration,
+    sizeMl: p.sizeMl,
+    price: p.price,
+    availability: p.availability,
+    imageSrc: p.imageSrc
+  }))
 
   return (
     <Container className="py-10 sm:py-14">
@@ -25,7 +39,9 @@ export default async function CatalogPage() {
           pide por WhatsApp.
         </p>
       </div>
-      <CatalogClient perfumes={perfumes} />
+      <Suspense fallback={<Card className="shimmer mt-8 h-[520px] w-full p-6" aria-hidden="true" />}>
+        <CatalogClient perfumes={perfumes} />
+      </Suspense>
     </Container>
   )
 }

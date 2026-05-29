@@ -5,14 +5,8 @@ import { ZoomableImage } from "./ZoomableImage"
 import { getInitials } from "@/lib/text"
 import { Badge } from "@/components/ui/Badge"
 import { cn } from "@/lib/cn"
-
-export type ReviewCarouselItem = {
-  src: string
-  alt: string
-  customerName: string
-  rating?: number
-  text: string
-}
+import type { ReviewCarouselItem } from "@/lib/reviews"
+import { StarRating } from "@/components/ui/StarRating"
 
 export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
   const safeItems = useMemo(() => items.filter((i) => Boolean(i.src)), [items])
@@ -26,7 +20,9 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const itemRefs = useRef<Array<HTMLDivElement | null>>([])
   const [activeIndex, setActiveIndex] = useState(0)
-  const [visibleItems, setVisibleItems] = useState<boolean[]>([])
+  const activeIndexRef = useRef(0)
+  const rafRef = useRef<number | null>(null)
+  const pendingActiveIndexRef = useRef<number | null>(null)
 
   const canNavigate = safeItems.length > 1
 
@@ -51,45 +47,62 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
   }
 
   useEffect(() => {
+    activeIndexRef.current = activeIndex
+  }, [activeIndex])
+
+  useEffect(() => {
     const scroller = scrollRef.current
     if (!scroller) return
+
     const els = itemRefs.current.filter(Boolean) as HTMLDivElement[]
     if (!els.length) return
 
-    setVisibleItems((prev) => (prev.length === safeItems.length ? prev : Array(safeItems.length).fill(false)))
+    const indexByEl = new Map<Element, number>()
+    for (const [idx, el] of els.entries()) indexByEl.set(el, idx)
+
+    els[0]?.classList.add("is-visible")
 
     const observer = new IntersectionObserver(
       (entries) => {
-        setVisibleItems((prev) => {
-          const next = prev.length === safeItems.length ? [...prev] : Array(safeItems.length).fill(false)
-          for (const entry of entries) {
-            const idx = els.indexOf(entry.target as HTMLDivElement)
-            if (idx >= 0) next[idx] = entry.isIntersecting
-          }
-          return next
-        })
-
         let bestIdx = -1
         let bestRatio = 0
         for (const entry of entries) {
-          const idx = els.indexOf(entry.target as HTMLDivElement)
-          if (idx < 0) continue
+          const idx = indexByEl.get(entry.target)
+          if (idx == null) continue
+
+          if (entry.isIntersecting) (entry.target as HTMLElement).classList.add("is-visible")
+
           const ratio = entry.intersectionRatio
           if (ratio > bestRatio) {
             bestRatio = ratio
             bestIdx = idx
           }
         }
-        if (bestIdx >= 0) setActiveIndex(bestIdx)
+
+        if (bestIdx < 0 || bestIdx === activeIndexRef.current) return
+        pendingActiveIndexRef.current = bestIdx
+        if (rafRef.current) return
+        rafRef.current = window.requestAnimationFrame(() => {
+          rafRef.current = null
+          const nextIdx = pendingActiveIndexRef.current
+          pendingActiveIndexRef.current = null
+          if (nextIdx == null || nextIdx === activeIndexRef.current) return
+          setActiveIndex(nextIdx)
+        })
       },
       { root: scroller, threshold: [0.25, 0.35, 0.5, 0.6, 0.75] }
     )
 
     for (const el of els) observer.observe(el)
-    return () => observer.disconnect()
+    return () => {
+      if (rafRef.current) window.cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+      pendingActiveIndexRef.current = null
+      observer.disconnect()
+    }
   }, [safeItems.length])
-
   if (!safeItems.length) return null
+
 
   return (
     <div className="group relative mx-auto w-full max-w-6xl">
@@ -103,10 +116,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
             ref={(el) => {
               itemRefs.current[i] = el
             }}
-            className={
-              "min-w-full snap-center reveal " +
-              (visibleItems.length ? (visibleItems[i] ? "is-visible " : "") : i === 0 ? "is-visible " : "")
-            }
+            className="min-w-full snap-center reveal"
           >
             <div className="group grid gap-6 rounded-ui bg-paper-50 p-8 transition-shadow duration-300 hover:shadow-review-hover md:grid-cols-[1.2fr_0.8fr] md:items-center">
               <div className="min-w-0">
@@ -126,11 +136,11 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
                   <p className="font-display text-3xl leading-none text-ink-950">{item.customerName}</p>
                 </div>
                 {typeof item.rating === "number" && item.rating > 0 ? (
-                  <div className="mt-3 flex items-center gap-1 text-ui-rating leading-none text-goldSoft transition-transform duration-300 group-hover:scale-[1.02]">
-                    {Array.from({ length: 5 }).map((_, starIdx) => (
-                      <span key={starIdx}>{starIdx < item.rating! ? "★" : "☆"}</span>
-                    ))}
-                  </div>
+                  <StarRating
+                    value={item.rating}
+                    className="mt-3 text-ui-rating leading-none text-goldSoft transition-transform duration-300 group-hover:scale-[1.02]"
+                    ariaLabel={`${item.rating} de 5`}
+                  />
                 ) : null}
                 <p className="mt-3 max-w-review-copy whitespace-pre-wrap text-base font-medium leading-relaxed text-ink-900/90 sm:text-lg">
                   {item.text}

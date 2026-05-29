@@ -1,7 +1,7 @@
 import { createReview, readReviews } from "@/lib/perfumeStore"
 import type { Review } from "@/lib/perfumeStore"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
-import { jsonError, jsonNoStoreOk, jsonOk } from "@/lib/apiResponse"
+import { jsonError, jsonNoStoreOk, jsonOk, readJsonBody } from "@/lib/apiResponse"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -12,7 +12,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json()) as Partial<Review>
+  const body = await readJsonBody<Partial<Review>>(req)
+  if (!body) return jsonError("Invalid body", 400)
 
   try {
     const created = await createReview({

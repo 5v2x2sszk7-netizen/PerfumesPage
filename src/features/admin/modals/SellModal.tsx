@@ -85,9 +85,9 @@ export function SellModal({ sellTarget, busy, sellQty, setSellQty, onClose, onCo
       <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           radius="xl"
-          className="w-full border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
+          className="w-full px-4 py-2.5 text-sm sm:w-auto"
           onClick={onClose}
           disabled={busy}
         >

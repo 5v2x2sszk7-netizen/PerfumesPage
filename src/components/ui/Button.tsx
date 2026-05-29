@@ -2,7 +2,7 @@ import { cn, focusRing } from "@/lib/cn"
 import Link from "next/link"
 import type { ComponentPropsWithoutRef } from "react"
 
-type ButtonVariant = "primary" | "ghost" | "soft" | "gold"
+type ButtonVariant = "primary" | "ghost" | "outline" | "soft" | "gold" | "danger" | "icon"
 type ButtonRadius = "pill" | "xl"
 
 const base =
@@ -13,8 +13,14 @@ const base =
 
 function variantClasses(variant: ButtonVariant) {
   if (variant === "ghost") return "bg-transparent text-ink-950 hover:bg-ink-100 active:bg-ink-200"
+  if (variant === "outline")
+    return "bg-white text-ink-950 ring-1 ring-inset ring-black/8 hover:bg-ink-50 active:bg-white"
   if (variant === "soft")
     return "bg-white text-ink-950 ring-1 ring-inset ring-black/8 hover:bg-ink-50 active:bg-white"
+  if (variant === "danger")
+    return "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 active:bg-red-50"
+  if (variant === "icon")
+    return "h-11 w-11 px-0 py-0 border border-black/8 bg-white text-ink-950 hover:bg-ink-50 active:bg-white"
   if (variant === "gold")
     return "bg-antiqueGold text-ink-950 shadow-sm ring-1 ring-inset ring-black/8 hover:bg-antiqueGoldDark active:bg-antiqueGold disabled:bg-antiqueGold disabled:text-ink-950 disabled:opacity-100 disabled:hover:bg-antiqueGold"
   return "bg-ink-950 text-white hover:bg-ink-900 active:bg-ink-950"

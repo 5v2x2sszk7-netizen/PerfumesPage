@@ -118,9 +118,7 @@ export function ZoomDialog({
           className="group relative h-zoom-dialog overflow-hidden rounded-luxe-dialog border border-whiteA-4 bg-inkModal shadow-zoom-modal sm:h-zoom-dialog-sm"
           style={
             glowRgb
-              ? ({
-                  ["--glow-rgb" as never]: `${glowRgb[0]} ${glowRgb[1]} ${glowRgb[2]}`
-                } as CSSProperties)
+              ? ({ "--glow-rgb": `${glowRgb[0]} ${glowRgb[1]} ${glowRgb[2]}` } as CSSProperties)
               : undefined
           }
         >
@@ -160,10 +158,7 @@ export function ZoomDialog({
           <div
             className="pointer-events-none absolute inset-0 noise-overlay mix-blend-overlay"
             style={
-              {
-                ["--noise-size" as never]: "260px 260px",
-                ["--noise-opacity" as never]: "0.06"
-              } as CSSProperties
+              { "--noise-size": "260px 260px", "--noise-opacity": "0.06" } as CSSProperties
             }
           />
 

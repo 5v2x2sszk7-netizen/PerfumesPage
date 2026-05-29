@@ -2,7 +2,7 @@ import type { Review } from "@/lib/perfumeStore"
 import { createReview } from "@/lib/perfumeStore"
 import { checkRateLimit } from "@/lib/rateLimit"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
-import { jsonError, jsonOk } from "@/lib/apiResponse"
+import { jsonError, jsonOk, readJsonBody } from "@/lib/apiResponse"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       }
     })
   }
-  const body = (await req.json().catch(() => null)) as (Partial<Review> & { website?: string }) | null
+  const body = await readJsonBody<Partial<Review> & { website?: string }>(req)
   if (!body) return jsonError("Invalid body", 400)
 
   const honeypot = typeof body.website === "string" ? body.website.trim() : ""

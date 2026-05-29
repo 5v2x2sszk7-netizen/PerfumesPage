@@ -169,9 +169,9 @@ export function ConfirmModal({
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             radius="xl"
-            className="w-full border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
+            className="w-full px-4 py-2.5 text-sm sm:w-auto"
             onClick={onClose}
             disabled={busy}
           >
@@ -179,14 +179,9 @@ export function ConfirmModal({
           </Button>
           <Button
             type="button"
-            variant={confirmTone === "gold" ? "gold" : "ghost"}
+            variant={confirmTone === "gold" ? "gold" : "danger"}
             radius="xl"
-            className={cn(
-              "w-full px-4 py-2.5 text-sm sm:w-auto",
-              confirmTone === "danger"
-                ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-                : "hover:shadow-cta-hover"
-            )}
+            className={cn("w-full px-4 py-2.5 text-sm sm:w-auto", confirmTone === "gold" ? "hover:shadow-cta-hover" : "")}
             onClick={onConfirm}
             disabled={busy}
           >
@@ -225,10 +220,10 @@ export function ModalSheet({
           </div>
           <Button
             type="button"
-            variant="ghost"
+            variant="icon"
             onClick={onClose}
             radius="xl"
-            className="absolute right-4 top-4 h-11 w-11 border border-black/8 bg-white px-0 hover:bg-ink-50"
+            className="absolute right-4 top-4"
             aria-label="Cerrar"
           >
             ✕

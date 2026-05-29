@@ -3,7 +3,7 @@ import { addSuggestion, readPerfumes, readSales, readSuggestions, withPerfumesLo
 import { slugify } from "@/lib/slug"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { availabilityFromStock, isAllowedPerfumeImageSrc, parseCost, parseNotes, parseSold, parseStock } from "@/lib/perfume/parsers"
-import { jsonError, jsonNoStoreOk, jsonOk } from "@/lib/apiResponse"
+import { jsonError, jsonNoStoreOk, jsonOk, readJsonBody } from "@/lib/apiResponse"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -23,7 +23,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const raw = (await req.json().catch(() => null)) as unknown
+  const raw = await readJsonBody<unknown>(req)
   if (!raw || typeof raw !== "object") return jsonError("Invalid body", 400)
   const body = raw as Record<string, unknown>
 

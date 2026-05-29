@@ -7,6 +7,7 @@ import { UploadButton } from "@/components/ui/UploadButton"
 import { Card } from "@/components/ui/Surface"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { StarRatingPicker } from "@/components/ui/StarRatingPicker"
 
 type Status = "idle" | "submitting" | "success" | "error"
 
@@ -232,36 +233,12 @@ export function ReviewForm() {
         <div className="grid gap-2">
           <Label>Calificación</Label>
           <div className="flex h-11 items-center justify-between gap-4 rounded-control border border-black/8 bg-white px-4">
-            <div
-              className="flex items-center gap-1"
-              role="radiogroup"
-              aria-label="Calificación en estrellas"
-              onMouseLeave={() => dispatch({ type: "set_hover_rating", value: null })}
-            >
-              {Array.from({ length: 5 }).map((_, i) => {
-                const value = i + 1
-                const active = Boolean(visibleRating && value <= visibleRating)
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    role="radio"
-                    aria-checked={state.rating === value}
-                    aria-label={`${value} estrellas`}
-                    onMouseEnter={() => dispatch({ type: "set_hover_rating", value })}
-                    onFocus={() => dispatch({ type: "set_hover_rating", value })}
-                    onBlur={() => dispatch({ type: "set_hover_rating", value: null })}
-                    onClick={() => dispatch({ type: "set_rating", value: state.rating === value ? null : value })}
-                    className={
-                      "inline-flex h-6 w-6 items-center justify-center text-xl leading-none transition " +
-                      (active ? "text-antiqueGold" : "text-ink-400 hover:text-antiqueGold")
-                    }
-                  >
-                    {active ? "★" : "☆"}
-                  </button>
-                )
-              })}
-            </div>
+            <StarRatingPicker
+              value={state.rating}
+              hoverValue={state.hoverRating}
+              onHoverChange={(next) => dispatch({ type: "set_hover_rating", value: next })}
+              onChange={(next) => dispatch({ type: "set_rating", value: next })}
+            />
             <p className="text-xs text-ink-600">{ratingLabel}</p>
           </div>
         </div>

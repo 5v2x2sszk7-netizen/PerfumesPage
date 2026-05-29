@@ -7,12 +7,17 @@ import { Badge, availabilityBadgeTone } from "@/components/ui/Badge"
 
 type PerfumeCardVariant = "grid" | "featured"
 
+export type PerfumeCardModel = Pick<
+  Perfume,
+  "id" | "slug" | "name" | "brand" | "category" | "concentration" | "sizeMl" | "price" | "availability" | "imageSrc"
+>
+
 export function PerfumeCard({
   perfume,
   variant = "grid",
   className
 }: {
-  perfume: Perfume
+  perfume: PerfumeCardModel
   variant?: PerfumeCardVariant
   className?: string
 }) {

@@ -46,9 +46,9 @@ export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Pr
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   radius="xl"
-                  className="border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50"
+                  className="px-4 py-2.5 text-sm"
                   onClick={() => onEdit(p)}
                   disabled={busy}
                 >
@@ -65,9 +65,9 @@ export function ProductsSection({ perfumes, busy, onEdit, onSell, onDelete }: Pr
                 </Button>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="danger"
                   radius="xl"
-                  className="border border-red-200 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
+                  className="px-4 py-2.5 text-sm"
                   onClick={() => onDelete(p)}
                   disabled={busy}
                 >

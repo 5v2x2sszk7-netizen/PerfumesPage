@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Surface"
 import type { Draft } from "@/lib/admin/types"
 import { formatMoney } from "@/lib/admin/utils"
 import { AdminImagePicker } from "@/features/admin/components/AdminImagePicker"
+import { AdminPanel } from "@/features/admin/components/AdminPanel"
 
 type Finance = {
   price: number
@@ -56,18 +57,17 @@ export function ProductFormSection({
   onCancelEdit
 }: Props) {
   return (
-    <section className="rounded-luxe-xl bg-ink-50/60 p-3 ring-1 ring-inset ring-black/8 sm:p-5">
-      <Card className="p-6">
-        <div className="-mx-6 -mt-6 sticky top-3 z-sticky border-b border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft">
+    <AdminPanel>
+      <div className="-mx-6 -mt-6 sticky top-3 z-sticky border-b border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-2xl text-ink-950">{isEditing ? "Editar perfume" : "Nuevo perfume"}</h2>
           </div>
           {!canSubmit && missingFields.length ? (
             <p className="mt-2 text-sm text-ink-600">Para poder añadirlo, completa: {missingFields.join(", ")}.</p>
           ) : null}
-        </div>
+      </div>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
           <div className="grid gap-2">
             <Label>Nombre *</Label>
             <Input
@@ -211,9 +211,9 @@ export function ProductFormSection({
             <Label>Notas (fondo) CSV</Label>
             <Input value={draft.notesBase} onChange={(e) => setDraft((d) => ({ ...d, notesBase: e.target.value }))} />
           </div>
-        </div>
+      </div>
 
-        <div className="-mx-6 mt-10 sticky bottom-3 z-sticky border-t border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft-up">
+      <div className="-mx-6 mt-10 sticky bottom-3 z-sticky border-t border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft-up">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-ink-600">{canSubmit ? "Listo para guardar." : "Completa los campos obligatorios (*)"}</p>
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
@@ -229,9 +229,9 @@ export function ProductFormSection({
               {isEditing ? (
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   radius="xl"
-                  className="w-full border border-black/8 px-4 py-2.5 text-sm hover:bg-ink-50 sm:w-auto"
+                  className="w-full px-4 py-2.5 text-sm sm:w-auto"
                   onClick={onCancelEdit}
                   disabled={busy}
                 >
@@ -240,8 +240,7 @@ export function ProductFormSection({
               ) : null}
             </div>
           </div>
-        </div>
-      </Card>
-    </section>
+      </div>
+    </AdminPanel>
   )
 }

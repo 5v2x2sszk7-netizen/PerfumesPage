@@ -9,7 +9,8 @@ import { Card } from "@/components/ui/Surface"
 export function AdminLoginClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const nextPath = searchParams.get("next") || "/admin"
+  const rawNextPath = searchParams.get("next") || ""
+  const nextPath = rawNextPath.startsWith("/") && !rawNextPath.startsWith("//") ? rawNextPath : "/admin"
 
   const [token, setToken] = useState("")
   const [busy, setBusy] = useState(false)

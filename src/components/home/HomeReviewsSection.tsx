@@ -7,6 +7,7 @@ import { ReviewCarouselLazy } from "@/components/reviews/ReviewCarouselLazy"
 import { ReviewWriteEntry } from "@/components/reviews/ReviewWriteEntry"
 import { formatCustomerDisplayName, getInitials } from "@/lib/text"
 import { formatReviewSnippet, type ReviewCarouselItem } from "@/lib/reviews"
+import { StarRating } from "@/components/ui/StarRating"
 
 const reviewDateFormatter = new Intl.DateTimeFormat("es-MX", { timeZone: "America/Mexico_City" })
 
@@ -32,11 +33,7 @@ export function HomeReviewsSection({
             <h2 className="mt-3 font-display text-2xl leading-display text-ink-950">Lo que dicen nuestros clientes</h2>
             {ratingCount ? (
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-1 text-base leading-none text-goldSoft">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i}>{i < roundedStars ? "★" : "☆"}</span>
-                  ))}
-                </div>
+                <StarRating value={roundedStars} className="text-base leading-none text-goldSoft" ariaLabel={`${avgRatingLabel} de 5`} />
                 <p className="text-xs text-ink-600">
                   {avgRatingLabel} <span className="text-ink-400">·</span> {ratingCount}{" "}
                   {ratingCount === 1 ? "experiencia compartida" : "experiencias compartidas"}
@@ -93,11 +90,7 @@ export function HomeReviewsSection({
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-400">
                               <span>{dateLabel}</span>
                               {r.rating ? (
-                                <span className="flex items-center gap-1 text-ui-md leading-none text-goldSoft">
-                                  {Array.from({ length: 5 }).map((_, i) => (
-                                    <span key={i}>{i < starsValue ? "★" : "☆"}</span>
-                                  ))}
-                                </span>
+                                <StarRating value={starsValue} className="text-ui-md leading-none text-goldSoft" ariaLabel={`${starsValue} de 5`} />
                               ) : null}
                             </div>
                           </div>

@@ -1,14 +1,15 @@
 import { deleteReview, updateReview } from "@/lib/perfumeStore"
 import type { Review } from "@/lib/perfumeStore"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
-import { jsonError, jsonOk } from "@/lib/apiResponse"
+import { jsonError, jsonOk, readJsonBody } from "@/lib/apiResponse"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params
-  const body = (await req.json()) as Partial<Review>
+export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params
+  const body = await readJsonBody<Partial<Review>>(req)
+  if (!body) return jsonError("Invalid body", 400)
 
   try {
     const updated = await updateReview(id, {
@@ -27,8 +28,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params
   try {
     const ok = await deleteReview(id)
     if (!ok) return jsonError("Not found", 404)

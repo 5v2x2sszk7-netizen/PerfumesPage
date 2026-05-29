@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import { Cormorant_Garamond, Inter } from "next/font/google"
 import { siteConfig } from "@/config/site"
-import { Header } from "@/components/layout/Header"
-import { Footer } from "@/components/layout/Footer"
 import "@/styles/globals.css"
 import type { ReactNode } from "react"
 
@@ -39,11 +37,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className={`${display.variable} ${body.variable}`}>
-      <body className="min-h-screen text-ink-950 antialiased">
-        <Header />
-        <main className="min-h-[calc(100vh-4rem)]">{children}</main>
-        <Footer />
-      </body>
+      <body className="min-h-screen flex flex-col text-ink-950 antialiased">{children}</body>
     </html>
   )
 }

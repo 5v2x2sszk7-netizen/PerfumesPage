@@ -1,7 +1,6 @@
 "use client"
 
-import type { Perfume } from "@/types/perfume"
-import { PerfumeCard } from "@/components/perfume/PerfumeCard"
+import { PerfumeCard, type PerfumeCardModel } from "@/components/perfume/PerfumeCard"
 import { Input, Label, Select } from "@/components/ui/Field"
 import { Button } from "@/components/ui/Button"
 import { Surface } from "@/components/ui/Surface"
@@ -36,13 +35,13 @@ function parseViewMode(value: string | null): ViewMode {
   return "grid"
 }
 
-function parseCategory(value: string | null): Perfume["category"] {
+function parseCategory(value: string | null): PerfumeCardModel["category"] {
   if (value === "designer" || value === "niche") return value
   return "niche"
 }
 
-function compareAvailability(a: Perfume["availability"], b: Perfume["availability"]) {
-  const rank: Record<Perfume["availability"], number> = {
+function compareAvailability(a: PerfumeCardModel["availability"], b: PerfumeCardModel["availability"]) {
+  const rank: Record<PerfumeCardModel["availability"], number> = {
     in_stock: 0,
     low_stock: 1,
     out_of_stock: 2
@@ -86,7 +85,7 @@ function useCatalogPreferences(
   return { view, category }
 }
 
-export function CatalogClient({ perfumes }: { perfumes: Perfume[] }) {
+export function CatalogClient({ perfumes }: { perfumes: PerfumeCardModel[] }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()

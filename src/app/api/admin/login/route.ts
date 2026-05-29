@@ -1,5 +1,5 @@
 import { adminCookieName, createAdminSessionValue, expectedAdminToken } from "@/lib/adminSession"
-import { jsonError, jsonOk } from "@/lib/apiResponse"
+import { jsonError, jsonOk, readJsonBody } from "@/lib/apiResponse"
 import { checkRateLimit } from "@/lib/rateLimit"
 
 export async function POST(req: Request) {
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     })
   }
 
-  const body = (await req.json().catch(() => null)) as { token?: string } | null
+  const body = await readJsonBody<{ token?: string }>(req)
   const token = body?.token?.trim()
   if (!token || token !== expected) {
     return jsonError("Unauthorized", 401)
