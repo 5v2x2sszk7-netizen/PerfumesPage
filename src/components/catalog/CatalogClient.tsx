@@ -371,9 +371,15 @@ function CatalogResults({
       return (
         <div className="mt-10 mx-auto grid max-w-catalog-grid grid-cols-1 gap-6 sm:grid-cols-2">
           {ordered.map((p, idx) => (
-            <LazyReveal key={p.id} delayMs={idx * 90} className="w-full">
-              <PerfumeCard perfume={p} />
-            </LazyReveal>
+            idx < 12 ? (
+              <LazyReveal key={p.id} delayMs={idx * 90} className="w-full">
+                <PerfumeCard perfume={p} />
+              </LazyReveal>
+            ) : (
+              <div key={p.id} className="w-full">
+                <PerfumeCard perfume={p} />
+              </div>
+            )
           ))}
         </div>
       )
@@ -382,9 +388,15 @@ function CatalogResults({
     return (
       <div className={cn("mt-8 grid gap-6", view === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1")}>
         {ordered.map((p, idx) => (
-          <LazyReveal key={p.id} delayMs={Math.min(idx, 12) * 55} className="w-full">
-            <PerfumeCard perfume={p} />
-          </LazyReveal>
+          idx < 12 ? (
+            <LazyReveal key={p.id} delayMs={idx * 55} className="w-full">
+              <PerfumeCard perfume={p} />
+            </LazyReveal>
+          ) : (
+            <div key={p.id} className="w-full">
+              <PerfumeCard perfume={p} />
+            </div>
+          )
         ))}
       </div>
     )

@@ -12,6 +12,7 @@ export function formatReviewSnippet(text: string, maxLen: number) {
 }
 
 export type ReviewCarouselItem = {
+  id: string
   src: string
   alt: string
   customerName: string
@@ -24,6 +25,7 @@ export function buildReviewCarouselItems(reviews: Review[], maxItems = 12) {
     .filter((r) => Boolean(r.imageSrc))
     .slice(0, maxItems)
     .map((r) => ({
+      id: r.id,
       src: r.imageSrc!,
       alt: `Reseña de ${r.customerName}`,
       customerName: r.customerName,

@@ -117,11 +117,15 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
       >
         {safeItems.map((item, i) => (
           <div
-            key={item.src}
+            key={`${item.id}:${item.src}`}
             ref={(el) => {
               itemRefs.current[i] = el
             }}
-            className="min-w-full snap-center reveal"
+            className={cn(
+              "min-w-full snap-center",
+              "reveal",
+              i === 0 ? "is-visible" : ""
+            )}
           >
             <div className="group grid gap-6 rounded-ui bg-paper-50 p-8 transition-shadow duration-300 hover:shadow-review-hover md:grid-cols-[1.2fr_0.8fr] md:items-center">
               <div className="min-w-0">
