@@ -115,9 +115,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }): Promise<Metadata> {
-  const { slug: rawSlug } = params
+  const { slug: rawSlug } = await params
   const perfumes = await readPerfumesCached()
   const perfume = resolvePerfume(perfumes, rawSlug)
   if (!perfume) return {}
@@ -238,8 +238,8 @@ function DetailsSection({
   )
 }
 
-export default async function PerfumeDetailPage({ params }: { params: { slug: string } }) {
-  const { slug: rawSlug } = params
+export default async function PerfumeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug: rawSlug } = await params
   const perfumes = await readPerfumesCached()
   const perfume = resolvePerfume(perfumes, rawSlug)
   if (!perfume) notFound()
