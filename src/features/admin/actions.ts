@@ -20,7 +20,6 @@ export function useAdminActions(opts: {
   resetAdminData: () => void
   resetProductUpload: () => void
   resetReviewUpload: () => void
-  routerReplace: (href: string) => void
   ui: AdminUiState
 }) {
   const {
@@ -36,7 +35,6 @@ export function useAdminActions(opts: {
     resetAdminData,
     resetProductUpload,
     resetReviewUpload,
-    routerReplace,
     ui
   } = opts
 
@@ -202,16 +200,20 @@ export function useAdminActions(opts: {
     [resetProductUpload, setDraft, ui]
   )
 
-  const onLogout = useCallback(() => {
-    fetch("/api/admin/logout", { method: "POST" }).finally(() => {
+  const onLogout = useCallback(async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST", cache: "no-store", keepalive: true })
+    } catch {
+      // Even if the request is interrupted in dev, clear local UI state before leaving admin.
+    } finally {
       resetAdminData()
       setDraft(emptyDraft)
       setReviewDraft(emptyReviewDraft)
       resetProductUpload()
       resetReviewUpload()
-      routerReplace("/admin/login")
-    })
-  }, [resetAdminData, resetProductUpload, resetReviewUpload, routerReplace, setDraft, setReviewDraft])
+      window.location.replace("/admin/login")
+    }
+  }, [resetAdminData, resetProductUpload, resetReviewUpload, setDraft, setReviewDraft])
 
   const onStartForm = useCallback(() => {
     setDraft(emptyDraft)

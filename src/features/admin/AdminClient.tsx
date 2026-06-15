@@ -1,6 +1,5 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 import type { Draft, ReviewDraft } from "@/lib/admin/types"
 import { emptyDraft, emptyReviewDraft } from "@/lib/admin/types"
@@ -21,7 +20,6 @@ import { useAdminActions } from "@/features/admin/actions"
 export function AdminClient() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const reviewFileInputRef = useRef<HTMLInputElement | null>(null)
-  const router = useRouter()
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [reviewDraft, setReviewDraft] = useState<ReviewDraft>(emptyReviewDraft)
   const [busy, setBusy] = useState(false)
@@ -65,7 +63,6 @@ export function AdminClient() {
     resetAdminData,
     resetProductUpload: productUpload.resetUpload,
     resetReviewUpload: reviewUpload.resetUpload,
-    routerReplace: router.replace,
     ui
   })
 
