@@ -19,12 +19,12 @@ export function Header() {
         scrolledClassName={scrolledClassName}
         threshold={8}
       />
-      <Container className="flex h-14 items-center justify-between">
-        <Link href="/" className="group inline-flex flex-col leading-none">
-          <span className="font-display text-logo uppercase tracking-brand text-ink-950 sm:text-logo-sm sm:tracking-brandSm">
+      <Container className="flex h-14 items-center justify-between gap-3">
+        <Link href="/" className="group inline-flex min-w-0 flex-col leading-none">
+          <span className="whitespace-nowrap font-display text-logo uppercase tracking-brand text-ink-950 sm:text-logo-sm sm:tracking-brandSm">
             {siteConfig.wordmark}
           </span>
-          <span className="mt-1 text-ui-2xs font-extralight tracking-descriptor text-ink-500">
+          <span className="mt-1 whitespace-nowrap text-ui-2xs font-extralight tracking-descriptor text-ink-500">
             {siteConfig.descriptor}
           </span>
         </Link>
@@ -44,20 +44,20 @@ export function Header() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex shrink-0 items-center gap-2 md:hidden">
           <ButtonLink
             href="/catalog"
-            className="px-4 py-2 shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0"
+            className="whitespace-nowrap px-3 py-2 shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0"
           >
-            Ver catálogo
+            <span className="sm:hidden">Catálogo</span>
+            <span className="hidden sm:inline">Ver catálogo</span>
           </ButtonLink>
           <ButtonLink
             href="/special-order"
             variant="outline"
-            className="px-4 py-2 transition-luxe duration-luxe-fast ease-luxe"
+            className="whitespace-nowrap px-3 py-2 transition-luxe duration-luxe-fast ease-luxe"
           >
-            <span className="sm:hidden">Pedidos</span>
-            <span className="hidden sm:inline">Pedidos especiales</span>
+            Pedidos
           </ButtonLink>
         </div>
       </Container>
