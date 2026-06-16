@@ -2,7 +2,6 @@ import { siteConfig } from "@/config/site"
 import Link from "next/link"
 import { Container } from "@/components/ui/Container"
 import { HeaderScrollClient } from "@/components/layout/HeaderScrollClient"
-import { ButtonLink } from "@/components/ui/Button"
 
 export function Header() {
   const topClassName = "border-b border-transparent bg-glass-header-top shadow-none backdrop-blur-0"
@@ -21,10 +20,10 @@ export function Header() {
       />
       <Container className="flex h-14 items-center justify-between gap-3">
         <Link href="/" className="group inline-flex min-w-0 shrink flex-col leading-none">
-          <span className="whitespace-nowrap font-display text-[1.9rem] uppercase tracking-[0.22em] text-ink-950 min-[390px]:text-logo min-[390px]:tracking-brand sm:text-logo-sm sm:tracking-brandSm">
+          <span className="whitespace-nowrap font-display text-[1.65rem] uppercase tracking-[0.18em] text-ink-950 min-[390px]:text-logo min-[390px]:tracking-brand sm:text-logo-sm sm:tracking-brandSm">
             {siteConfig.wordmark}
           </span>
-          <span className="mt-1 whitespace-nowrap text-ui-2xs font-extralight tracking-descriptor text-ink-500">
+          <span className="mt-1 whitespace-nowrap text-[10px] font-extralight tracking-[0.26em] text-ink-500 min-[390px]:text-ui-2xs min-[390px]:tracking-descriptor">
             {siteConfig.descriptor}
           </span>
         </Link>
@@ -44,21 +43,20 @@ export function Header() {
           </Link>
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2 md:hidden">
-          <ButtonLink
+        <nav className="flex shrink-0 items-center gap-3 text-[11px] font-medium uppercase tracking-[0.16em] text-ink-700 min-[390px]:gap-4 min-[390px]:text-xs md:hidden">
+          <Link
             href="/catalog"
-            className="flex-1 whitespace-nowrap px-3 py-2 text-sm shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0 min-[390px]:px-4"
+            className="whitespace-nowrap text-ink-950 transition-colors duration-luxe-fast ease-luxe hover:text-ink-600"
           >
             Catálogo
-          </ButtonLink>
-          <ButtonLink
+          </Link>
+          <Link
             href="/special-order"
-            variant="outline"
-            className="flex-1 whitespace-nowrap px-3 py-2 text-sm transition-luxe duration-luxe-fast ease-luxe min-[390px]:px-4"
+            className="whitespace-nowrap text-ink-600 transition-colors duration-luxe-fast ease-luxe hover:text-ink-950"
           >
             Pedidos
-          </ButtonLink>
-        </div>
+          </Link>
+        </nav>
       </Container>
     </header>
   )
