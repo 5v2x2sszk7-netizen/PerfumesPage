@@ -44,12 +44,22 @@ export function Header() {
           </Link>
         </nav>
 
-        <ButtonLink
-          href="/catalog"
-          className="md:hidden px-4 py-2 shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0"
-        >
-          Ver catálogo
-        </ButtonLink>
+        <div className="flex items-center gap-2 md:hidden">
+          <ButtonLink
+            href="/catalog"
+            className="px-4 py-2 shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0"
+          >
+            Ver catálogo
+          </ButtonLink>
+          <ButtonLink
+            href="/special-order"
+            variant="outline"
+            className="px-4 py-2 transition-luxe duration-luxe-fast ease-luxe"
+          >
+            <span className="sm:hidden">Pedidos</span>
+            <span className="hidden sm:inline">Pedidos especiales</span>
+          </ButtonLink>
+        </div>
       </Container>
     </header>
   )
