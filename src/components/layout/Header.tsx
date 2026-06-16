@@ -19,12 +19,12 @@ export function Header() {
         scrolledClassName={scrolledClassName}
         threshold={8}
       />
-      <Container className="flex h-14 items-center justify-between gap-3">
+      <Container className="flex h-14 items-center justify-between gap-2 max-[380px]:gap-1">
         <Link href="/" className="group inline-flex min-w-0 flex-col leading-none">
-          <span className="whitespace-nowrap font-display text-logo uppercase tracking-brand text-ink-950 sm:text-logo-sm sm:tracking-brandSm">
+          <span className="whitespace-nowrap font-display text-[1.55rem] uppercase tracking-[0.3em] text-ink-950 min-[390px]:text-logo min-[390px]:tracking-brand sm:text-logo-sm sm:tracking-brandSm">
             {siteConfig.wordmark}
           </span>
-          <span className="mt-1 whitespace-nowrap text-ui-2xs font-extralight tracking-descriptor text-ink-500">
+          <span className="mt-1 whitespace-nowrap text-ui-2xs font-extralight tracking-descriptor text-ink-500 max-[380px]:hidden">
             {siteConfig.descriptor}
           </span>
         </Link>
@@ -44,10 +44,10 @@ export function Header() {
           </Link>
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2 md:hidden">
+        <div className="flex shrink-0 items-center gap-2 max-[380px]:gap-1.5 md:hidden">
           <ButtonLink
             href="/catalog"
-            className="whitespace-nowrap px-3 py-2 shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0"
+            className="whitespace-nowrap px-3 py-2 text-xs shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0 max-[380px]:px-2.5"
           >
             <span className="sm:hidden">Catálogo</span>
             <span className="hidden sm:inline">Ver catálogo</span>
@@ -55,7 +55,7 @@ export function Header() {
           <ButtonLink
             href="/special-order"
             variant="outline"
-            className="whitespace-nowrap px-3 py-2 transition-luxe duration-luxe-fast ease-luxe"
+            className="whitespace-nowrap px-3 py-2 text-xs transition-luxe duration-luxe-fast ease-luxe max-[380px]:px-2.5"
           >
             Pedidos
           </ButtonLink>
