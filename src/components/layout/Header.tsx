@@ -43,16 +43,17 @@ export function Header() {
           </Link>
         </nav>
 
-        <nav className="flex shrink-0 items-center gap-3 text-[11px] font-medium uppercase tracking-[0.16em] text-ink-700 min-[390px]:gap-4 min-[390px]:text-xs md:hidden">
+        <nav className="flex shrink-0 items-center rounded-full border border-black/8 bg-white/88 p-1 shadow-sm backdrop-blur-sm md:hidden">
           <Link
             href="/catalog"
-            className="whitespace-nowrap text-ink-950 transition-colors duration-luxe-fast ease-luxe hover:text-ink-600"
+            className="rounded-full px-2.5 py-1 text-[10.5px] font-medium uppercase tracking-[0.14em] text-ink-950 transition-colors duration-luxe-fast ease-luxe hover:bg-ink-50 min-[390px]:px-3 min-[390px]:text-[11px]"
           >
             Catálogo
           </Link>
+          <span className="h-4 w-px bg-black/8" aria-hidden="true" />
           <Link
             href="/special-order"
-            className="whitespace-nowrap text-ink-600 transition-colors duration-luxe-fast ease-luxe hover:text-ink-950"
+            className="rounded-full px-2.5 py-1 text-[10.5px] font-medium uppercase tracking-[0.14em] text-ink-600 transition-colors duration-luxe-fast ease-luxe hover:bg-ink-50 hover:text-ink-950 min-[390px]:px-3 min-[390px]:text-[11px]"
           >
             Pedidos
           </Link>
