@@ -199,7 +199,7 @@ export function ModalSheet({
   kicker,
   title,
   children,
-  contentClassName = "my-6 w-full max-w-3xl"
+  contentClassName = "my-3 w-full max-w-3xl sm:my-6"
 }: {
   open: boolean
   onClose: () => void
@@ -210,12 +210,12 @@ export function ModalSheet({
 }) {
   return (
     <ModalShell open={open} onClose={onClose} placement="top" contentClassName={contentClassName}>
-      <Surface variant="glass" radius="luxe-xl" className="bg-ink-50/60 p-3">
-        <div className="relative max-h-modal-sheet overflow-y-auto rounded-luxe-xl border border-black/8 bg-white px-6 pb-6 pt-5 shadow-modal-soft">
+      <Surface variant="glass" radius="luxe-xl" className="bg-ink-50/60 p-2 sm:p-3">
+        <div className="relative max-h-[min(88vh,760px)] overflow-y-auto rounded-luxe-xl border border-black/8 bg-white px-4 pb-5 pt-4 shadow-modal-soft sm:max-h-modal-sheet sm:px-6 sm:pb-6 sm:pt-5">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <p className="text-xs tracking-section text-ink-500">{kicker}</p>
-              <h2 className="font-display text-2xl text-ink-950">{title}</h2>
+              <h2 className="font-display text-xl text-ink-950 sm:text-2xl">{title}</h2>
             </div>
           </div>
           <Button

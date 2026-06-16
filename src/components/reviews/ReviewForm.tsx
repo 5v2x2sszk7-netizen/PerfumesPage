@@ -217,7 +217,7 @@ export function ReviewForm() {
   }
 
   return (
-    <Card className="p-6 pb-8">
+    <Card className="p-4 pb-6 sm:p-6 sm:pb-8">
       <h3 className="font-display text-xl text-ink-950">Deja tu reseña</h3>
       <p className="mt-2 text-sm text-ink-700">Cuéntanos tu experiencia. Se publicará aquí al enviarla.</p>
 
@@ -232,7 +232,7 @@ export function ReviewForm() {
         </div>
         <div className="grid gap-2">
           <Label>Calificación</Label>
-          <div className="flex h-11 items-center justify-between gap-4 rounded-control border border-black/8 bg-white px-4">
+          <div className="flex min-h-11 flex-col items-start justify-center gap-2 rounded-control border border-black/8 bg-white px-4 py-3 sm:h-11 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-0">
             <StarRatingPicker
               value={state.rating}
               hoverValue={state.hoverRating}
@@ -278,7 +278,7 @@ export function ReviewForm() {
             />
           </div>
 
-          <Card radius="lg" className="grid gap-3 p-4">
+          <Card radius="lg" className="grid gap-3 p-3 sm:p-4">
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
               <Input
                 placeholder="Ningún archivo seleccionado"
@@ -295,7 +295,7 @@ export function ReviewForm() {
                 multiple
                 accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
                 disabled={state.uploading || state.status === "submitting"}
-                className={state.deliveryPhotos.length >= 5 ? "text-inkWarm" : ""}
+                className={state.deliveryPhotos.length >= 5 ? "w-full text-inkWarm sm:w-auto" : "w-full sm:w-auto"}
                 onSelect={(files) => {
                   void onUploadDeliveryPhotos(files)
                 }}
@@ -318,7 +318,7 @@ export function ReviewForm() {
                 ) : null}
                 <p className="text-xs text-ink-500">Solo imágenes. Máximo 2 MB por foto.</p>
               </div>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-4 gap-2 min-[390px]:grid-cols-5">
                 {state.deliveryPhotos.slice(0, 5).map((p) => (
                   <div key={p.id} className="relative h-12 w-12 overflow-hidden rounded-control border border-black/8 bg-ink-50">
                     <Image
@@ -349,14 +349,14 @@ export function ReviewForm() {
       {state.error ? <p className="mt-3 text-sm text-red-600">{state.error}</p> : null}
       {state.status === "success" ? <p className="mt-3 text-sm text-ink-700">Gracias, reseña enviada.</p> : null}
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-ink-500">Si quieres que tu captura salga en el carrusel, envíala por WhatsApp y la agregamos.</p>
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-xl text-xs text-ink-500">Si quieres que tu captura salga en el carrusel, envíala por WhatsApp y la agregamos.</p>
         <Button
           type="button"
           onClick={onSubmit}
           disabled={!canSubmit}
           variant="gold"
-          className="hover:shadow-cta-hover disabled:cursor-not-allowed disabled:bg-antiqueGoldMuted disabled:text-ink-600 disabled:hover:bg-antiqueGoldMuted disabled:hover:shadow-none"
+          className="w-full hover:shadow-cta-hover disabled:cursor-not-allowed disabled:bg-antiqueGoldMuted disabled:text-ink-600 disabled:hover:bg-antiqueGoldMuted disabled:hover:shadow-none sm:w-auto"
         >
           Enviar reseña
         </Button>
