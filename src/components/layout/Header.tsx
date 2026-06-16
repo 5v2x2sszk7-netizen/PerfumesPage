@@ -19,9 +19,9 @@ export function Header() {
         scrolledClassName={scrolledClassName}
         threshold={8}
       />
-      <Container className="flex flex-col gap-3 py-3 md:h-14 md:flex-row md:items-center md:justify-between md:gap-3 md:py-0">
-        <Link href="/" className="group inline-flex min-w-0 flex-col leading-none">
-          <span className="whitespace-nowrap font-display text-logo uppercase tracking-brand text-ink-950 sm:text-logo-sm sm:tracking-brandSm">
+      <Container className="flex h-14 items-center justify-between gap-3">
+        <Link href="/" className="group inline-flex min-w-0 shrink flex-col leading-none">
+          <span className="whitespace-nowrap font-display text-[1.9rem] uppercase tracking-[0.22em] text-ink-950 min-[390px]:text-logo min-[390px]:tracking-brand sm:text-logo-sm sm:tracking-brandSm">
             {siteConfig.wordmark}
           </span>
           <span className="mt-1 whitespace-nowrap text-ui-2xs font-extralight tracking-descriptor text-ink-500">
@@ -44,17 +44,17 @@ export function Header() {
           </Link>
         </nav>
 
-        <div className="flex w-full items-center justify-end gap-2 md:hidden">
+        <div className="flex shrink-0 items-center gap-2 md:hidden">
           <ButtonLink
             href="/catalog"
-            className="min-w-[118px] whitespace-nowrap px-4 py-2 text-sm shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0"
+            className="flex-1 whitespace-nowrap px-3 py-2 text-sm shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0 min-[390px]:px-4"
           >
             Catálogo
           </ButtonLink>
           <ButtonLink
             href="/special-order"
             variant="outline"
-            className="min-w-[118px] whitespace-nowrap px-4 py-2 text-sm transition-luxe duration-luxe-fast ease-luxe"
+            className="flex-1 whitespace-nowrap px-3 py-2 text-sm transition-luxe duration-luxe-fast ease-luxe min-[390px]:px-4"
           >
             Pedidos
           </ButtonLink>
