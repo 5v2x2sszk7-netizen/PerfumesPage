@@ -11,9 +11,9 @@ const siteUrlRaw =
   "http://localhost:3000"
 
 export const siteConfig = {
-  name: "MALO Parfums",
+  name: "MALO Fragances",
   wordmark: "M A L O",
-  descriptor: "Parfums",
+  descriptor: "Fragances",
   domain: normalizeSiteUrl(siteUrlRaw),
   description:
     "Perfumería de nicho. Catálogo curado, atención personalizada y pedidos por WhatsApp.",

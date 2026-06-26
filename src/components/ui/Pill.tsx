@@ -11,7 +11,7 @@ function baseClass(variant: PillVariant) {
     )
   }
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium tracking-wide transition disabled:opacity-50",
+    "inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium tracking-wide transition duration-luxe-fast ease-luxe disabled:opacity-50",
     focusRing
   )
 }
@@ -22,7 +22,9 @@ function stateClass(variant: PillVariant, active: boolean) {
       ? "bg-white text-ink-950 ring-antiqueGold/28 shadow-pill-active"
       : "bg-ink-50/70 text-ink-700 ring-black/8 hover:bg-white"
   }
-  return active ? "border-antiqueGold bg-antiqueGold/10 text-ink-950" : "border-black/8 hover:bg-ink-50"
+  return active
+    ? "border-antiqueGold/50 bg-antiqueGold/12 text-ink-950 shadow-[0_8px_18px_rgba(188,149,79,0.12)]"
+    : "border-black/8 bg-white/72 text-ink-700 hover:bg-ink-50"
 }
 
 export function Pill({

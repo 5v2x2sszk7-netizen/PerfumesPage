@@ -15,7 +15,7 @@ export function Footer() {
                 <p className="font-display text-lg uppercase tracking-luxe text-ink-950">
                   {siteConfig.wordmark}
                 </p>
-                <p className="mt-1 text-ui-2xs tracking-descriptorFooter text-ink-600">
+                <p className="mt-1 text-[11px] font-light tracking-[0.24em] text-ink-700">
                   {siteConfig.descriptor}
                 </p>
               </div>
@@ -62,10 +62,10 @@ export function Footer() {
                 </p>
                 <div className="space-y-2 text-sm text-ink-700">
                   <p className="leading-body">
-                    Horario: <span className="text-ink-500">respuesta rápida</span>
+                    <span className="text-ink-500">Respuesta rápida por WhatsApp</span>
                   </p>
                   <p className="leading-body">
-                    Envíos: <span className="text-ink-500">MX</span>
+                    <span className="text-ink-500">Envíos a todo México</span>
                   </p>
                 </div>
               </div>

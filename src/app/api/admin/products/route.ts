@@ -1,5 +1,5 @@
 import type { Perfume } from "@/types/perfume"
-import { addSuggestion, readPerfumes, readSales, readSuggestions, withPerfumesLock, writePerfumes } from "@/lib/perfumeStore"
+import { addSuggestion, readOrders, readPerfumes, readSales, readSuggestions, withPerfumesLock, writePerfumes } from "@/lib/perfumeStore"
 import { slugify } from "@/lib/slug"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { availabilityFromStock, isAllowedPerfumeImageSrc, parseCost, parseNotes, parseSold, parseStock } from "@/lib/perfume/parsers"
@@ -21,7 +21,8 @@ export async function GET() {
   const perfumes = await readPerfumes()
   const suggestions = await readSuggestions()
   const sales = await readSales()
-  return jsonNoStoreOk({ perfumes, suggestions, sales })
+  const orders = await readOrders()
+  return jsonNoStoreOk({ perfumes, suggestions, sales, orders })
 }
 
 export async function POST(req: Request) {

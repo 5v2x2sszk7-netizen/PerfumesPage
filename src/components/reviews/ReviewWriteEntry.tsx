@@ -18,7 +18,7 @@ export function ReviewWriteEntry() {
         type="button"
         onClick={() => setOpen(true)}
         variant="soft"
-        className="w-full justify-center bg-white/70 px-5 py-3 text-ink-800 shadow-sm backdrop-blur hover:bg-white/85 hover:shadow-soft-hover sm:w-auto sm:px-6"
+        className="bg-white/70 px-6 py-3 text-ink-800 shadow-sm backdrop-blur hover:bg-white/85 hover:shadow-soft-hover"
       >
         <span className="text-base leading-none">★</span>
         Compartir experiencia
@@ -32,3 +32,4 @@ export function ReviewWriteEntry() {
     </>
   )
 }
+

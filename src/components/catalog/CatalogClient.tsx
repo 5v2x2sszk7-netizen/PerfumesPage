@@ -305,7 +305,7 @@ function CatalogEmptyState({
     <Surface radius="luxe-xl" className="relative mt-8 overflow-hidden p-8 sm:p-10">
       <div className="pointer-events-none absolute inset-0">
         <Image
-          src="/images/MaloParfumsHome.jpg"
+          src="/images/MaloFragancesHome.jpg"
           alt=""
           fill
           className="object-cover opacity-ink-8 blur-2xl grayscale"

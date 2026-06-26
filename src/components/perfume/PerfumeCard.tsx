@@ -24,6 +24,7 @@ export function PerfumeCard({
   const isOut = perfume.availability === "out_of_stock"
   const concentration = perfume.concentration?.trim() || "Eau de Parfum"
   const showConsult = perfume.price <= 0
+  const isUploadImage = perfume.imageSrc.startsWith("/uploads/")
 
   if (variant === "featured") {
     return (
@@ -38,13 +39,21 @@ export function PerfumeCard({
         <div className="pointer-events-none absolute inset-0 bg-home-featured-hover-glow opacity-0 transition-opacity duration-luxe-slow ease-luxe group-hover:opacity-100" />
         <div className="relative aspect-[5/6] overflow-hidden rounded-control bg-ink-50 ring-1 ring-inset ring-black/8">
           <div className="pointer-events-none absolute inset-0 bg-home-featured-media-glow opacity-80" />
-          <Image
-            src={perfume.imageSrc}
-            alt={`${perfume.name} de ${perfume.brand}`}
-            fill
-            className="object-cover transition-luxe-media duration-luxe ease-luxe group-hover:scale-[1.02]"
-            sizes="(max-width: 768px) 80vw, 360px"
-          />
+          {isUploadImage ? (
+            <img
+              src={perfume.imageSrc}
+              alt={`${perfume.name} de ${perfume.brand}`}
+              className="h-full w-full object-cover transition-luxe-media duration-luxe ease-luxe group-hover:scale-[1.02]"
+            />
+          ) : (
+            <Image
+              src={perfume.imageSrc}
+              alt={`${perfume.name} de ${perfume.brand}`}
+              fill
+              className="object-cover transition-luxe-media duration-luxe ease-luxe group-hover:scale-[1.02]"
+              sizes="(max-width: 768px) 80vw, 360px"
+            />
+          )}
         </div>
         <p className="relative mt-4 text-xs tracking-ui text-ink-500">{perfume.brand}</p>
         <p className="relative mt-1 font-display text-base text-ink-950">{perfume.name}</p>
@@ -72,16 +81,27 @@ export function PerfumeCard({
         <div className="relative overflow-hidden rounded-luxe-md bg-ink-50 ring-1 ring-inset ring-black/8">
           <div className="pointer-events-none absolute inset-0 bg-perfume-media-glow opacity-25 transition-opacity duration-luxe ease-luxe group-hover:opacity-70" />
           <div className="relative aspect-[4/5]">
-            <Image
-              src={perfume.imageSrc}
-              alt={`${perfume.name} de ${perfume.brand}`}
-              fill
-              className={cn(
-                "object-cover transition-luxe-media duration-luxe-fast ease-luxe",
-                isOut ? "opacity-85" : "group-hover:scale-[1.02] group-hover:translate-y-[-1px]"
-              )}
-              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 40vw, 360px"
-            />
+            {isUploadImage ? (
+              <img
+                src={perfume.imageSrc}
+                alt={`${perfume.name} de ${perfume.brand}`}
+                className={cn(
+                  "h-full w-full object-cover transition-luxe-media duration-luxe-fast ease-luxe",
+                  isOut ? "opacity-85" : "group-hover:scale-[1.02] group-hover:translate-y-[-1px]"
+                )}
+              />
+            ) : (
+              <Image
+                src={perfume.imageSrc}
+                alt={`${perfume.name} de ${perfume.brand}`}
+                fill
+                className={cn(
+                  "object-cover transition-luxe-media duration-luxe-fast ease-luxe",
+                  isOut ? "opacity-85" : "group-hover:scale-[1.02] group-hover:translate-y-[-1px]"
+                )}
+                sizes="(max-width: 640px) 90vw, (max-width: 1024px) 40vw, 360px"
+              />
+            )}
           </div>
 
           <div className="pointer-events-none absolute inset-0 shadow-inset-soft opacity-70 transition-opacity duration-luxe ease-luxe group-hover:opacity-100" />

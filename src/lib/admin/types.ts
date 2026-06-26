@@ -18,7 +18,7 @@ export type Draft = {
   notesBase: string
 }
 
-export type AdminSection = "products" | "form" | "report" | "reviews"
+export type AdminSection = "products" | "form" | "report" | "orders" | "reviews"
 
 export type Suggestions = {
   brands: string[]
@@ -35,6 +35,44 @@ export type SaleRecord = {
   unitPrice: number
   unitCost: number
   qty: number
+}
+
+export type ConfirmedOrderCustomer = {
+  fullName: string
+  email: string
+  phone: string
+  addressLine1: string
+  addressLine2?: string
+  neighborhood?: string
+  city: string
+  state: string
+  postalCode: string
+  notes?: string
+}
+
+export type ConfirmedOrderItem = {
+  perfumeId: string
+  brand: string
+  name: string
+  sizeMl: number
+  unitPrice: number
+  unitCost: number
+  quantity: number
+}
+
+export type ConfirmedOrderRecord = {
+  id: string
+  provider: "mercado_pago" | "paypal"
+  checkoutMode?: "guest" | "account"
+  customerId?: string
+  createdAt: string
+  completedAt: string
+  paymentStatus: string
+  fulfillmentStatus?: string
+  paymentReference: string
+  customer: ConfirmedOrderCustomer
+  subtotal: number
+  items: ConfirmedOrderItem[]
 }
 
 export type Review = StoreReview

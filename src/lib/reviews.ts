@@ -16,6 +16,7 @@ export type ReviewCarouselItem = {
   src: string
   alt: string
   customerName: string
+  verifiedPurchase?: boolean
   rating?: number
   text: string
 }
@@ -29,6 +30,7 @@ export function buildReviewCarouselItems(reviews: Review[], maxItems = 12) {
       src: r.imageSrc!,
       alt: `Reseña de ${r.customerName}`,
       customerName: r.customerName,
+      verifiedPurchase: r.verifiedPurchase,
       rating: r.rating,
       text: formatReviewSnippet(r.text, 180)
     }))

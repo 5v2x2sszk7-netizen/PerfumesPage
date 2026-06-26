@@ -14,7 +14,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
     return safeItems.map((v) => ({
       src: v.src,
       alt: v.alt,
-      meta: `${v.customerName} • Compra verificada`
+      meta: v.verifiedPurchase ? `${v.customerName} • Compra verificada` : v.customerName
     }))
   }, [safeItems])
   const scrollRef = useRef<HTMLDivElement | null>(null)
@@ -129,15 +129,17 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
           >
             <div className="group grid gap-6 rounded-ui bg-paper-50 p-8 transition-shadow duration-300 hover:shadow-review-hover md:grid-cols-[1.2fr_0.8fr] md:items-center">
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-3">
-                  <Badge
-                    size="sm"
-                    blur={false}
-                    className="gap-2 border border-black/8 px-4 py-1.5 text-xs font-medium tracking-wide text-ink-950 ring-0"
-                  >
-                    ✓ Compra verificada
-                  </Badge>
-                </div>
+                {item.verifiedPurchase ? (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Badge
+                      size="sm"
+                      blur={false}
+                      className="gap-2 border border-black/8 px-4 py-1.5 text-xs font-medium tracking-wide text-ink-950 ring-0"
+                    >
+                      ✓ Compra verificada
+                    </Badge>
+                  </div>
+                ) : null}
                 <div className="mt-4 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/8 bg-white text-sm font-semibold text-ink-950">
                     {getInitials(item.customerName)}
@@ -165,7 +167,7 @@ export function ReviewCarousel({ items }: { items: ReviewCarouselItem[] }) {
                         src={item.src}
                         alt={item.alt}
                         sizes="(max-width: 768px) 92vw, 520px"
-                        meta={`${item.customerName} • Compra verificada`}
+                        meta={item.verifiedPurchase ? `${item.customerName} • Compra verificada` : item.customerName}
                         gallery={{
                           items: galleryItems,
                           index: i

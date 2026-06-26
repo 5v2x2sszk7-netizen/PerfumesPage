@@ -24,7 +24,7 @@ export const availabilityLabel = {
 
 export function formatPerfumeWhatsAppMessage(perfume: Perfume) {
   const lines = [
-    "Hola! Vengo de la web de *MALO Parfums*. Me interesa adquirir:",
+    "Hola! Vengo de la web de *MALO Fragances*. Me interesa adquirir:",
     `- Perfume: *${perfume.name}*`,
     `- Casa: *${perfume.brand}*`,
     `- Presentación: *${perfume.sizeMl} ml*`,

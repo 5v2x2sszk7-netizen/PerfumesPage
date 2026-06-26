@@ -57,17 +57,20 @@ export function ProductFormSection({
   onCancelEdit
 }: Props) {
   return (
-    <AdminPanel>
-      <div className="-mx-6 -mt-6 sticky top-3 z-sticky border-b border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-2xl text-ink-950">{isEditing ? "Editar perfume" : "Nuevo perfume"}</h2>
+    <AdminPanel className="p-2 sm:p-3" innerClassName="p-4 sm:p-5">
+      <div className="-mx-4 -mt-4 sticky top-3 z-sticky border-b border-black/6 bg-white/94 px-4 py-4 backdrop-blur shadow-sticky-soft sm:-mx-5 sm:-mt-5 sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-1">
+            <p className="text-xs tracking-section text-ink-500">{isEditing ? "EDICION" : "NUEVO"}</p>
+            <h2 className="font-display text-xl text-ink-950 sm:text-2xl">{isEditing ? "Editar perfume" : "Nuevo perfume"}</h2>
           </div>
-          {!canSubmit && missingFields.length ? (
-            <p className="mt-2 text-sm text-ink-600">Para poder añadirlo, completa: {missingFields.join(", ")}.</p>
-          ) : null}
+        </div>
+        {!canSubmit && missingFields.length ? (
+          <p className="mt-2 text-sm text-ink-600">Para poder añadirlo, completa: {missingFields.join(", ")}.</p>
+        ) : null}
       </div>
 
-      <div className="mt-6 grid gap-6 md:grid-cols-2">
+      <div className="mt-5 grid gap-5 md:grid-cols-2">
           <div className="grid gap-2">
             <Label>Nombre *</Label>
             <Input
@@ -147,22 +150,22 @@ export function ProductFormSection({
               onChange={(e) => setDraft((d) => ({ ...d, stock: e.target.value }))}
             />
           </div>
-          <Card radius="lg" className="md:col-span-2 grid gap-3 p-4">
+          <Card radius="lg" className="md:col-span-2 grid gap-4 bg-ink-50/30 p-4 sm:p-5">
             <p className="text-xs tracking-ui text-ink-500">GANANCIA</p>
-            <div className="grid gap-2 sm:grid-cols-3">
-              <div className="rounded-control border border-black/8 bg-ink-50/40 px-4 py-3">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-control border border-black/8 bg-white/80 px-4 py-3.5">
                 <p className="text-xs text-ink-600">Tu costo</p>
                 <p className="mt-1 font-display text-lg text-ink-950">
                   {Number.isFinite(finance.cost) && finance.cost >= 0 ? formatMoney(finance.cost) : "—"}
                 </p>
               </div>
-              <div className="rounded-control border border-black/8 bg-ink-50/40 px-4 py-3">
+              <div className="rounded-control border border-black/8 bg-white/80 px-4 py-3.5">
                 <p className="text-xs text-ink-600">Precio venta</p>
                 <p className="mt-1 font-display text-lg text-ink-950">
                   {Number.isFinite(finance.price) && finance.price >= 0 ? formatMoney(finance.price) : "—"}
                 </p>
               </div>
-              <div className="rounded-control border border-black/8 bg-ink-50/40 px-4 py-3">
+              <div className="rounded-control border border-black/8 bg-white/82 px-4 py-3.5 shadow-[0_10px_24px_rgba(188,149,79,0.08)]">
                 <p className="text-xs text-ink-600">Ganancia</p>
                 <p className="mt-1 font-display text-lg text-antiqueGold">
                   {Number.isFinite(finance.profit) ? formatMoney(finance.profit) : "—"}
@@ -213,33 +216,33 @@ export function ProductFormSection({
           </div>
       </div>
 
-      <div className="-mx-6 mt-10 sticky bottom-3 z-sticky border-t border-black/6 bg-white/90 px-6 py-4 backdrop-blur shadow-sticky-soft-up">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-ink-600">{canSubmit ? "Listo para guardar." : "Completa los campos obligatorios (*)"}</p>
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+      <div className="-mx-4 mt-8 sticky bottom-3 z-sticky border-t border-black/6 bg-white/94 px-4 py-4 backdrop-blur shadow-sticky-soft-up sm:-mx-5 sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-ink-600">{canSubmit ? "Listo para guardar." : "Completa los campos obligatorios (*)"}</p>
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+            <Button
+              type="button"
+              onClick={onSave}
+              disabled={busy || !canSubmit}
+              variant="gold"
+              className="w-full hover:shadow-cta-hover sm:w-auto"
+            >
+              {isEditing ? "Guardar cambios" : "Añadir al catálogo"}
+            </Button>
+            {isEditing ? (
               <Button
                 type="button"
-                onClick={onSave}
-                disabled={busy || !canSubmit}
-                variant="gold"
-                className="w-full hover:shadow-cta-hover sm:w-auto"
+                variant="outline"
+                radius="xl"
+                className="w-full px-4 py-2.5 text-sm sm:w-auto"
+                onClick={onCancelEdit}
+                disabled={busy}
               >
-                {isEditing ? "Guardar cambios" : "Añadir al catálogo"}
+                Cancelar
               </Button>
-              {isEditing ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  radius="xl"
-                  className="w-full px-4 py-2.5 text-sm sm:w-auto"
-                  onClick={onCancelEdit}
-                  disabled={busy}
-                >
-                  Cancelar
-                </Button>
-              ) : null}
-            </div>
+            ) : null}
           </div>
+        </div>
       </div>
     </AdminPanel>
   )

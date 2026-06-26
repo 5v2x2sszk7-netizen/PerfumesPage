@@ -6,6 +6,8 @@ import { readPerfumes } from "@/lib/stores/perfumes"
 export const readPerfumesCached = cache(readPerfumes)
 
 export { readPerfumes, withPerfumesLock, writePerfumes } from "@/lib/stores/perfumes"
+export { appendCheckoutOrder, readCheckoutOrders, updateCheckoutOrderFulfillmentStatus, withCheckoutOrdersLock, writeCheckoutOrders } from "@/lib/stores/checkoutOrders"
+export { appendOrder, readOrders, updateOrderFulfillmentStatus } from "@/lib/stores/orders"
 export { readSuggestions, addSuggestion } from "@/lib/stores/suggestions"
 export { readSales, appendSale } from "@/lib/stores/sales"
 export { readReviews, createReview, updateReview, deleteReview } from "@/lib/stores/reviews"

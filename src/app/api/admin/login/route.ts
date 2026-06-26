@@ -2,13 +2,6 @@ import { adminCookieName, createAdminSessionValue, expectedAdminToken } from "@/
 import { jsonError, jsonOk, readJsonBody } from "@/lib/apiResponse"
 import { checkRateLimit } from "@/lib/rateLimit"
 
-function isHttpsRequest(req: Request) {
-  const forwardedProto = req.headers.get("x-forwarded-proto")?.trim().toLowerCase()
-  if (forwardedProto === "https") return true
-  if (forwardedProto === "http") return false
-  return req.url.startsWith("https://")
-}
-
 export async function POST(req: Request) {
   const expected = expectedAdminToken()
   if (!expected) return jsonError("Server not configured", 500)
@@ -36,7 +29,7 @@ export async function POST(req: Request) {
   res.cookies.set(adminCookieName, value, {
     httpOnly: true,
     sameSite: "lax",
-    secure: isHttpsRequest(req),
+    secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 60 * 60 * 24 * 14
   })

@@ -7,8 +7,8 @@ export function HomeHeroSection() {
   return (
     <section className="relative h-home-hero overflow-hidden border-b border-black/6 bg-white sm:h-home-hero-sm lg:h-home-hero-lg">
       <Image
-        src="/images/MaloParfumsHome.jpg"
-        alt="MALO Parfums"
+        src="/images/MaloFragancesHome.jpg"
+        alt="MALO Fragances"
         fill
         priority
         className="object-cover object-center"

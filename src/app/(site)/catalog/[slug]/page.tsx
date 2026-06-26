@@ -5,6 +5,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 import { Container } from "@/components/ui/Container"
 import { ButtonExternal } from "@/components/ui/Button"
+import { PurchaseActions } from "@/components/cart/PurchaseActions"
 import { availabilityLabel, buildWhatsAppLink, formatPerfumeWhatsAppMessage, formatPrice } from "@/lib/whatsapp"
 import { readPerfumes, readPerfumesCached } from "@/lib/perfumeStore"
 import { LazyReveal } from "@/components/ui/LazyReveal"
@@ -257,6 +258,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
         : "Disponible"
   const stockLabel =
     perfume.stock <= 0 ? "Agotado" : perfume.stock === 1 ? "Queda 1 pieza" : `Quedan ${perfume.stock} piezas`
+  const isUploadImage = perfume.imageSrc.startsWith("/uploads/")
 
   return (
     <div>
@@ -278,14 +280,22 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                   <div className="pointer-events-none absolute left-1/2 bottom-6 h-10 w-perfume-shadow -translate-x-1/2 rounded-full bg-black/30 opacity-ink-14 blur-2xl" />
                   <div className="relative -mt-4 overflow-hidden rounded-luxe sm:-mt-6">
                     <div className="relative aspect-[4/5]">
-                      <Image
-                        src={perfume.imageSrc}
-                        alt={`${perfume.name} de ${perfume.brand}`}
-                        fill
-                        className="object-cover transform-gpu -translate-y-1.5 sm:-translate-y-2.5"
-                        sizes="(max-width: 1024px) 92vw, 720px"
-                        priority
-                      />
+                      {isUploadImage ? (
+                        <img
+                          src={perfume.imageSrc}
+                          alt={`${perfume.name} de ${perfume.brand}`}
+                          className="h-full w-full object-cover transform-gpu -translate-y-1.5 sm:-translate-y-2.5"
+                        />
+                      ) : (
+                        <Image
+                          src={perfume.imageSrc}
+                          alt={`${perfume.name} de ${perfume.brand}`}
+                          fill
+                          className="object-cover transform-gpu -translate-y-1.5 sm:-translate-y-2.5"
+                          sizes="(max-width: 1024px) 92vw, 720px"
+                          priority
+                        />
+                      )}
                     </div>
                   </div>
                   <div className="pointer-events-none absolute inset-0 bg-perfume-detail-card-shine opacity-60" />
@@ -315,21 +325,25 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                   {rest ? <p className="mt-3 max-w-xl text-sm leading-body text-ink-700">{rest}</p> : null}
                 </div>
 
-                <div className="flex flex-wrap gap-3">
-                  <ButtonExternal
-                    href={waHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    variant="gold"
-                    className="group transition-luxe duration-luxe ease-luxe hover:-translate-y-0.5 hover:shadow-cta-soft"
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <span>Solicitar por WhatsApp</span>
-                      <span className="text-ink-800/70 transition-transform duration-luxe ease-luxe group-hover:translate-x-0.5">
-                        →
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-3">
+                    <ButtonExternal
+                      href={waHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      variant="gold"
+                      className="group transition-luxe duration-luxe ease-luxe hover:-translate-y-0.5 hover:shadow-cta-soft"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <span>Solicitar por WhatsApp</span>
+                        <span className="text-ink-800/70 transition-transform duration-luxe ease-luxe group-hover:translate-x-0.5">
+                          →
+                        </span>
                       </span>
-                    </span>
-                  </ButtonExternal>
+                    </ButtonExternal>
+                  </div>
+
+                  <PurchaseActions perfume={perfume} />
                 </div>
 
                 <AvailabilityPanel

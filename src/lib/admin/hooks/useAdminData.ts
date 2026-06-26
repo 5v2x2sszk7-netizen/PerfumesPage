@@ -1,5 +1,5 @@
 import { api } from "@/lib/admin/api"
-import type { Review, SaleRecord, Suggestions } from "@/lib/admin/types"
+import type { ConfirmedOrderRecord, Review, SaleRecord, Suggestions } from "@/lib/admin/types"
 import type { Perfume } from "@/types/perfume"
 import { useCallback, useEffect, useState } from "react"
 import type { Dispatch, SetStateAction } from "react"
@@ -14,6 +14,7 @@ export function useAdminData({
   const [perfumes, setPerfumes] = useState<Perfume[]>([])
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null)
   const [sales, setSales] = useState<SaleRecord[]>([])
+  const [orders, setOrders] = useState<ConfirmedOrderRecord[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
 
   const refresh = useCallback(async ({ signal }: { signal?: AbortSignal } = {}) => {
@@ -22,7 +23,7 @@ export function useAdminData({
     setError(null)
     try {
       const [productsData, reviewsData] = await Promise.all([
-        api<{ perfumes: Perfume[]; suggestions?: Suggestions; sales?: SaleRecord[] }>("/api/admin/products", {
+        api<{ perfumes: Perfume[]; suggestions?: Suggestions; sales?: SaleRecord[]; orders?: ConfirmedOrderRecord[] }>("/api/admin/products", {
           signal
         }),
         api<{ reviews: Review[] }>("/api/admin/reviews", { signal })
@@ -31,6 +32,7 @@ export function useAdminData({
       setPerfumes(productsData.perfumes)
       setSuggestions(productsData.suggestions ?? null)
       setSales(Array.isArray(productsData.sales) ? productsData.sales : [])
+      setOrders(Array.isArray(productsData.orders) ? productsData.orders : [])
       setReviews(Array.isArray(reviewsData.reviews) ? reviewsData.reviews : [])
     } catch (e) {
       if (signal?.aborted) return
@@ -44,6 +46,7 @@ export function useAdminData({
   const reset = useCallback(() => {
     setPerfumes([])
     setSales([])
+    setOrders([])
     setSuggestions(null)
     setReviews([])
   }, [])
@@ -60,5 +63,5 @@ export function useAdminData({
     }
   }, [refresh])
 
-  return { perfumes, suggestions, sales, reviews, refresh, reset }
+  return { perfumes, suggestions, sales, orders, reviews, refresh, reset }
 }

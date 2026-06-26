@@ -1,11 +1,13 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 import type { Draft, ReviewDraft } from "@/lib/admin/types"
 import { emptyDraft, emptyReviewDraft } from "@/lib/admin/types"
 import { DeleteProductModal } from "./modals/DeleteProductModal"
 import { DeleteReviewModal } from "./modals/DeleteReviewModal"
 import { SellModal } from "./modals/SellModal"
+import { OrdersSection } from "./sections/OrdersSection"
 import { ProductFormSection } from "./sections/ProductFormSection"
 import { ProductsSection } from "./sections/ProductsSection"
 import { ReportSection } from "./sections/ReportSection"
@@ -20,13 +22,14 @@ import { useAdminActions } from "@/features/admin/actions"
 export function AdminClient() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const reviewFileInputRef = useRef<HTMLInputElement | null>(null)
+  const router = useRouter()
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [reviewDraft, setReviewDraft] = useState<ReviewDraft>(emptyReviewDraft)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const ui = useAdminUiState()
 
-  const { perfumes, suggestions, sales, reviews, refresh, reset: resetAdminData } = useAdminData({
+  const { perfumes, suggestions, sales, orders, reviews, refresh, reset: resetAdminData } = useAdminData({
     setBusy,
     setError
   })
@@ -63,6 +66,7 @@ export function AdminClient() {
     resetAdminData,
     resetProductUpload: productUpload.resetUpload,
     resetReviewUpload: reviewUpload.resetUpload,
+    routerReplace: router.replace,
     ui
   })
 
@@ -98,7 +102,8 @@ export function AdminClient() {
         onStartForm={actions.onStartForm}
       />
 
-      {ui.section === "report" ? <ReportSection perfumes={perfumes} sales={sales} /> : null}
+      {ui.section === "report" ? <ReportSection perfumes={perfumes} sales={sales} orders={orders} /> : null}
+      {ui.section === "orders" ? <OrdersSection orders={orders} refresh={refresh} /> : null}
       {ui.section === "reviews" ? (
         <ReviewsSection
           reviews={reviews}

@@ -3,11 +3,23 @@ import { createReview } from "@/lib/perfumeStore"
 import { checkRateLimit } from "@/lib/rateLimit"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { jsonError, jsonOk, readJsonBody } from "@/lib/apiResponse"
+import { customerCookieName } from "@/lib/customerAuth"
+import { readCustomerFromSessionValue, readOrdersForCustomer } from "@/lib/customerAccount"
 
 export const runtime = "nodejs"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
+
+function readCookieValue(cookieHeader: string, name: string) {
+  const encodedName = `${encodeURIComponent(name)}=`
+  for (const part of cookieHeader.split(/;\s*/)) {
+    if (part.startsWith(encodedName)) {
+      return decodeURIComponent(part.slice(encodedName.length))
+    }
+  }
+  return null
+}
 
 export async function POST(req: Request) {
   const rate = await checkRateLimit(req, { keyPrefix: "reviews", windowMs: 10 * 60 * 1000, max: 10 })
@@ -35,7 +47,18 @@ export async function POST(req: Request) {
   }
 
   try {
-    const created = await createReview(payload)
+    const sessionValue = readCookieValue(req.headers.get("cookie") ?? "", customerCookieName)
+    const customer = await readCustomerFromSessionValue(sessionValue)
+    const customerOrders = customer ? await readOrdersForCustomer(customer.id, customer.email) : []
+    const verifiedPurchase = customerOrders.length > 0
+
+    const created = await createReview({
+      ...payload,
+      customerName: customer?.profile.fullName || payload.customerName,
+      customerId: customer?.id,
+      customerEmail: customer?.email,
+      verifiedPurchase
+    })
     return jsonOk({ review: created }, { status: 201 })
   } catch (e) {
     if (isPersistenceNotConfiguredError(e)) {

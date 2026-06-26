@@ -66,7 +66,9 @@ function ReviewCardItem({ review, delayMs, animate }: { review: Review; delayMs:
     review.deliveryImageSrcs?.length ? review.deliveryImageSrcs : review.deliveryImageSrc ? [review.deliveryImageSrc] : []
   ).slice(0, 5)
   const dateLabel = reviewDateFormatter.format(new Date(review.at))
-  const metaLabel = `${displayName} • ${dateLabel} • Entrega confirmada`
+  const metaLabel = review.verifiedPurchase
+    ? `${displayName} • ${dateLabel} • Compra verificada`
+    : `${displayName} • ${dateLabel} • Entrega confirmada`
 
   const body = (
     <Card className="group w-full px-6 py-6 transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-review-hover sm:px-7 sm:py-7">
@@ -80,6 +82,12 @@ function ReviewCardItem({ review, delayMs, animate }: { review: Review; delayMs:
               <p className="truncate font-display text-lg font-semibold text-ink-950">{displayName}</p>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-400">
                 <span>{dateLabel}</span>
+                {review.verifiedPurchase ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-antiqueGold/22 bg-antiqueGold/10 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-ink-700">
+                    <span className="text-[9px]">✓</span>
+                    Compra verificada
+                  </span>
+                ) : null}
                 {review.rating ? (
                   <StarRating value={starsValue} className="text-ui-md leading-none text-goldSoft" ariaLabel={`${starsValue} de 5`} />
                 ) : null}
@@ -158,7 +166,7 @@ export function HomeReviewsSection({
                 </p>
               </div>
             ) : null}
-            <p className="mt-3 text-sm text-ink-700">Cuéntanos qué tan satisfech@ estás con tu compra en M A L O parfums</p>
+            <p className="mt-3 text-sm text-ink-700">Cuéntanos qué tan satisfech@ estás con tu compra en M A L O Fragances</p>
           </div>
 
           {carouselItems.length ? (

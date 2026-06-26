@@ -20,6 +20,7 @@ export function useAdminActions(opts: {
   resetAdminData: () => void
   resetProductUpload: () => void
   resetReviewUpload: () => void
+  routerReplace: (href: string) => void
   ui: AdminUiState
 }) {
   const {
@@ -35,6 +36,7 @@ export function useAdminActions(opts: {
     resetAdminData,
     resetProductUpload,
     resetReviewUpload,
+    routerReplace,
     ui
   } = opts
 
@@ -213,7 +215,7 @@ export function useAdminActions(opts: {
       resetReviewUpload()
       window.location.replace("/admin/login")
     }
-  }, [resetAdminData, resetProductUpload, resetReviewUpload, setDraft, setReviewDraft])
+  }, [resetAdminData, resetProductUpload, resetReviewUpload, routerReplace, setDraft, setReviewDraft])
 
   const onStartForm = useCallback(() => {
     setDraft(emptyDraft)

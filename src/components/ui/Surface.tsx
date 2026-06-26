@@ -63,6 +63,7 @@ export function Card({
         sharedRadiusClass(radius),
         cardToneClass(tone),
         "border border-black/8",
+        "transition-[transform,box-shadow,border-color] duration-200 ease-luxe motion-safe:hover:-translate-y-[2px] hover:shadow-[0_18px_38px_rgba(10,10,10,0.06)]",
         className
       )}
       {...props}

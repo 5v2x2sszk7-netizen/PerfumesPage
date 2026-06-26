@@ -9,14 +9,14 @@ function fieldClasses(opts: { variant: FieldVariant; size: FieldSize }) {
   if (opts.variant === "pill") {
     return cn(
       size,
-      "w-full rounded-full bg-ink-50/70 px-4 text-sm text-ink-950 outline-none ring-1 ring-inset ring-black/8 transition duration-luxe-fast ease-luxe placeholder:text-ink-500/70",
-      "focus:bg-white focus:ring-1 focus:ring-antiqueGold/35"
+      "w-full rounded-full bg-ink-50/70 px-4 text-sm text-ink-950 outline-none ring-1 ring-inset ring-black/8 shadow-[0_6px_16px_rgba(10,10,10,0.02)] transition-[border-color,box-shadow,background-color,transform] duration-200 ease-luxe placeholder:text-ink-500/70",
+      "focus:bg-white focus:ring-1 focus:ring-antiqueGold/40 focus:shadow-[0_0_0_3px_rgba(188,149,79,0.08),0_10px_22px_rgba(188,149,79,0.08)]"
     )
   }
   return cn(
     size,
-    "w-full rounded-control border border-black/8 bg-white px-4 text-sm text-ink-950 outline-none transition duration-luxe-fast ease-luxe placeholder:text-ink-400",
-    "focus:border-antiqueGold/60 focus:ring-1 focus:ring-antiqueGold/35"
+    "w-full rounded-control border border-black/8 bg-white px-4 text-sm text-ink-950 outline-none shadow-[0_6px_16px_rgba(10,10,10,0.02)] transition-[border-color,box-shadow,background-color,transform] duration-200 ease-luxe placeholder:text-ink-400",
+    "focus:border-antiqueGold/60 focus:ring-1 focus:ring-antiqueGold/40 focus:shadow-[0_0_0_3px_rgba(188,149,79,0.08),0_10px_22px_rgba(188,149,79,0.08)]"
   )
 }
 
@@ -53,7 +53,7 @@ export function Textarea({
   return (
     <textarea
       className={cn(
-        "min-h-28 w-full resize-y rounded-control border border-black/8 bg-white px-4 py-3 text-sm text-ink-950 outline-none transition duration-luxe-fast ease-luxe placeholder:text-ink-400 focus:border-antiqueGold/60 focus:ring-1 focus:ring-antiqueGold/35",
+        "min-h-28 w-full resize-y rounded-control border border-black/8 bg-white px-4 py-3 text-sm text-ink-950 outline-none shadow-[0_6px_16px_rgba(10,10,10,0.02)] transition-[border-color,box-shadow,background-color,transform] duration-200 ease-luxe placeholder:text-ink-400 focus:border-antiqueGold/60 focus:ring-1 focus:ring-antiqueGold/40 focus:shadow-[0_0_0_3px_rgba(188,149,79,0.08),0_10px_22px_rgba(188,149,79,0.08)]",
         className
       )}
       {...props}
