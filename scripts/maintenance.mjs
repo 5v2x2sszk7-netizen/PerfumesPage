@@ -109,7 +109,7 @@ async function copyDir(src, dest) {
   }
 }
 
-async function backup({ out, uploads }) {
+async function backup({ out, uploads, quiet = false }) {
   const projectRoot = process.cwd()
   const dataDir = path.join(projectRoot, "data")
   const backupRoot = out ? path.resolve(out) : path.join(projectRoot, "backups", nowStamp())
@@ -149,7 +149,10 @@ async function backup({ out, uploads }) {
     "utf8"
   )
 
-  process.stdout.write(`${backupRoot}\n`)
+  if (!quiet) {
+    process.stdout.write(`${backupRoot}\n`)
+  }
+  return backupRoot
 }
 
 async function restore({ from, uploads }) {
@@ -209,6 +212,42 @@ async function syncUpstash({ file }) {
   process.stdout.write(`${JSON.stringify({ synced, skipped }, null, 2)}\n`)
 }
 
+async function backupAndSyncUpstash({ out, uploads, file }) {
+  const backupRoot = await backup({ out, uploads, quiet: true })
+  const cfg = getUpstashConfig()
+  const projectRoot = process.cwd()
+  const dataDir = path.join(projectRoot, "data")
+  const localFiles = await listJsonFiles(dataDir)
+  const defaultCandidates = uniqueOrdered([
+    ...KNOWN_DATA_FILES.filter((entry) => localFiles.includes(entry)),
+    ...localFiles
+  ])
+  const candidates = file ? [file] : defaultCandidates
+  if (!candidates.length) {
+    throw new Error("No local JSON files found in data/.")
+  }
+
+  const synced = []
+  const skipped = []
+
+  for (const entry of candidates) {
+    const sourceFile = path.join(dataDir, entry)
+    if (!(await exists(sourceFile))) {
+      skipped.push(entry)
+      continue
+    }
+
+    const value = await fs.readFile(sourceFile, "utf8")
+    const key = dataStorageKey(entry)
+    await upstashCommand(cfg, ["SET", key, value])
+    synced.push(key)
+  }
+
+  process.stdout.write(
+    `${JSON.stringify({ backupRoot, synced, skipped }, null, 2)}\n`
+  )
+}
+
 async function pullUpstash({ file }) {
   const cfg = getUpstashConfig()
   const projectRoot = process.cwd()
@@ -262,6 +301,8 @@ if (args.cmd === "backup") {
   await restore({ from: args.from, uploads: args.uploads })
 } else if (args.cmd === "sync-upstash") {
   await syncUpstash({ file: args.file })
+} else if (args.cmd === "backup-sync-upstash") {
+  await backupAndSyncUpstash({ out: args.out, uploads: args.uploads, file: args.file })
 } else if (args.cmd === "pull-upstash") {
   await pullUpstash({ file: args.file })
 } else if (args.cmd === "status-upstash") {
@@ -272,6 +313,7 @@ if (args.cmd === "backup") {
       "  node scripts/maintenance.mjs backup [--out <dir>] [--uploads]\n" +
       "  node scripts/maintenance.mjs restore --from <dir> [--uploads]\n" +
       "  node scripts/maintenance.mjs sync-upstash [--file <name.json>]\n" +
+      "  node scripts/maintenance.mjs backup-sync-upstash [--out <dir>] [--uploads] [--file <name.json>]\n" +
       "  node scripts/maintenance.mjs pull-upstash [--file <name.json>]\n" +
       "  node scripts/maintenance.mjs status-upstash [--file <name.json>]\n"
   )
