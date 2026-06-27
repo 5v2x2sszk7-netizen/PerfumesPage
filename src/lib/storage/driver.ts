@@ -1,5 +1,6 @@
 import fs from "node:fs/promises"
 import path from "node:path"
+import { BlobNotFoundError, head, put } from "@vercel/blob"
 import { ensureFsWritesAllowed } from "@/lib/persistence"
 
 type StorageWriteOptions = {
@@ -225,6 +226,75 @@ class HttpStorageDriver implements StorageDriver {
   }
 }
 
+class BlobStorageDriver implements StorageDriver {
+  private token: string | undefined
+
+  constructor(opts?: { token?: string }) {
+    this.token = opts?.token
+  }
+
+  private isUploadsKey(key: string) {
+    const normalized = normalizeKey(key)
+    validateStorageKey(normalized)
+    return inferScopeFromKey(normalized) === "uploads" ? normalized : null
+  }
+
+  private async fetchUrlForKey(key: string) {
+    const normalized = this.isUploadsKey(key)
+    if (!normalized) return null
+    try {
+      const blob = await head(normalized, this.token ? { token: this.token } : undefined)
+      return blob.url
+    } catch (err) {
+      if (err instanceof BlobNotFoundError) return null
+      throw err
+    }
+  }
+
+  async readText(key: string) {
+    const url = await this.fetchUrlForKey(key)
+    if (!url) return null
+    const res = await fetch(url, { method: "GET" })
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error(`Storage read failed: ${res.status}`)
+    return await res.text()
+  }
+
+  async writeText(key: string, value: string, options?: StorageWriteOptions) {
+    const normalized = this.isUploadsKey(key)
+    if (!normalized) throw new Error(`Unsupported storage key: ${normalizeKey(key)}`)
+    await put(normalized, value, {
+      access: "public",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType: options?.contentType ?? "text/plain; charset=utf-8",
+      token: this.token
+    })
+  }
+
+  async readBytes(key: string) {
+    const url = await this.fetchUrlForKey(key)
+    if (!url) return null
+    const res = await fetch(url, { method: "GET" })
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error(`Storage read failed: ${res.status}`)
+    const buf = await res.arrayBuffer()
+    return new Uint8Array(buf)
+  }
+
+  async writeBytes(key: string, value: Uint8Array, options?: StorageWriteOptions) {
+    const normalized = this.isUploadsKey(key)
+    if (!normalized) throw new Error(`Unsupported storage key: ${normalizeKey(key)}`)
+    await put(normalized, Buffer.from(value), {
+      access: "public",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType: options?.contentType ?? "application/octet-stream",
+      token: this.token
+    })
+  }
+}
+
 let cachedDriver: StorageDriver | null = null
 
 export function getStorageDriver(): StorageDriver {
@@ -235,6 +305,8 @@ export function getStorageDriver(): StorageDriver {
   const token = process.env.PERFIMES_STORAGE_TOKEN
   const upstashUrl = process.env.UPSTASH_REDIS_REST_URL
   const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN
+  const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+  const blobStoreId = process.env.BLOB_STORE_ID
   const useRemote = process.env.NODE_ENV === "production" && typeof baseUrl === "string" && baseUrl.trim()
   const useUpstash =
     process.env.NODE_ENV === "production" &&
@@ -242,11 +314,34 @@ export function getStorageDriver(): StorageDriver {
     typeof upstashToken === "string" &&
     upstashUrl.trim() &&
     upstashToken.trim()
+  const useBlob =
+    process.env.NODE_ENV === "production" &&
+    ((typeof blobToken === "string" && blobToken.trim()) || (typeof blobStoreId === "string" && blobStoreId.trim()))
 
-  cachedDriver = useRemote
-    ? new HttpStorageDriver({ baseUrl: baseUrl!, token })
-    : useUpstash
-      ? new UpstashDataStorageDriver({ baseUrl: upstashUrl!, token: upstashToken!, fallback: fsDriver })
-      : fsDriver
+  const httpDriver = useRemote ? new HttpStorageDriver({ baseUrl: baseUrl!, token }) : null
+  const upstashDriver = useUpstash ? new UpstashDataStorageDriver({ baseUrl: upstashUrl!, token: upstashToken!, fallback: fsDriver }) : null
+  const blobDriver = useBlob ? new BlobStorageDriver({ token: blobToken! }) : null
+
+  function driverForKey(key: string) {
+    const scope = inferScopeFromKey(key)
+    if (scope === "uploads") return blobDriver ?? httpDriver ?? fsDriver
+    if (scope === "data") return httpDriver ?? upstashDriver ?? fsDriver
+    return fsDriver
+  }
+
+  cachedDriver = {
+    readText(key) {
+      return driverForKey(key).readText(key)
+    },
+    writeText(key, value, options) {
+      return driverForKey(key).writeText(key, value, options)
+    },
+    readBytes(key) {
+      return driverForKey(key).readBytes(key)
+    },
+    writeBytes(key, value, options) {
+      return driverForKey(key).writeBytes(key, value, options)
+    }
+  }
   return cachedDriver
 }

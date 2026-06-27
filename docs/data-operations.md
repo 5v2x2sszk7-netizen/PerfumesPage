@@ -11,6 +11,27 @@ los archivos JSON operativos del proyecto usando `Upstash`.
 - Tener `UPSTASH_REDIS_REST_TOKEN` en `.env.local`
 - Ejecutar los comandos desde la raíz del proyecto
 
+## Storage De Imágenes En Producción
+
+Las fotos subidas por usuarios no deben depender del filesystem de `Vercel`.
+Para habilitar reseñas con imagen en producción, conecta un store de `Vercel Blob`
+al proyecto `malo-fragances`. Al hacerlo, `Vercel` agregará la variable
+`BLOB_READ_WRITE_TOKEN` al proyecto.
+
+Flujo recomendado:
+
+1. En `Vercel`, abre el proyecto `malo-fragances`.
+2. Entra a `Storage`.
+3. Crea un store de tipo `Blob` para `Preview` y `Production`.
+4. Verifica que aparezca `BLOB_READ_WRITE_TOKEN` en las variables del proyecto.
+5. Si quieres probarlo en local, ejecuta `vercel env pull .env.local`.
+
+Con esta configuración:
+
+- `Upstash` seguirá cubriendo `data/*.json`
+- `Vercel Blob` cubrirá `uploads/*`
+- La app volverá a habilitar automáticamente las fotos en reseñas en producción
+
 ## Datos Cubiertos
 
 El script `scripts/maintenance.mjs` contempla estos archivos:
@@ -147,4 +168,7 @@ npm run data:pull -- --file customers.json
 ## Nota
 
 `Upstash` en este flujo cubre `data/*.json`. Las imágenes en `public/uploads/`
-no se sincronizan a `Upstash`; solo pueden incluirse en respaldos locales.
+no se sincronizan a `Upstash`. En producción, la opción recomendada es usar
+`Vercel Blob` para `uploads/*`. Los respaldos locales con `--uploads` siguen
+siendo útiles para el entorno local o para activos guardados fuera del store
+remoto.
