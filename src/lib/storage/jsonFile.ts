@@ -20,7 +20,7 @@ function upstashConfig() {
 async function upstashCommand(command: unknown[]) {
   const cfg = upstashConfig()
   if (!cfg) return null
-  const res = await fetch(`${cfg.url}/command`, {
+  const res = await fetch(cfg.url, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${cfg.token}`,

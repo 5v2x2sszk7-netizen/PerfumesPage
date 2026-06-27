@@ -73,7 +73,7 @@ async function checkRateLimitUpstash(
     "local ttl=redis.call('PTTL', KEYS[1]);" +
     "return {c, ttl};"
 
-  const res = await fetch(`${url.replace(/\/$/, "")}/command`, {
+  const res = await fetch(url.replace(/\/$/, ""), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,

@@ -120,7 +120,7 @@ class UpstashDataStorageDriver implements StorageDriver {
   }
 
   private async command(command: unknown[]) {
-    const res = await fetch(`${this.baseUrl}/command`, {
+    const res = await fetch(this.baseUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${this.token}`,
