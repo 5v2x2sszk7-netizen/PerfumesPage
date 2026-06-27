@@ -72,6 +72,9 @@ export type ConfirmedOrderRecord = {
   paymentReference: string
   customer: ConfirmedOrderCustomer
   subtotal: number
+  shippingAmount: number
+  shippingLabel?: string
+  total: number
   items: ConfirmedOrderItem[]
 }
 

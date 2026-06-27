@@ -4,6 +4,7 @@ import { formatMoney } from "@/lib/admin/utils"
 import { AdminPanel } from "@/features/admin/components/AdminPanel"
 import { buildAdminReport, buildSalesByPerfume } from "@/lib/admin/finance"
 import { Card } from "@/components/ui/Surface"
+import { resolveStoredOrderTotal } from "@/lib/shipping"
 
 type Props = {
   perfumes: Perfume[]
@@ -15,7 +16,7 @@ export function ReportSection({ perfumes, sales, orders }: Props) {
   const report = buildAdminReport(perfumes, sales)
   const salesByPerfume = buildSalesByPerfume(perfumes, sales)
   const paidOrders = orders.length
-  const paidRevenue = orders.reduce((sum, order) => sum + order.subtotal, 0)
+  const paidRevenue = orders.reduce((sum, order) => sum + resolveStoredOrderTotal(order), 0)
   const averageTicket = paidOrders > 0 ? paidRevenue / paidOrders : 0
 
   const topPerfume = salesByPerfume[0] ?? null

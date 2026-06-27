@@ -37,6 +37,9 @@ export type CheckoutOrderRecord = {
   paymentReference?: string
   customer: CheckoutOrderCustomer
   subtotal: number
+  shippingAmount: number
+  shippingLabel?: string
+  total: number
   items: CheckoutOrderItem[]
 }
 
@@ -116,9 +119,16 @@ function normalizeCheckoutOrderRecord(input: unknown): CheckoutOrderRecord | nul
   const paymentReference = typeof record.paymentReference === "string" ? record.paymentReference : undefined
   const customer = normalizeCheckoutOrderCustomer(record.customer)
   const subtotal = typeof record.subtotal === "number" && Number.isFinite(record.subtotal) ? record.subtotal : NaN
+  const shippingAmount =
+    typeof record.shippingAmount === "number" && Number.isFinite(record.shippingAmount) ? record.shippingAmount : 0
+  const shippingLabel = typeof record.shippingLabel === "string" ? record.shippingLabel.trim() : undefined
+  const total =
+    typeof record.total === "number" && Number.isFinite(record.total) ? record.total : subtotal + shippingAmount
   const items = Array.isArray(record.items) ? record.items.map(normalizeCheckoutOrderItem).filter(Boolean) as CheckoutOrderItem[] : []
 
-  if (!id || !provider || !status || !createdAt || !customer || !(subtotal >= 0) || !items.length) return null
+  if (!id || !provider || !status || !createdAt || !customer || !(subtotal >= 0) || !(shippingAmount >= 0) || !(total >= 0) || !items.length) {
+    return null
+  }
 
   return {
     id,
@@ -133,6 +143,9 @@ function normalizeCheckoutOrderRecord(input: unknown): CheckoutOrderRecord | nul
     paymentReference,
     customer,
     subtotal,
+    shippingAmount,
+    shippingLabel,
+    total,
     items
   }
 }

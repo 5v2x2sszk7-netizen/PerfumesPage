@@ -4,6 +4,7 @@ import { createMercadoPagoCheckout, createPayPalCheckout, type CheckoutCustomer,
 import { toCartItem } from "@/lib/cart"
 import { customerCookieName } from "@/lib/customerAuth"
 import { mergeCustomerProfile, readCustomerFromSessionValue } from "@/lib/customerAccount"
+import { calculateShippingQuote } from "@/lib/shipping"
 import { readCustomers, withCustomersLock, writeCustomers } from "@/lib/stores/customers"
 
 type CheckoutLineInput = {
@@ -116,6 +117,16 @@ export async function POST(req: Request) {
   if (!orderItems.length) return jsonError("No hay productos validos para cobrar.", 400)
 
   const items = orderItems.map((entry) => entry.cartItem)
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const shipping = calculateShippingQuote({
+    subtotal,
+    state: customer.state,
+    postalCode: customer.postalCode
+  })
+
+  if (!shipping.isReady) {
+    return jsonError("No se pudo calcular el envio para esta direccion. Revisa tu estado y codigo postal.", 400)
+  }
 
   const orderId = globalThis.crypto?.randomUUID?.() || `order-${Date.now()}`
 
@@ -141,8 +152,8 @@ export async function POST(req: Request) {
 
     const result =
       body.provider === "mercado_pago"
-        ? await createMercadoPagoCheckout({ items, customer, orderId })
-        : await createPayPalCheckout({ items, customer, orderId })
+        ? await createMercadoPagoCheckout({ items, customer, orderId, pricing: shipping })
+        : await createPayPalCheckout({ items, customer, orderId, pricing: shipping })
 
     await appendCheckoutOrder({
       id: orderId,
@@ -152,7 +163,10 @@ export async function POST(req: Request) {
       status: "pending",
       createdAt: new Date().toISOString(),
       customer,
-      subtotal: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+      subtotal,
+      shippingAmount: shipping.shippingAmount,
+      shippingLabel: shipping.shippingLabel,
+      total: shipping.total,
       items: orderItems.map((entry) => entry.orderItem)
     })
 

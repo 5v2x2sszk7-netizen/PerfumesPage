@@ -14,6 +14,9 @@ export type ConfirmedOrderRecord = {
   paymentReference: string
   customer: CheckoutOrderCustomer
   subtotal: number
+  shippingAmount: number
+  shippingLabel?: string
+  total: number
   items: CheckoutOrderItem[]
 }
 
@@ -33,10 +36,16 @@ function normalizeConfirmedOrderRecord(input: unknown): ConfirmedOrderRecord | n
   const fulfillmentStatus = typeof record.fulfillmentStatus === "string" ? record.fulfillmentStatus.trim() : undefined
   const paymentReference = typeof record.paymentReference === "string" ? record.paymentReference.trim() : ""
   const subtotal = typeof record.subtotal === "number" && Number.isFinite(record.subtotal) ? record.subtotal : NaN
+  const shippingAmount =
+    typeof record.shippingAmount === "number" && Number.isFinite(record.shippingAmount) ? record.shippingAmount : 0
+  const shippingLabel = typeof record.shippingLabel === "string" ? record.shippingLabel.trim() : undefined
+  const total =
+    typeof record.total === "number" && Number.isFinite(record.total) ? record.total : subtotal + shippingAmount
   const customer = record.customer
   const items = record.items
 
   if (!id || !provider || !createdAt || !completedAt || !paymentStatus || !paymentReference || !(subtotal >= 0)) return null
+  if (!(shippingAmount >= 0) || !(total >= 0)) return null
   if (!customer || typeof customer !== "object") return null
   if (!Array.isArray(items) || !items.length) return null
 
@@ -52,6 +61,9 @@ function normalizeConfirmedOrderRecord(input: unknown): ConfirmedOrderRecord | n
     paymentReference,
     customer: customer as CheckoutOrderCustomer,
     subtotal,
+    shippingAmount,
+    shippingLabel,
+    total,
     items: items as CheckoutOrderItem[]
   }
 }

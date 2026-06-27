@@ -3,6 +3,7 @@ import crypto from "node:crypto"
 import path from "node:path"
 import { siteConfig } from "@/config/site"
 import type { CartItem } from "@/lib/cart"
+import type { ShippingQuote } from "@/lib/shipping"
 
 export type CheckoutProvider = "mercado_pago" | "paypal"
 
@@ -18,6 +19,8 @@ export type CheckoutCustomer = {
   postalCode: string
   notes?: string
 }
+
+type CheckoutPricing = Pick<ShippingQuote, "subtotal" | "shippingAmount" | "shippingLabel" | "total">
 
 const localEnvCache = new Map<string, string>()
 let localEnvLoaded = false
@@ -129,6 +132,7 @@ export async function createMercadoPagoCheckout(input: {
   items: CartItem[]
   customer: CheckoutCustomer
   orderId: string
+  pricing: CheckoutPricing
 }) {
   const accessToken = envValue("MERCADO_PAGO_ACCESS_TOKEN")
   if (!accessToken) throw new Error("Mercado Pago no esta configurado.")
@@ -143,13 +147,26 @@ export async function createMercadoPagoCheckout(input: {
       orderId: input.orderId,
       source: "perfimes"
     },
-    items: input.items.map((item) => ({
-      id: item.id,
-      title: `${item.brand} ${item.name} ${item.sizeMl} ml`,
-      quantity: item.quantity,
-      currency_id: siteConfig.currency,
-      unit_price: Number(item.price.toFixed(2))
-    })),
+    items: [
+      ...input.items.map((item) => ({
+        id: item.id,
+        title: `${item.brand} ${item.name} ${item.sizeMl} ml`,
+        quantity: item.quantity,
+        currency_id: siteConfig.currency,
+        unit_price: Number(item.price.toFixed(2))
+      })),
+      ...(input.pricing.shippingAmount > 0
+        ? [
+            {
+              id: `shipping-${input.orderId}`,
+              title: input.pricing.shippingLabel,
+              quantity: 1,
+              currency_id: siteConfig.currency,
+              unit_price: Number(input.pricing.shippingAmount.toFixed(2))
+            }
+          ]
+        : [])
+    ],
     payer: {
       name: input.customer.fullName,
       email: input.customer.email,
@@ -212,10 +229,10 @@ export async function createPayPalCheckout(input: {
   items: CartItem[]
   customer: CheckoutCustomer
   orderId: string
+  pricing: CheckoutPricing
 }) {
   const token = await getPayPalAccessToken()
   const siteUrl = resolveSiteUrl()
-  const total = input.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const { givenName, surname } = fullNameParts(input.customer.fullName)
 
   const json = await fetchJson(`${paypalBaseUrl()}/v2/checkout/orders`, {
@@ -239,12 +256,20 @@ export async function createPayPalCheckout(input: {
           custom_id: input.orderId,
           amount: {
             currency_code: siteConfig.currency,
-            value: total.toFixed(2),
+            value: input.pricing.total.toFixed(2),
             breakdown: {
               item_total: {
                 currency_code: siteConfig.currency,
-                value: total.toFixed(2)
-              }
+                value: input.pricing.subtotal.toFixed(2)
+              },
+              ...(input.pricing.shippingAmount > 0
+                ? {
+                    shipping: {
+                      currency_code: siteConfig.currency,
+                      value: input.pricing.shippingAmount.toFixed(2)
+                    }
+                  }
+                : {})
             }
           },
           items: input.items.map((item) => ({

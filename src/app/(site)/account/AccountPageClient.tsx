@@ -9,6 +9,7 @@ import { Pill } from "@/components/ui/Pill"
 import { useMxPostalCodeLookup } from "@/hooks/useMxPostalCodeLookup"
 import { buildMxStateOptions, getPostalCodeHelper, normalizePostalCodeInput } from "@/lib/mxAddress"
 import { formatCustomerOrderNumber, orderStatusCustomerLabel, orderStatusSupportingLabel } from "@/lib/orderPresentation"
+import { resolveStoredOrderTotal } from "@/lib/shipping"
 import { formatPrice } from "@/lib/whatsapp"
 import { evaluatePassword, passwordPolicyHint } from "@/lib/passwordPolicy"
 
@@ -74,6 +75,9 @@ type OrderRecord = {
     notes?: string
   }
   subtotal: number
+  shippingAmount: number
+  shippingLabel?: string
+  total: number
   items: OrderItem[]
 }
 
@@ -272,7 +276,7 @@ export function AccountPageClient({
 
   const isBusy = status !== "idle"
   const totalOrders = orders.length
-  const totalSpent = useMemo(() => orders.reduce((sum, order) => sum + order.subtotal, 0), [orders])
+  const totalSpent = useMemo(() => orders.reduce((sum, order) => sum + resolveStoredOrderTotal(order), 0), [orders])
   const accountStateLabel = customer ? "Activa" : "Invitado"
   const ordersLabel = `${totalOrders} ${totalOrders === 1 ? "pedido" : "pedidos"}`
   const spentLabel = totalSpent > 0 ? formatPrice(totalSpent) : "Sin compras"
@@ -1189,7 +1193,7 @@ export function AccountPageClient({
                             </div>
                             <div className="rounded-luxe border border-black/8 bg-white/78 px-4 py-3">
                               <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">Total pagado</p>
-                              <p className="mt-1 font-medium text-ink-950">{formatPrice(featuredOrder.subtotal)}</p>
+                              <p className="mt-1 font-medium text-ink-950">{formatPrice(resolveStoredOrderTotal(featuredOrder))}</p>
                             </div>
                           </div>
                           <div className="mt-4 flex justify-end">
@@ -1279,7 +1283,7 @@ export function AccountPageClient({
                               </div>
                               <div className="mt-4 flex items-center justify-between text-sm text-ink-700">
                                 <span>Total pagado</span>
-                                <span className="font-semibold text-ink-950">{formatPrice(order.subtotal)}</span>
+                                <span className="font-semibold text-ink-950">{formatPrice(resolveStoredOrderTotal(order))}</span>
                               </div>
                               <div className="mt-4 flex justify-end">
                                 <button

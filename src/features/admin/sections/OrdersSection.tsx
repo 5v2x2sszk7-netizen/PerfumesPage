@@ -8,6 +8,7 @@ import { api } from "@/lib/admin/api"
 import { formatMoney } from "@/lib/admin/utils"
 import type { ConfirmedOrderRecord } from "@/lib/admin/types"
 import { fulfillmentStatusCustomerLabel, orderStatusCustomerLabel } from "@/lib/orderPresentation"
+import { resolveStoredOrderTotal } from "@/lib/shipping"
 import { AdminPanel } from "@/features/admin/components/AdminPanel"
 
 type Props = {
@@ -117,7 +118,7 @@ export function OrdersSection({ orders, refresh }: Props) {
     })
   }, [fromDate, fulfillmentStatusFilter, orders, paymentStatus, provider, query, toDate])
 
-  const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.subtotal, 0)
+  const totalRevenue = filteredOrders.reduce((sum, order) => sum + resolveStoredOrderTotal(order), 0)
   const totalUnits = filteredOrders.reduce(
     (sum, order) => sum + order.items.reduce((itemsSum, item) => itemsSum + item.quantity, 0),
     0
@@ -227,6 +228,8 @@ export function OrdersSection({ orders, refresh }: Props) {
       "estado",
       "codigo_postal",
       "subtotal",
+      "envio",
+      "total",
       "piezas",
       "productos"
     ]
@@ -249,6 +252,8 @@ export function OrdersSection({ orders, refresh }: Props) {
         order.customer.state,
         order.customer.postalCode,
         order.subtotal,
+        order.shippingAmount,
+        resolveStoredOrderTotal(order),
         totalOrderUnits,
         products
       ]
@@ -604,7 +609,7 @@ export function OrdersSection({ orders, refresh }: Props) {
                       <span className="inline-flex rounded-full bg-white px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-700 ring-1 ring-inset ring-black/8">
                         {totalOrderUnits} pieza(s)
                       </span>
-                      <p className="font-display text-2xl text-ink-950">{formatMoney(order.subtotal)}</p>
+                      <p className="font-display text-2xl text-ink-950">{formatMoney(resolveStoredOrderTotal(order))}</p>
                       <Button
                         type="button"
                         variant="outline"
@@ -660,6 +665,20 @@ export function OrdersSection({ orders, refresh }: Props) {
                         <div className="rounded-luxe-lg border border-black/8 bg-ink-50/35 px-4 py-4">
                           <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Estado</p>
                           <p className="mt-1 text-sm font-medium text-ink-950">{orderStatusCustomerLabel(order)}</p>
+                        </div>
+                        <div className="rounded-luxe-lg border border-black/8 bg-ink-50/35 px-4 py-4">
+                          <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Subtotal</p>
+                          <p className="mt-1 text-sm font-medium text-ink-950">{formatMoney(order.subtotal)}</p>
+                        </div>
+                        <div className="rounded-luxe-lg border border-black/8 bg-ink-50/35 px-4 py-4">
+                          <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Envio</p>
+                          <p className="mt-1 text-sm font-medium text-ink-950">
+                            {order.shippingAmount > 0 ? formatMoney(order.shippingAmount) : "Gratis"}
+                          </p>
+                        </div>
+                        <div className="rounded-luxe-lg border border-black/8 bg-ink-50/35 px-4 py-4">
+                          <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Total</p>
+                          <p className="mt-1 text-sm font-medium text-ink-950">{formatMoney(resolveStoredOrderTotal(order))}</p>
                         </div>
                         <div className="rounded-luxe-lg border border-black/8 bg-ink-50/35 px-4 py-4 sm:col-span-2">
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">

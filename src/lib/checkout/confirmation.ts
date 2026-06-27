@@ -94,6 +94,9 @@ export async function applyConfirmedCheckout(input: {
       paymentReference: completedOrder.paymentReference || input.paymentReference,
       customer: completedOrder.customer,
       subtotal: completedOrder.subtotal,
+      shippingAmount: completedOrder.shippingAmount,
+      shippingLabel: completedOrder.shippingLabel,
+      total: completedOrder.total,
       items: completedOrder.items
     })
 

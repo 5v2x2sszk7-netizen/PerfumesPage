@@ -15,6 +15,7 @@ import type { CheckoutProvider } from "@/lib/payments"
 import { cn } from "@/lib/cn"
 import { buildMxStateOptions, getPostalCodeHelper, normalizePostalCodeInput } from "@/lib/mxAddress"
 import { evaluatePassword, passwordPolicyHint } from "@/lib/passwordPolicy"
+import { calculateShippingQuote } from "@/lib/shipping"
 
 type ProviderAvailability = {
   mercadoPago: boolean
@@ -268,7 +269,20 @@ export function CheckoutPageClient({
     ((provider === "mercado_pago" && providers.mercadoPago) || (provider === "paypal" && providers.paypal))
 
   const itemCount = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items])
-  const heroTotal = hasItems ? formatPrice(subtotal) : "$0"
+  const checkoutStateOptions = useMemo(() => buildMxStateOptions(form.state), [form.state])
+  const checkoutPostalCodeStatus = useMemo(() => getPostalCodeHelper(form.postalCode, form.state), [form.postalCode, form.state])
+  const checkoutPostalLookup = useMxPostalCodeLookup(form.postalCode)
+  const shippingState = checkoutPostalLookup.status === "success" ? checkoutPostalLookup.result.state || form.state : form.state
+  const shippingQuote = useMemo(
+    () =>
+      calculateShippingQuote({
+        subtotal,
+        state: shippingState,
+        postalCode: form.postalCode
+      }),
+    [form.postalCode, shippingState, subtotal]
+  )
+  const heroTotal = hasItems ? formatPrice(shippingQuote.isReady ? shippingQuote.total : subtotal) : "$0"
   const heroMethod = hasItems ? (provider === "paypal" ? "PayPal" : "Mercado Pago") : "Pendiente"
   const providerLabel = provider === "paypal" ? "PayPal" : "Mercado Pago"
   const providerActionLabel = provider === "paypal" ? "Pagar con PayPal" : "Pagar con Mercado Pago"
@@ -276,9 +290,6 @@ export function CheckoutPageClient({
     provider === "paypal"
       ? "PayPal es ideal si quieres pagar con tu cuenta, tarjetas guardadas o flujo internacional."
       : "Mercado Pago es ideal para cobro directo en Mexico con tarjetas, saldo o metodos locales."
-  const checkoutStateOptions = useMemo(() => buildMxStateOptions(form.state), [form.state])
-  const checkoutPostalCodeStatus = useMemo(() => getPostalCodeHelper(form.postalCode, form.state), [form.postalCode, form.state])
-  const checkoutPostalLookup = useMxPostalCodeLookup(form.postalCode)
   const neighborhoodListId = useId()
 
   useEffect(() => {
@@ -373,6 +384,11 @@ export function CheckoutPageClient({
 
     if (!form.state.trim()) {
       setError("Selecciona un estado para la direccion de envio.")
+      return
+    }
+
+    if (!shippingQuote.isReady) {
+      setError("Completa tu estado y codigo postal para calcular el envio.")
       return
     }
 
@@ -828,6 +844,17 @@ export function CheckoutPageClient({
                           {checkoutPostalLookup.result.zone ? ` · Zona: ${checkoutPostalLookup.result.zone}` : ""}
                         </p>
                       ) : null}
+                      <p className="mt-2 text-xs leading-5 text-ink-500">
+                        {shippingQuote.isReady
+                          ? shippingQuote.qualifiesForFreeShipping
+                            ? `${shippingQuote.shippingLabel}. Tu pedido ya alcanza envio gratis.`
+                            : `${shippingQuote.shippingLabel}: ${formatPrice(shippingQuote.shippingAmount)}. Envio gratis desde ${formatPrice(
+                                shippingQuote.freeShippingThreshold
+                              )}.`
+                          : `Completa tu estado y codigo postal para calcular el envio. Envio gratis desde ${formatPrice(
+                              shippingQuote.freeShippingThreshold
+                            )}.`}
+                      </p>
                     </div>
                     <div className="sm:col-span-2">
                       <CheckoutField id="notes" label="Notas del pedido">
@@ -971,9 +998,23 @@ export function CheckoutPageClient({
                     <span>Proceso</span>
                     <span className="font-medium text-ink-950">Revision final</span>
                   </div>
+                  <div className="mt-3 flex items-center justify-between text-sm text-ink-700">
+                    <span>Subtotal</span>
+                    <span className="font-medium text-ink-950">{formatPrice(subtotal)}</span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-sm text-ink-700">
+                    <span>{shippingQuote.isReady ? shippingQuote.shippingLabel : "Envio"}</span>
+                    <span className="font-medium text-ink-950">
+                      {shippingQuote.isReady
+                        ? shippingQuote.shippingAmount > 0
+                          ? formatPrice(shippingQuote.shippingAmount)
+                          : "Gratis"
+                        : "Pendiente"}
+                    </span>
+                  </div>
                   <div className="mt-4 flex items-center justify-between border-t border-black/8 pt-4 text-base font-semibold text-ink-950">
                     <span>Total</span>
-                    <span>{formatPrice(subtotal)}</span>
+                    <span>{formatPrice(shippingQuote.isReady ? shippingQuote.total : subtotal)}</span>
                   </div>
                 </div>
                 <div className="rounded-luxe-xl border border-antiqueGold/20 bg-antiqueGold/10 px-4 py-4">
@@ -984,10 +1025,11 @@ export function CheckoutPageClient({
                 </div>
                 <div className="flex items-center justify-between border-t border-black/8 pt-4 text-base font-semibold text-ink-950">
                   <span>Total</span>
-                  <span>{formatPrice(subtotal)}</span>
+                  <span>{formatPrice(shippingQuote.isReady ? shippingQuote.total : subtotal)}</span>
                 </div>
                 <p className="text-xs leading-5 text-ink-500">
                   El cobro final y la validacion se completan en {providerLabel} antes de confirmar tu pedido.
+                  {shippingQuote.isReady ? ` Incluye ${shippingQuote.shippingLabel.toLowerCase()}.` : " El envio se define cuando confirmas CP y estado."}
                 </p>
               </div>
             </Card>
