@@ -21,6 +21,15 @@ function deliveryStatusLabel(condition: Review["deliveryCondition"] | undefined)
   return ""
 }
 
+function normalizeReviewCopy(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim()
+}
+
 function DeliveryGallery({ images, metaLabel }: { images: string[]; metaLabel: string }) {
   if (!images.length) return null
   return (
@@ -63,6 +72,8 @@ function ReviewCardItem({ review, delayMs, animate }: { review: Review; delayMs:
   const displayName = formatCustomerDisplayName(review.customerName)
   const text = formatReviewSnippet(review.text, 220)
   const status = deliveryStatusLabel(review.deliveryCondition)
+  const shouldHideDuplicatedBody =
+    text && status && normalizeReviewCopy(text) === normalizeReviewCopy(status)
   const deliveryImages = (
     review.deliveryImageSrcs?.length ? review.deliveryImageSrcs : review.deliveryImageSrc ? [review.deliveryImageSrc] : []
   ).slice(0, 5)
@@ -99,7 +110,7 @@ function ReviewCardItem({ review, delayMs, animate }: { review: Review; delayMs:
 
         <div className="min-w-0 pt-1">
           <div className="space-y-2">
-            {text ? <p className="whitespace-pre-wrap text-base text-ink-800">{text}</p> : null}
+            {text && !shouldHideDuplicatedBody ? <p className="whitespace-pre-wrap text-base text-ink-800">{text}</p> : null}
 
             {review.deliveryCondition || review.deliveryNotes || deliveryImages.length ? (
               <div className="space-y-2">

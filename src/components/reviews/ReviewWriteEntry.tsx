@@ -20,8 +20,10 @@ export function ReviewWriteEntry({ photoUploadsEnabled }: { photoUploadsEnabled:
         variant="soft"
         className="bg-white/70 px-6 py-3 text-ink-800 shadow-sm backdrop-blur hover:bg-white/85 hover:shadow-soft-hover"
       >
-        <span className="text-base leading-none">★</span>
-        Compartir experiencia
+        <span className="flex items-center justify-center gap-2">
+          <span className="inline-flex h-4 w-4 items-center justify-center text-[15px] leading-none">★</span>
+          <span className="leading-none">Compartir experiencia</span>
+        </span>
       </Button>
 
       {open ? (
