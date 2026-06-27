@@ -9,6 +9,7 @@ import { formatCustomerDisplayName, getInitials } from "@/lib/text"
 import { formatReviewSnippet, type ReviewCarouselItem } from "@/lib/reviews"
 import { StarRating } from "@/components/ui/StarRating"
 import { SectionHeader } from "@/components/ui/SectionHeader"
+import { isPersistenceConfigured } from "@/lib/persistence"
 
 const reviewDateFormatter = new Intl.DateTimeFormat("es-MX", { timeZone: "America/Mexico_City" })
 
@@ -146,6 +147,8 @@ export function HomeReviewsSection({
   avgRatingLabel: string
   roundedStars: number
 }) {
+  const reviewPhotoUploadsEnabled = isPersistenceConfigured("uploads")
+
   return (
     <section className="border-t border-black/6 bg-white">
       <Container className="py-16 pt-24">
@@ -178,7 +181,7 @@ export function HomeReviewsSection({
             </Surface>
           ) : null}
           <div className="mt-10 mb-12 flex justify-start">
-            <ReviewWriteEntry />
+            <ReviewWriteEntry photoUploadsEnabled={reviewPhotoUploadsEnabled} />
           </div>
 
           <div className="mt-2 grid gap-4">

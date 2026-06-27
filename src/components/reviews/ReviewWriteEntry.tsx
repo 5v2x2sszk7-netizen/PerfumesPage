@@ -9,7 +9,7 @@ const ReviewForm = dynamic(() => import("./ReviewForm").then((m) => m.ReviewForm
   ssr: false
 })
 
-export function ReviewWriteEntry() {
+export function ReviewWriteEntry({ photoUploadsEnabled }: { photoUploadsEnabled: boolean }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -26,10 +26,9 @@ export function ReviewWriteEntry() {
 
       {open ? (
         <ModalSheet open={open} onClose={() => setOpen(false)} kicker="OPINIÓN" title="Escribe tu reseña">
-          <ReviewForm />
+          <ReviewForm photoUploadsEnabled={photoUploadsEnabled} />
         </ModalSheet>
       ) : null}
     </>
   )
 }
-

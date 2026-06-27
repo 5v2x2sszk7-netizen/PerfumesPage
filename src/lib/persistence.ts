@@ -7,6 +7,18 @@ class PersistenceNotConfiguredError extends Error {
   }
 }
 
+export function isPersistenceConfigured(scope: "data" | "uploads") {
+  if (process.env.NODE_ENV !== "production") return true
+  if (process.env.PERFIMES_ALLOW_FS_WRITE === "1") return true
+  if (scope === "uploads") {
+    return Boolean((process.env.PERFIMES_STORAGE_BASE_URL ?? "").trim())
+  }
+  return Boolean(
+    (process.env.PERFIMES_STORAGE_BASE_URL ?? "").trim() ||
+      ((process.env.UPSTASH_REDIS_REST_URL ?? "").trim() && (process.env.UPSTASH_REDIS_REST_TOKEN ?? "").trim())
+  )
+}
+
 export function isPersistenceNotConfiguredError(
   err: unknown
 ): err is Error & { code: "PERSISTENCE_NOT_CONFIGURED" } {

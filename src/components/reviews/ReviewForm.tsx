@@ -84,7 +84,7 @@ function reducer(state: State, action: Action): State {
   return state
 }
 
-export function ReviewForm() {
+export function ReviewForm({ photoUploadsEnabled }: { photoUploadsEnabled: boolean }) {
   const router = useRouter()
   const [state, dispatch] = useReducer(reducer, initialState)
   const photosRef = useRef<DeliveryPhoto[]>([])
@@ -121,6 +121,13 @@ export function ReviewForm() {
 
   async function onUploadDeliveryPhotos(files: FileList | null) {
     if (!files || files.length === 0) return
+    if (!photoUploadsEnabled) {
+      dispatch({
+        type: "set_error",
+        message: "Las fotos en reseñas no están disponibles por ahora en producción. Puedes enviar tu reseña sin imagen."
+      })
+      return
+    }
     dispatch({ type: "set_error", message: null })
 
     const remaining = Math.max(0, 5 - state.deliveryPhotos.length)
@@ -171,7 +178,11 @@ export function ReviewForm() {
       const results = await Promise.allSettled(workers)
       const failed = results.filter((r) => r.status === "rejected")
       if (failed.length) {
-        dispatch({ type: "set_error", message: "Algunas fotos no se pudieron subir. Intenta de nuevo." })
+        const firstError = failed[0]?.status === "rejected" && failed[0].reason instanceof Error ? failed[0].reason.message : ""
+        dispatch({
+          type: "set_error",
+          message: firstError || "Algunas fotos no se pudieron subir. Intenta de nuevo."
+        })
       }
     } catch (e) {
       dispatch({ type: "set_error", message: e instanceof Error ? e.message : "Error" })
@@ -284,7 +295,7 @@ export function ReviewForm() {
           <Card radius="lg" className="grid gap-3 p-4">
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
               <Input
-                placeholder="Ningún archivo seleccionado"
+                placeholder={photoUploadsEnabled ? "Ningún archivo seleccionado" : "Las fotos no están disponibles por ahora"}
                 value={
                   state.deliveryPhotos.filter((p) => Boolean(p.remoteSrc)).length === 0
                     ? ""
@@ -297,13 +308,15 @@ export function ReviewForm() {
               <UploadButton
                 multiple
                 accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
-                disabled={state.uploading || state.status === "submitting"}
+                disabled={!photoUploadsEnabled || state.uploading || state.status === "submitting"}
                 className={state.deliveryPhotos.length >= 5 ? "text-inkWarm" : ""}
                 onSelect={(files) => {
                   void onUploadDeliveryPhotos(files)
                 }}
               >
-                {state.uploading
+                {!photoUploadsEnabled
+                  ? "Próximamente"
+                  : state.uploading
                   ? "Subiendo..."
                   : state.deliveryPhotos.length >= 5
                     ? "Límite 5"
@@ -319,7 +332,11 @@ export function ReviewForm() {
                     Fotos: {state.deliveryPhotos.length}/5
                   </p>
                 ) : null}
-                <p className="text-xs text-ink-500">Solo imágenes. Máximo 2 MB por foto.</p>
+                <p className="text-xs text-ink-500">
+                  {photoUploadsEnabled
+                    ? "Solo imágenes. Máximo 2 MB por foto."
+                    : "Por ahora puedes enviar tu reseña sin foto. La carga de imágenes estará disponible en una siguiente fase."}
+                </p>
               </div>
               <div className="grid grid-cols-5 gap-2">
                 {state.deliveryPhotos.slice(0, 5).map((p) => (
