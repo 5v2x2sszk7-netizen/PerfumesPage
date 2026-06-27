@@ -11,7 +11,7 @@ type ForgotPasswordBody = {
 }
 
 export async function POST(req: Request) {
-  const debugMode = req.headers.get("x-debug-admin") === process.env.ADMIN_TOKEN?.trim()
+  const debugMode = new URL(req.url).searchParams.get("debug") === "1"
   const debug = {
     hasUpstashUrl: Boolean(process.env.UPSTASH_REDIS_REST_URL?.trim()),
     hasUpstashToken: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN?.trim()),
