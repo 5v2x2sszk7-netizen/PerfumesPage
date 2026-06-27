@@ -1,4 +1,5 @@
 import { jsonError, jsonNoStoreOk, readJsonBody } from "@/lib/apiResponse"
+import { readFileSync } from "node:fs"
 import { createPasswordResetToken, hashPasswordResetToken, normalizeCustomerEmail } from "@/lib/customerAuth"
 import { buildPasswordResetUrl, createPasswordResetExpiry, sendPasswordResetEmail } from "@/lib/passwordReset"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
@@ -10,6 +11,17 @@ type ForgotPasswordBody = {
 }
 
 export async function POST(req: Request) {
+  const debugMode = req.headers.get("x-debug-admin") === process.env.ADMIN_TOKEN?.trim()
+  const debug = {
+    hasUpstashUrl: Boolean(process.env.UPSTASH_REDIS_REST_URL?.trim()),
+    hasUpstashToken: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN?.trim()),
+    hasResendApiKey: Boolean(process.env.RESEND_API_KEY?.trim()),
+    hasResendFromEmail: Boolean(process.env.RESEND_FROM_EMAIL?.trim()),
+    customerIndex: -1,
+    customersCount: 0,
+    emailJobCreated: false,
+    deliveryMode: "" as "" | "email" | "preview"
+  }
   const rate = await checkRateLimit(req, { keyPrefix: "customer-password-forgot", windowMs: 15 * 60 * 1000, max: 8 })
   if (!rate.allowed) {
     return jsonError("Demasiados intentos. Intenta de nuevo en unos minutos.", 429, {
@@ -40,6 +52,31 @@ export async function POST(req: Request) {
     await withCustomersLock(async () => {
       const customers = await readCustomers()
       const customerIndex = customers.findIndex((entry) => entry.email === email)
+      debug.customerIndex = customerIndex
+      debug.customersCount = customers.length
+      // #region debug-point A:customer-match
+      ;(() => {
+        let u = "http://127.0.0.1:7777/event"
+        let s = "password-email-delivery"
+        try {
+          const e = readFileSync(".dbg/password-email-delivery.env", "utf8")
+          u = e.match(/DEBUG_SERVER_URL=(.+)/)?.[1] || u
+          s = e.match(/DEBUG_SESSION_ID=(.+)/)?.[1] || s
+        } catch {}
+        fetch(u, {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: s,
+            runId: "pre-fix",
+            hypothesisId: "A",
+            location: "forgot/route.ts:customerIndex",
+            msg: "[DEBUG] customer lookup completed",
+            data: { email, customerIndex, totalCustomers: customers.length },
+            ts: Date.now()
+          })
+        }).catch(() => {})
+      })()
+      // #endregion
       if (customerIndex === -1) return
 
       const token = createPasswordResetToken()
@@ -55,6 +92,29 @@ export async function POST(req: Request) {
         updatedAt: requestedAt
       }
       await writeCustomers(customers)
+      // #region debug-point B:token-persisted
+      ;(() => {
+        let u = "http://127.0.0.1:7777/event"
+        let s = "password-email-delivery"
+        try {
+          const e = readFileSync(".dbg/password-email-delivery.env", "utf8")
+          u = e.match(/DEBUG_SERVER_URL=(.+)/)?.[1] || u
+          s = e.match(/DEBUG_SESSION_ID=(.+)/)?.[1] || s
+        } catch {}
+        fetch(u, {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: s,
+            runId: "pre-fix",
+            hypothesisId: "B",
+            location: "forgot/route.ts:writeCustomers",
+            msg: "[DEBUG] password reset token persisted",
+            data: { email: customer.email, requestedAt, expiresAt },
+            ts: Date.now()
+          })
+        }).catch(() => {})
+      })()
+      // #endregion
 
       emailJob = {
         email: customer.email,
@@ -62,6 +122,7 @@ export async function POST(req: Request) {
         resetUrl: buildPasswordResetUrl(token, requestOrigin),
         expiresAt
       }
+      debug.emailJobCreated = true
     })
   } catch (error) {
     if (isPersistenceNotConfiguredError(error)) {
@@ -72,8 +133,33 @@ export async function POST(req: Request) {
 
   let previewUrl: string | undefined
   if (emailJob) {
+    const currentEmailJob: { email: string; fullName: string; resetUrl: string; expiresAt: string } = emailJob
+    // #region debug-point C:email-job-ready
+    ;(() => {
+      let u = "http://127.0.0.1:7777/event"
+      let s = "password-email-delivery"
+      try {
+        const e = readFileSync(".dbg/password-email-delivery.env", "utf8")
+        u = e.match(/DEBUG_SERVER_URL=(.+)/)?.[1] || u
+        s = e.match(/DEBUG_SESSION_ID=(.+)/)?.[1] || s
+      } catch {}
+      fetch(u, {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: s,
+          runId: "pre-fix",
+          hypothesisId: "C",
+          location: "forgot/route.ts:beforeSend",
+          msg: "[DEBUG] email job ready for delivery",
+          data: { email: currentEmailJob.email, expiresAt: currentEmailJob.expiresAt },
+          ts: Date.now()
+        })
+      }).catch(() => {})
+    })()
+    // #endregion
     try {
-      const delivery = await sendPasswordResetEmail(emailJob)
+      const delivery = await sendPasswordResetEmail(currentEmailJob)
+      debug.deliveryMode = delivery.mode
       if (delivery.mode === "preview") {
         previewUrl = delivery.previewUrl
       }
@@ -85,6 +171,7 @@ export async function POST(req: Request) {
 
   return jsonNoStoreOk({
     message: successMessage,
+    ...(debugMode ? { debug } : {}),
     ...(previewUrl ? { previewUrl } : {})
   })
 }
