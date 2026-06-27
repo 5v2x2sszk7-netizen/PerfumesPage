@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useEffect, useRef, useState, type CSSProperties } from "react"
 import { ModalShell } from "@/components/ui/ModalShell"
 import { clamp } from "@/lib/math"
@@ -145,14 +144,14 @@ export function ZoomDialog({
               transition: prefersReducedMotion ? "none" : "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)"
             }}
           >
-            <div className={"relative h-full w-full max-h-[80vh] max-w-full " + (closing ? "modal-image-out" : "modal-image")}>
-              <Image
+            <div className={"flex h-full w-full items-center justify-center " + (closing ? "modal-image-out" : "modal-image")}>
+              {/* Native img preserves the review photo's natural ratio inside the lightbox. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 key={activeItem.src}
                 src={activeItem.src}
                 alt={activeItem.alt}
-                fill
-                className={dialogImageClassName ?? "mx-auto max-h-[80vh] w-auto max-w-full object-contain"}
-                sizes="(max-width: 768px) 95vw, 1100px"
+                className={dialogImageClassName ?? "mx-auto h-auto max-h-[65vh] w-auto max-w-full rounded-lg object-contain"}
               />
             </div>
           </div>
