@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useId, useMemo, useState } from "react"
+import { signIn as socialSignIn, signOut as socialSignOut } from "next-auth/react"
+import { useCallback, useEffect, useId, useMemo, useState } from "react"
 import { Container } from "@/components/ui/Container"
 import { Card } from "@/components/ui/Surface"
 import { Input, Label, SelectWithCaret } from "@/components/ui/Field"
@@ -87,6 +88,11 @@ type AccountResponse = {
   error?: string
   customer?: PublicCustomer | null
   orders?: OrderRecord[]
+}
+
+type SocialProvidersAvailability = {
+  google: boolean
+  apple: boolean
 }
 
 const emptyProfile: CustomerProfile = {
@@ -252,13 +258,19 @@ function PasswordStrengthMeter({
 
 export function AccountPageClient({
   initialCustomer,
-  initialOrders
+  initialOrders,
+  socialProviders
 }: {
   initialCustomer: PublicCustomer | null
   initialOrders: OrderRecord[]
+  socialProviders: SocialProvidersAvailability
 }) {
   const searchParams = useSearchParams()
   const requestedAuthMode = searchParams.get("mode") === "login" ? "login" : "register"
+  const socialCallbackProvider = useMemo(() => {
+    const provider = searchParams.get("social")
+    return provider === "google" || provider === "apple" ? provider : ""
+  }, [searchParams])
   const [customer, setCustomer] = useState<PublicCustomer | null>(initialCustomer)
   const [orders, setOrders] = useState<OrderRecord[]>(initialOrders)
   const [authMode, setAuthMode] = useState<"register" | "login">(requestedAuthMode)
@@ -273,7 +285,7 @@ export function AccountPageClient({
   const [profile, setProfile] = useState<CustomerProfile>(() => profileFromCustomer(initialCustomer))
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
-  const [status, setStatus] = useState<"idle" | "auth" | "profile" | "logout">("idle")
+  const [status, setStatus] = useState<"idle" | "auth" | "profile" | "logout" | "social">("idle")
   const [highlightedOrderId, setHighlightedOrderId] = useState("")
   const [expandedOrderId, setExpandedOrderId] = useState("")
 
@@ -323,6 +335,7 @@ export function AccountPageClient({
     () => getPostalCodeHelper(resolvedProfile.postalCode, resolvedProfile.state),
     [resolvedProfile.postalCode, resolvedProfile.state]
   )
+  const hasSocialOptions = socialProviders.google || socialProviders.apple
   const neighborhoodListId = useId()
   const passwordRecoveryHref = useMemo(() => {
     const params = new URLSearchParams()
@@ -333,6 +346,23 @@ export function AccountPageClient({
     const query = params.toString()
     return query ? `/account/recover?${query}` : "/account/recover"
   }, [auth.email])
+
+  const refreshAccount = useCallback(async () => {
+    const response = await fetch("/api/account/me", { cache: "no-store" })
+    const json = await readJson<AccountResponse>(response)
+    if (!response.ok || !json?.ok) {
+      throw new Error(json?.error || "No se pudo cargar tu cuenta.")
+    }
+    const nextCustomer = json.customer ?? null
+    setCustomer(nextCustomer)
+    setOrders(Array.isArray(json.orders) ? json.orders : [])
+    setProfile(profileFromCustomer(nextCustomer))
+    setAuth((current) => ({
+      ...current,
+      email: nextCustomer?.email || current.email,
+      fullName: nextCustomer?.profile.fullName || current.fullName
+    }))
+  }, [])
 
   useEffect(() => {
     function syncHighlightedOrder() {
@@ -363,25 +393,53 @@ export function AccountPageClient({
     }
   }, [])
 
+  useEffect(() => {
+    if (customer || !socialCallbackProvider) return
+
+    let cancelled = false
+
+    async function syncSocialSession() {
+      setError("")
+      setMessage("")
+      setStatus("social")
+
+      try {
+        const response = await fetch("/api/account/oauth/session", {
+          method: "POST"
+        })
+        const json = await readJson<{ ok?: boolean; error?: string }>(response)
+        if (!response.ok || !json?.ok) {
+          throw new Error(json?.error || "No se pudo vincular tu acceso social.")
+        }
+
+        await refreshAccount()
+        if (cancelled) return
+
+        setMessage(socialCallbackProvider === "apple" ? "Sesión iniciada con Apple ID." : "Sesión iniciada con Google.")
+
+        const params = new URLSearchParams(searchParams.toString())
+        params.delete("social")
+        const query = params.toString()
+        window.history.replaceState(null, "", query ? `/account?${query}` : "/account")
+      } catch (syncError) {
+        if (cancelled) return
+        setError(syncError instanceof Error ? syncError.message : "No se pudo completar el acceso social.")
+      } finally {
+        if (!cancelled) {
+          setStatus("idle")
+        }
+      }
+    }
+
+    void syncSocialSession()
+
+    return () => {
+      cancelled = true
+    }
+  }, [customer, refreshAccount, searchParams, socialCallbackProvider])
+
   function toggleOrderDetails(orderId: string) {
     setExpandedOrderId((current) => (current === orderId ? "" : orderId))
-  }
-
-  async function refreshAccount() {
-    const response = await fetch("/api/account/me", { cache: "no-store" })
-    const json = await readJson<AccountResponse>(response)
-    if (!response.ok || !json?.ok) {
-      throw new Error(json?.error || "No se pudo cargar tu cuenta.")
-    }
-    const nextCustomer = json.customer ?? null
-    setCustomer(nextCustomer)
-    setOrders(Array.isArray(json.orders) ? json.orders : [])
-    setProfile(profileFromCustomer(nextCustomer))
-    setAuth((current) => ({
-      ...current,
-      email: nextCustomer?.email || current.email,
-      fullName: nextCustomer?.profile.fullName || current.fullName
-    }))
   }
 
   async function onSubmitAuth() {
@@ -441,6 +499,21 @@ export function AccountPageClient({
     }
   }
 
+  async function onStartSocialAuth(provider: "google" | "apple") {
+    setError("")
+    setMessage("")
+    setStatus("social")
+
+    try {
+      await socialSignIn(provider, {
+        callbackUrl: `/account?mode=login&social=${provider}`
+      })
+    } catch (socialError) {
+      setError(socialError instanceof Error ? socialError.message : "No se pudo abrir el acceso social.")
+      setStatus("idle")
+    }
+  }
+
   async function onSaveProfile() {
     setError("")
     setMessage("")
@@ -489,6 +562,7 @@ export function AccountPageClient({
     setStatus("logout")
 
     try {
+      await socialSignOut({ redirect: false })
       const response = await fetch("/api/account/logout", {
         method: "POST"
       })
@@ -635,6 +709,41 @@ export function AccountPageClient({
                 </div>
 
                 <div className="grid gap-7">
+                  {hasSocialOptions ? (
+                    <div className="grid gap-4 rounded-luxe-xl border border-black/10 bg-white/70 p-4 sm:p-5">
+                      <div>
+                        <p className="text-[11px] tracking-section text-ink-500">ACCESO SOCIAL</p>
+                        <p className="mt-2 text-sm leading-6 text-ink-700">
+                          Entra con tu cuenta verificada y conserva tu historial sin crear perfiles duplicados.
+                        </p>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {socialProviders.google ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-12 w-full border-black/10 text-[13px] font-medium tracking-[0.08em] text-ink-800"
+                            disabled={isBusy}
+                            onClick={() => onStartSocialAuth("google")}
+                          >
+                            {status === "social" ? "Conectando..." : "Continuar con Google"}
+                          </Button>
+                        ) : null}
+                        {socialProviders.apple ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-12 w-full border-black/10 text-[13px] font-medium tracking-[0.08em] text-ink-800"
+                            disabled={isBusy}
+                            onClick={() => onStartSocialAuth("apple")}
+                          >
+                            {status === "social" ? "Conectando..." : "Continuar con Apple ID"}
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+
                   {authMode === "register" ? (
                     <div className="grid gap-3">
                       <Label htmlFor="register-fullName">Nombre completo</Label>

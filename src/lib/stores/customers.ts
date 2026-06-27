@@ -12,17 +12,27 @@ export type CustomerProfile = {
   postalCode: string
 }
 
+export type CustomerAuthProvider = "google" | "apple"
+
+export type CustomerAuthProviderLink = {
+  provider: CustomerAuthProvider
+  providerAccountId: string
+  linkedAt: string
+  lastUsedAt?: string
+}
+
 export type CustomerRecord = {
   id: string
   email: string
-  passwordHash: string
-  passwordSalt: string
+  passwordHash?: string
+  passwordSalt?: string
   passwordResetTokenHash?: string
   passwordResetExpiresAt?: string
   passwordResetRequestedAt?: string
   createdAt: string
   updatedAt: string
   lastLoginAt?: string
+  authProviders?: CustomerAuthProviderLink[]
   profile: CustomerProfile
 }
 
@@ -57,14 +67,54 @@ function normalizeProfile(input: unknown): CustomerProfile | null {
   }
 }
 
+function normalizeAuthProvider(value: unknown): CustomerAuthProvider | null {
+  if (value === "google" || value === "apple") return value
+  return null
+}
+
+function normalizeAuthProviders(input: unknown) {
+  if (!Array.isArray(input)) return undefined
+
+  const providers = input
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return null
+      const record = entry as Record<string, unknown>
+      const provider = normalizeAuthProvider(record.provider)
+      const providerAccountId =
+        typeof record.providerAccountId === "string" ? record.providerAccountId.trim() : ""
+      const linkedAt = typeof record.linkedAt === "string" ? record.linkedAt : ""
+      const lastUsedAt = typeof record.lastUsedAt === "string" ? record.lastUsedAt : undefined
+
+      if (!provider || !providerAccountId || !linkedAt) return null
+
+      return {
+        provider,
+        providerAccountId,
+        linkedAt,
+        lastUsedAt
+      }
+    })
+    .filter(Boolean) as CustomerAuthProviderLink[]
+
+  if (!providers.length) return undefined
+
+  const deduped = new Map<string, CustomerAuthProviderLink>()
+  for (const provider of providers) {
+    const key = `${provider.provider}:${provider.providerAccountId}`
+    deduped.set(key, provider)
+  }
+
+  return Array.from(deduped.values())
+}
+
 function normalizeCustomerRecord(input: unknown): CustomerRecord | null {
   if (!input || typeof input !== "object") return null
   const record = input as Record<string, unknown>
 
   const id = typeof record.id === "string" ? record.id.trim() : ""
   const email = typeof record.email === "string" ? record.email.trim().toLowerCase() : ""
-  const passwordHash = typeof record.passwordHash === "string" ? record.passwordHash.trim() : ""
-  const passwordSalt = typeof record.passwordSalt === "string" ? record.passwordSalt.trim() : ""
+  const passwordHash = typeof record.passwordHash === "string" ? record.passwordHash.trim() || undefined : undefined
+  const passwordSalt = typeof record.passwordSalt === "string" ? record.passwordSalt.trim() || undefined : undefined
   const passwordResetTokenHash =
     typeof record.passwordResetTokenHash === "string" ? record.passwordResetTokenHash.trim() || undefined : undefined
   const passwordResetExpiresAt =
@@ -74,9 +124,10 @@ function normalizeCustomerRecord(input: unknown): CustomerRecord | null {
   const createdAt = typeof record.createdAt === "string" ? record.createdAt : ""
   const updatedAt = typeof record.updatedAt === "string" ? record.updatedAt : ""
   const lastLoginAt = typeof record.lastLoginAt === "string" ? record.lastLoginAt : undefined
+  const authProviders = normalizeAuthProviders(record.authProviders)
   const profile = normalizeProfile(record.profile)
 
-  if (!id || !email || !passwordHash || !passwordSalt || !createdAt || !updatedAt || !profile) return null
+  if (!id || !email || !createdAt || !updatedAt || !profile) return null
 
   return {
     id,
@@ -89,6 +140,7 @@ function normalizeCustomerRecord(input: unknown): CustomerRecord | null {
     createdAt,
     updatedAt,
     lastLoginAt,
+    authProviders,
     profile: {
       ...profile,
       email

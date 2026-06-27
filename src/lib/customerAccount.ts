@@ -1,6 +1,15 @@
 import { readOrders } from "@/lib/stores/orders"
-import { readCustomerSessionValue } from "@/lib/customerAuth"
-import { readCustomers, toPublicCustomer, type CustomerProfile } from "@/lib/stores/customers"
+import { normalizeCustomerEmail, readCustomerSessionValue } from "@/lib/customerAuth"
+import {
+  readCustomers,
+  toPublicCustomer,
+  type CustomerAuthProvider,
+  type CustomerAuthProviderLink,
+  type CustomerProfile,
+  type CustomerRecord,
+  withCustomersLock,
+  writeCustomers
+} from "@/lib/stores/customers"
 
 export type PublicCustomer = ReturnType<typeof toPublicCustomer>
 
@@ -61,6 +70,117 @@ export async function readCustomerFromSessionValue(sessionValue: string | undefi
 export async function readPublicCustomerFromSessionValue(sessionValue: string | undefined | null) {
   const customer = await readCustomerFromSessionValue(sessionValue)
   return customer ? toPublicCustomer(customer) : null
+}
+
+function buildEmptyProfile(email: string, fullName: string): CustomerProfile {
+  return {
+    fullName,
+    email,
+    phone: "",
+    addressLine1: "",
+    addressLine2: "",
+    neighborhood: "",
+    city: "",
+    state: "",
+    postalCode: ""
+  }
+}
+
+function mergeAuthProviderLink(
+  authProviders: CustomerAuthProviderLink[] | undefined,
+  provider: CustomerAuthProvider,
+  providerAccountId: string,
+  now: string
+) {
+  const existingProviders = authProviders ?? []
+  const providerIndex = existingProviders.findIndex(
+    (entry) => entry.provider === provider || entry.providerAccountId === providerAccountId
+  )
+
+  if (providerIndex === -1) {
+    return [
+      ...existingProviders,
+      {
+        provider,
+        providerAccountId,
+        linkedAt: now,
+        lastUsedAt: now
+      }
+    ]
+  }
+
+  const nextProviders = [...existingProviders]
+  nextProviders[providerIndex] = {
+    ...nextProviders[providerIndex],
+    provider,
+    providerAccountId,
+    linkedAt: nextProviders[providerIndex].linkedAt || now,
+    lastUsedAt: now
+  }
+  return nextProviders
+}
+
+export async function ensureCustomerForOAuth(input: {
+  email: string
+  fullName?: string | null
+  provider: CustomerAuthProvider
+  providerAccountId: string
+}): Promise<CustomerRecord> {
+  const email = normalizeCustomerEmail(input.email || "")
+  const providerAccountId = input.providerAccountId.trim()
+  const fullName = input.fullName?.trim() || email.split("@")[0] || "Cliente"
+
+  if (!email || !email.includes("@")) {
+    throw new Error("La cuenta social no devolvió un correo válido.")
+  }
+
+  if (!providerAccountId) {
+    throw new Error("La cuenta social no devolvió un identificador válido.")
+  }
+
+  let ensuredCustomer: CustomerRecord | null = null
+  await withCustomersLock(async () => {
+    const customers = await readCustomers()
+    const customerIndex = customers.findIndex((entry) => entry.email === email)
+    const now = new Date().toISOString()
+
+    if (customerIndex >= 0) {
+      const current = customers[customerIndex]
+      ensuredCustomer = {
+        ...current,
+        updatedAt: now,
+        lastLoginAt: now,
+        authProviders: mergeAuthProviderLink(current.authProviders, input.provider, providerAccountId, now),
+        profile: {
+          ...current.profile,
+          fullName: current.profile.fullName.trim() || fullName,
+          email
+        }
+      }
+      customers[customerIndex] = ensuredCustomer
+      await writeCustomers(customers)
+      return
+    }
+
+    const createdCustomer: CustomerRecord = {
+      id: globalThis.crypto?.randomUUID?.() || `customer-${Date.now()}`,
+      email,
+      createdAt: now,
+      updatedAt: now,
+      lastLoginAt: now,
+      authProviders: mergeAuthProviderLink(undefined, input.provider, providerAccountId, now),
+      profile: buildEmptyProfile(email, fullName)
+    }
+    ensuredCustomer = createdCustomer
+
+    await writeCustomers([createdCustomer, ...customers])
+  })
+
+  if (!ensuredCustomer) {
+    throw new Error("No se pudo preparar la cuenta social.")
+  }
+
+  return ensuredCustomer
 }
 
 export async function readOrdersForCustomer(customerId: string, email: string) {

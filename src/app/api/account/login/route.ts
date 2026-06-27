@@ -31,6 +31,9 @@ export async function POST(req: Request) {
   const customers = await readCustomers()
   const customer = customers.find((entry) => entry.email === email)
   if (!customer) return jsonError("No encontramos una cuenta con ese correo.", 404)
+  if (!customer.passwordHash || !customer.passwordSalt) {
+    return jsonError("Esta cuenta se creó con Google o Apple ID. Continúa con ese acceso o define una contraseña.", 400)
+  }
 
   const isValidPassword = await verifyCustomerPassword(password, customer.passwordHash, customer.passwordSalt)
   if (!isValidPassword) return jsonError("La contrasena es incorrecta.", 401)
