@@ -7,6 +7,8 @@ export type Review = {
   customerName: string
   customerId?: string
   customerEmail?: string
+  orderId?: string
+  orderNumber?: string
   verifiedPurchase?: boolean
   text: string
   rating?: number
@@ -40,6 +42,8 @@ function validateAndNormalizeReview(input: unknown): ReviewValidationResult {
   const customerName = typeof record.customerName === "string" ? record.customerName.trim() : ""
   const customerId = typeof record.customerId === "string" ? record.customerId.trim() : ""
   const customerEmail = typeof record.customerEmail === "string" ? record.customerEmail.trim().toLowerCase() : ""
+  const orderId = typeof record.orderId === "string" ? record.orderId.trim() : ""
+  const orderNumber = typeof record.orderNumber === "string" ? record.orderNumber.trim() : ""
   const verifiedPurchase = record.verifiedPurchase === true
   const text = typeof record.text === "string" ? record.text.trim() : ""
   const imageSrc = typeof record.imageSrc === "string" ? record.imageSrc.trim() : ""
@@ -88,6 +92,8 @@ function validateAndNormalizeReview(input: unknown): ReviewValidationResult {
       customerName,
       customerId: customerId || undefined,
       customerEmail: customerEmail || undefined,
+      orderId: orderId || undefined,
+      orderNumber: orderNumber || undefined,
       verifiedPurchase: verifiedPurchase || undefined,
       text,
       rating,

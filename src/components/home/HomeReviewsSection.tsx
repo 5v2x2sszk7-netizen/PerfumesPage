@@ -180,7 +180,9 @@ export function HomeReviewsSection({
                 </p>
               </div>
             ) : null}
-            <p className="mt-3 text-sm text-ink-700">Cuéntanos qué tan satisfech@ estás con tu compra en M A L O Fragances</p>
+            <p className="mt-3 text-sm text-ink-700">
+              Comparte tu experiencia con tu cuenta y reseña una compra confirmada en M A L O Fragances
+            </p>
           </div>
 
           {carouselItems.length ? (

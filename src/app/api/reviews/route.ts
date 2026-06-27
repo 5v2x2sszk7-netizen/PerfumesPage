@@ -4,7 +4,9 @@ import { checkRateLimit } from "@/lib/rateLimit"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { jsonError, jsonOk, readJsonBody } from "@/lib/apiResponse"
 import { customerCookieName } from "@/lib/customerAuth"
-import { readCustomerFromSessionValue, readOrdersForCustomer } from "@/lib/customerAccount"
+import { readCustomerFromSessionValue } from "@/lib/customerAccount"
+import { formatCustomerOrderNumber } from "@/lib/orderPresentation"
+import { getReviewEligibility, readEligibleReviewOrders } from "@/lib/reviewEligibility"
 
 export const runtime = "nodejs"
 
@@ -19,6 +21,29 @@ function readCookieValue(cookieHeader: string, name: string) {
     }
   }
   return null
+}
+
+export async function GET(req: Request) {
+  const sessionValue = readCookieValue(req.headers.get("cookie") ?? "", customerCookieName)
+  const customer = await readCustomerFromSessionValue(sessionValue)
+
+  if (!customer) {
+    return jsonOk({
+      authenticated: false,
+      customerName: "",
+      totalOrders: 0,
+      eligibleOrders: []
+    })
+  }
+
+  const eligibility = await getReviewEligibility(customer.id, customer.email)
+
+  return jsonOk({
+    authenticated: true,
+    customerName: customer.profile.fullName,
+    totalOrders: eligibility.totalOrders,
+    eligibleOrders: eligibility.eligibleOrders
+  })
 }
 
 export async function POST(req: Request) {
@@ -37,27 +62,41 @@ export async function POST(req: Request) {
   if (honeypot) return jsonError("Invalid request", 400)
 
   const payload = {
-    customerName: typeof body.customerName === "string" ? body.customerName : "",
     text: typeof body.text === "string" ? body.text : "",
     rating: typeof body.rating === "number" ? body.rating : undefined,
     deliveryCondition: typeof body.deliveryCondition === "string" ? body.deliveryCondition : undefined,
     deliveryNotes: typeof body.deliveryNotes === "string" ? body.deliveryNotes : undefined,
     deliveryImageSrc: typeof body.deliveryImageSrc === "string" ? body.deliveryImageSrc : undefined,
-    deliveryImageSrcs: Array.isArray(body.deliveryImageSrcs) ? body.deliveryImageSrcs : undefined
+    deliveryImageSrcs: Array.isArray(body.deliveryImageSrcs) ? body.deliveryImageSrcs : undefined,
+    orderId: typeof body.orderId === "string" ? body.orderId.trim() : ""
   }
 
   try {
     const sessionValue = readCookieValue(req.headers.get("cookie") ?? "", customerCookieName)
     const customer = await readCustomerFromSessionValue(sessionValue)
-    const customerOrders = customer ? await readOrdersForCustomer(customer.id, customer.email) : []
-    const verifiedPurchase = customerOrders.length > 0
+    if (!customer) {
+      return jsonError("Inicia sesión con tu cuenta para dejar una reseña.", 401)
+    }
+
+    if (!payload.orderId) {
+      return jsonError("Selecciona la compra que quieres reseñar.", 400)
+    }
+
+    const eligibleOrders = await readEligibleReviewOrders(customer.id, customer.email)
+    const selectedOrder = eligibleOrders.find((order) => order.orderId === payload.orderId)
+
+    if (!selectedOrder) {
+      return jsonError("Esa compra ya fue reseñada o no es elegible para comentar.", 403)
+    }
 
     const created = await createReview({
       ...payload,
-      customerName: customer?.profile.fullName || payload.customerName,
-      customerId: customer?.id,
-      customerEmail: customer?.email,
-      verifiedPurchase
+      customerName: customer.profile.fullName,
+      customerId: customer.id,
+      customerEmail: customer.email,
+      orderId: selectedOrder.orderId,
+      orderNumber: selectedOrder.orderNumber || formatCustomerOrderNumber(selectedOrder.orderId),
+      verifiedPurchase: true
     })
     return jsonOk({ review: created }, { status: 201 })
   } catch (e) {
