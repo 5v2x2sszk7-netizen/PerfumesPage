@@ -137,21 +137,21 @@ export function ZoomDialog({
           ) : null}
 
           <div
-            className="absolute inset-0"
+            className="absolute inset-x-4 top-12 bottom-20 flex items-center justify-center sm:inset-x-8 sm:top-14 sm:bottom-24"
             style={{
               transform: prefersReducedMotion
-                ? "translate3d(0px, 0px, 0) translateY(-10px) scale(1.12)"
-                : `translate3d(${parallax.x}px, ${parallax.y}px, 0) translateY(-10px) scale(1.12)`,
+                ? "translate3d(0px, 0px, 0)"
+                : `translate3d(${parallax.x}px, ${parallax.y}px, 0)`,
               transition: prefersReducedMotion ? "none" : "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)"
             }}
           >
-            <div className={"absolute inset-0 " + (closing ? "modal-image-out" : "modal-image")}>
+            <div className={"relative h-full w-full max-h-[80vh] max-w-full " + (closing ? "modal-image-out" : "modal-image")}>
               <Image
                 key={activeItem.src}
                 src={activeItem.src}
                 alt={activeItem.alt}
                 fill
-                className={dialogImageClassName ?? "object-contain"}
+                className={dialogImageClassName ?? "mx-auto max-h-[80vh] w-auto max-w-full object-contain"}
                 sizes="(max-width: 768px) 95vw, 1100px"
               />
             </div>
