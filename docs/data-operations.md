@@ -23,6 +23,26 @@ El script `scripts/maintenance.mjs` contempla estos archivos:
 - `data/suggestions.json`
 - `data/sales.json`
 
+## Atajos Con Npm
+
+También puedes usar estos atajos desde `package.json`:
+
+```bash
+npm run data:status
+```
+
+```bash
+npm run data:sync
+```
+
+```bash
+npm run data:pull
+```
+
+```bash
+npm run data:backup-sync
+```
+
 ## Flujo Recomendado
 
 ### 1. Revisar Estado
@@ -30,7 +50,7 @@ El script `scripts/maintenance.mjs` contempla estos archivos:
 Usa este comando para comparar si cada archivo existe en local y en `Upstash`:
 
 ```bash
-node --env-file=.env.local scripts/maintenance.mjs status-upstash
+npm run data:status
 ```
 
 ### 2. Crear Respaldo Y Sincronizar
@@ -39,19 +59,19 @@ Este es el flujo recomendado para mantenimiento normal. Primero crea un respaldo
 local en `backups/` y después sincroniza los JSON a `Upstash`.
 
 ```bash
-node --env-file=.env.local scripts/maintenance.mjs backup-sync-upstash
+npm run data:backup-sync
 ```
 
 Para sincronizar solo un archivo:
 
 ```bash
-node --env-file=.env.local scripts/maintenance.mjs backup-sync-upstash --file customers.json
+npm run data:backup-sync -- --file customers.json
 ```
 
 Para incluir `public/uploads/` solo en el respaldo:
 
 ```bash
-node --env-file=.env.local scripts/maintenance.mjs backup-sync-upstash --uploads
+npm run data:backup-sync -- --uploads
 ```
 
 ### 3. Descargar Desde Upstash
@@ -59,13 +79,13 @@ node --env-file=.env.local scripts/maintenance.mjs backup-sync-upstash --uploads
 Si necesitas reconstruir tu carpeta `data/` desde el estado remoto:
 
 ```bash
-node --env-file=.env.local scripts/maintenance.mjs pull-upstash
+npm run data:pull
 ```
 
 Para descargar solo un archivo:
 
 ```bash
-node --env-file=.env.local scripts/maintenance.mjs pull-upstash --file customers.json
+npm run data:pull -- --file customers.json
 ```
 
 ## Respaldo Y Restauración Local
@@ -94,7 +114,7 @@ Restaurar incluyendo uploads:
 node scripts/maintenance.mjs restore --from backups/AAAA-MM-DD_HHMMSS --uploads
 ```
 
-## Politica Recomendada
+## Política Recomendada
 
 - Mantener `data/perfumes.json` versionado en Git como catálogo base.
 - Mantener fuera de Git los datos operativos o sensibles.
@@ -104,24 +124,24 @@ node scripts/maintenance.mjs restore --from backups/AAAA-MM-DD_HHMMSS --uploads
 - Usar `pull-upstash` cuando necesites reconstruir un entorno local o validar
   el estado remoto.
 
-## Casos Tipicos
+## Casos Típicos
 
 ### Subir El Estado Actual A Producción
 
 ```bash
-node --env-file=.env.local scripts/maintenance.mjs backup-sync-upstash
+npm run data:backup-sync
 ```
 
 ### Verificar Si Falta Un Archivo En Remoto
 
 ```bash
-node --env-file=.env.local scripts/maintenance.mjs status-upstash
+npm run data:status
 ```
 
 ### Recuperar Solo Clientes Desde Remoto
 
 ```bash
-node --env-file=.env.local scripts/maintenance.mjs pull-upstash --file customers.json
+npm run data:pull -- --file customers.json
 ```
 
 ## Nota
