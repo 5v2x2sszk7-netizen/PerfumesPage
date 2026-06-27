@@ -1,6 +1,7 @@
 import { jsonError, jsonNoStoreOk, readJsonBody } from "@/lib/apiResponse"
 import { createPasswordResetToken, hashPasswordResetToken, normalizeCustomerEmail } from "@/lib/customerAuth"
 import { buildPasswordResetUrl, createPasswordResetExpiry, sendPasswordResetEmail } from "@/lib/passwordReset"
+import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { checkRateLimit } from "@/lib/rateLimit"
 import { readCustomers, withCustomersLock, writeCustomers } from "@/lib/stores/customers"
 
@@ -35,32 +36,39 @@ export async function POST(req: Request) {
       }
     | null = null
 
-  await withCustomersLock(async () => {
-    const customers = await readCustomers()
-    const customerIndex = customers.findIndex((entry) => entry.email === email)
-    if (customerIndex === -1) return
+  try {
+    await withCustomersLock(async () => {
+      const customers = await readCustomers()
+      const customerIndex = customers.findIndex((entry) => entry.email === email)
+      if (customerIndex === -1) return
 
-    const token = createPasswordResetToken()
-    const requestedAt = new Date().toISOString()
-    const expiresAt = createPasswordResetExpiry()
-    const customer = customers[customerIndex]
+      const token = createPasswordResetToken()
+      const requestedAt = new Date().toISOString()
+      const expiresAt = createPasswordResetExpiry()
+      const customer = customers[customerIndex]
 
-    customers[customerIndex] = {
-      ...customer,
-      passwordResetTokenHash: hashPasswordResetToken(token),
-      passwordResetExpiresAt: expiresAt,
-      passwordResetRequestedAt: requestedAt,
-      updatedAt: requestedAt
+      customers[customerIndex] = {
+        ...customer,
+        passwordResetTokenHash: hashPasswordResetToken(token),
+        passwordResetExpiresAt: expiresAt,
+        passwordResetRequestedAt: requestedAt,
+        updatedAt: requestedAt
+      }
+      await writeCustomers(customers)
+
+      emailJob = {
+        email: customer.email,
+        fullName: customer.profile.fullName,
+        resetUrl: buildPasswordResetUrl(token, requestOrigin),
+        expiresAt
+      }
+    })
+  } catch (error) {
+    if (isPersistenceNotConfiguredError(error)) {
+      return jsonError(error.message, 501)
     }
-    await writeCustomers(customers)
-
-    emailJob = {
-      email: customer.email,
-      fullName: customer.profile.fullName,
-      resetUrl: buildPasswordResetUrl(token, requestOrigin),
-      expiresAt
-    }
-  })
+    throw error
+  }
 
   let previewUrl: string | undefined
   if (emailJob) {

@@ -8,6 +8,7 @@ import {
 } from "@/lib/customerAuth"
 import { maskEmailAddress, isPasswordResetExpired } from "@/lib/passwordReset"
 import { passwordPolicyHint } from "@/lib/passwordPolicy"
+import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import { checkRateLimit } from "@/lib/rateLimit"
 import { readCustomers, toPublicCustomer, type CustomerRecord, withCustomersLock, writeCustomers } from "@/lib/stores/customers"
 
@@ -63,30 +64,37 @@ export async function POST(req: Request) {
 
   let updatedCustomer: CustomerRecord | null = null
 
-  await withCustomersLock(async () => {
-    const customers = await readCustomers()
-    const customer = findCustomerByResetToken(customers, token)
-    if (!customer) return
+  try {
+    await withCustomersLock(async () => {
+      const customers = await readCustomers()
+      const customer = findCustomerByResetToken(customers, token)
+      if (!customer) return
 
-    const customerIndex = customers.findIndex((entry) => entry.id === customer.id)
-    if (customerIndex === -1) return
+      const customerIndex = customers.findIndex((entry) => entry.id === customer.id)
+      if (customerIndex === -1) return
 
-    const passwordData = await hashCustomerPassword(password)
-    const now = new Date().toISOString()
+      const passwordData = await hashCustomerPassword(password)
+      const now = new Date().toISOString()
 
-    updatedCustomer = {
-      ...customer,
-      passwordHash: passwordData.passwordHash,
-      passwordSalt: passwordData.passwordSalt,
-      passwordResetTokenHash: undefined,
-      passwordResetExpiresAt: undefined,
-      passwordResetRequestedAt: undefined,
-      lastLoginAt: now,
-      updatedAt: now
+      updatedCustomer = {
+        ...customer,
+        passwordHash: passwordData.passwordHash,
+        passwordSalt: passwordData.passwordSalt,
+        passwordResetTokenHash: undefined,
+        passwordResetExpiresAt: undefined,
+        passwordResetRequestedAt: undefined,
+        lastLoginAt: now,
+        updatedAt: now
+      }
+      customers[customerIndex] = updatedCustomer
+      await writeCustomers(customers)
+    })
+  } catch (error) {
+    if (isPersistenceNotConfiguredError(error)) {
+      return jsonError(error.message, 501)
     }
-    customers[customerIndex] = updatedCustomer
-    await writeCustomers(customers)
-  })
+    throw error
+  }
 
   if (!updatedCustomer) {
     return jsonError("El enlace de recuperación no es válido o ya expiró.", 400)

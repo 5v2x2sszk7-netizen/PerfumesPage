@@ -70,7 +70,8 @@ class FsStorageDriver implements StorageDriver {
     }
   }
 
-  async writeText(key: string, value: string) {
+  async writeText(key: string, value: string, options?: StorageWriteOptions) {
+    void options
     const scope = inferScopeFromKey(key)
     if (scope) ensureFsWritesAllowed(scope)
     const filePath = resolveFsPathFromKey(key)
@@ -90,12 +91,79 @@ class FsStorageDriver implements StorageDriver {
     }
   }
 
-  async writeBytes(key: string, value: Uint8Array) {
+  async writeBytes(key: string, value: Uint8Array, options?: StorageWriteOptions) {
+    void options
     const scope = inferScopeFromKey(key)
     if (scope) ensureFsWritesAllowed(scope)
     const filePath = resolveFsPathFromKey(key)
     await fs.mkdir(path.dirname(filePath), { recursive: true })
     await fs.writeFile(filePath, Buffer.from(value))
+  }
+}
+
+class UpstashDataStorageDriver implements StorageDriver {
+  private baseUrl: string
+  private token: string
+  private fallback: FsStorageDriver
+
+  constructor(opts: { baseUrl: string; token: string; fallback: FsStorageDriver }) {
+    this.baseUrl = opts.baseUrl.replace(/\/$/, "")
+    this.token = opts.token
+    this.fallback = opts.fallback
+  }
+
+  private storageKey(key: string) {
+    const normalized = normalizeKey(key)
+    validateStorageKey(normalized)
+    if (inferScopeFromKey(normalized) !== "data") return null
+    return `perfimes:storage:${normalized}`
+  }
+
+  private async command(command: unknown[]) {
+    const res = await fetch(`${this.baseUrl}/command`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(command)
+    })
+    if (!res.ok) throw new Error(`Storage command failed: ${res.status}`)
+    const json = (await res.json().catch(() => null)) as { result?: unknown } | null
+    return json?.result ?? null
+  }
+
+  async readText(key: string) {
+    const storageKey = this.storageKey(key)
+    if (!storageKey) return this.fallback.readText(key)
+
+    const value = await this.command(["GET", storageKey]).catch(() => null)
+    if (typeof value === "string") return value
+
+    const fallbackValue = await this.fallback.readText(key)
+    if (fallbackValue !== null) {
+      await this.command(["SET", storageKey, fallbackValue]).catch(() => null)
+    }
+    return fallbackValue
+  }
+
+  async writeText(key: string, value: string, options?: StorageWriteOptions) {
+    const storageKey = this.storageKey(key)
+    if (!storageKey) return this.fallback.writeText(key, value, options)
+    await this.command(["SET", storageKey, value])
+  }
+
+  async readBytes(key: string) {
+    const scope = inferScopeFromKey(key)
+    if (scope !== "data") return this.fallback.readBytes(key)
+    const text = await this.readText(key)
+    return text === null ? null : new TextEncoder().encode(text)
+  }
+
+  async writeBytes(key: string, value: Uint8Array, options?: StorageWriteOptions) {
+    const scope = inferScopeFromKey(key)
+    if (scope !== "data") return this.fallback.writeBytes(key, value, options)
+    await this.writeText(key, new TextDecoder().decode(value), options)
   }
 }
 
@@ -162,10 +230,23 @@ let cachedDriver: StorageDriver | null = null
 export function getStorageDriver(): StorageDriver {
   if (cachedDriver) return cachedDriver
 
+  const fsDriver = new FsStorageDriver()
   const baseUrl = process.env.PERFIMES_STORAGE_BASE_URL
   const token = process.env.PERFIMES_STORAGE_TOKEN
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN
   const useRemote = process.env.NODE_ENV === "production" && typeof baseUrl === "string" && baseUrl.trim()
+  const useUpstash =
+    process.env.NODE_ENV === "production" &&
+    typeof upstashUrl === "string" &&
+    typeof upstashToken === "string" &&
+    upstashUrl.trim() &&
+    upstashToken.trim()
 
-  cachedDriver = useRemote ? new HttpStorageDriver({ baseUrl: baseUrl!, token }) : new FsStorageDriver()
+  cachedDriver = useRemote
+    ? new HttpStorageDriver({ baseUrl: baseUrl!, token })
+    : useUpstash
+      ? new UpstashDataStorageDriver({ baseUrl: upstashUrl!, token: upstashToken!, fallback: fsDriver })
+      : fsDriver
   return cachedDriver
 }

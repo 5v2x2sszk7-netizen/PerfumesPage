@@ -21,7 +21,7 @@ export function ensureFsWritesAllowed(scope: "data" | "uploads") {
   throw new PersistenceNotConfiguredError(
     `Persistencia no configurada para producción (${target}). ` +
       `En Vercel/Netlify el filesystem no es persistente. ` +
-      `Configura DB + blob storage (S3/R2) o define PERFIMES_ALLOW_FS_WRITE=1 ` +
+      `Configura almacenamiento persistente (por ejemplo Upstash Redis para datos y blob storage para imágenes) o define PERFIMES_ALLOW_FS_WRITE=1 ` +
       `si despliegas en un servidor con disco persistente.`
   )
 }
