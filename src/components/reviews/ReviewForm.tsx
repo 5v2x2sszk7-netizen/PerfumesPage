@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useReducer, useRef } from "react"
+import { useEffect, useMemo, useReducer, useRef, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Input, Label, SelectWithCaret, Textarea } from "@/components/ui/Field"
 import { UploadButton } from "@/components/ui/UploadButton"
@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Surface"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { StarRatingPicker } from "@/components/ui/StarRatingPicker"
+import { cn } from "@/lib/cn"
 
 type Status = "idle" | "submitting" | "success" | "error"
 
@@ -88,15 +89,22 @@ export function ReviewForm({ photoUploadsEnabled }: { photoUploadsEnabled: boole
   const router = useRouter()
   const [state, dispatch] = useReducer(reducer, initialState)
   const photosRef = useRef<DeliveryPhoto[]>([])
+  const [showValidation, setShowValidation] = useState(false)
 
+  const isNameValid = state.customerName.trim().length >= 2
+  const isTextValid = state.text.trim().length >= 10
   const canSubmit = useMemo(() => {
     return Boolean(
-      state.customerName.trim().length >= 2 &&
-        state.text.trim().length >= 10 &&
+      isNameValid &&
+        isTextValid &&
         state.status !== "submitting" &&
         !state.uploading
     )
-  }, [state.customerName, state.status, state.text, state.uploading])
+  }, [isNameValid, isTextValid, state.status, state.uploading])
+  const canPressSubmit = state.status !== "submitting" && !state.uploading
+  const customerNameError = !isNameValid ? "Ingresa tu nombre con al menos 2 caracteres." : ""
+  const textError = !isTextValid ? "Escribe una reseña de al menos 10 caracteres." : ""
+  const hasValidationErrors = !isNameValid || !isTextValid
 
   const visibleRating = state.hoverRating ?? state.rating
   const ratingLabel = visibleRating ? `${visibleRating} de 5` : "Sin calificación"
@@ -192,7 +200,11 @@ export function ReviewForm({ photoUploadsEnabled }: { photoUploadsEnabled: boole
   }
 
   async function onSubmit() {
-    if (!canSubmit) return
+    if (!canSubmit) {
+      setShowValidation(true)
+      return
+    }
+    setShowValidation(false)
     dispatch({ type: "set_status", status: "submitting" })
     dispatch({ type: "set_error", message: null })
     try {
@@ -237,12 +249,15 @@ export function ReviewForm({ photoUploadsEnabled }: { photoUploadsEnabled: boole
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label>Nombre *</Label>
+          <Label className={showValidation && customerNameError ? "text-red-700" : ""}>Nombre *</Label>
           <Input
             placeholder="Ej. Carlos Mendoza"
             value={state.customerName}
+            aria-invalid={showValidation && Boolean(customerNameError)}
+            className={cn(showValidation && customerNameError ? "border-red-300 bg-red-50/50 focus:border-red-400 focus:ring-red-200" : "")}
             onChange={(e) => dispatch({ type: "set_field", key: "customerName", value: e.target.value })}
           />
+          {showValidation && customerNameError ? <p className="text-xs text-red-600">{customerNameError}</p> : null}
         </div>
         <div className="grid gap-2">
           <Label>Calificación</Label>
@@ -261,15 +276,19 @@ export function ReviewForm({ photoUploadsEnabled }: { photoUploadsEnabled: boole
           <Input value={state.website} onChange={(e) => dispatch({ type: "set_field", key: "website", value: e.target.value })} />
         </div>
         <div className="sm:col-span-2 grid gap-2">
-          <Label>Reseña *</Label>
+          <Label className={showValidation && textError ? "text-red-700" : ""}>Reseña *</Label>
           <Textarea
             value={state.text}
+            aria-invalid={showValidation && Boolean(textError)}
+            className={cn(showValidation && textError ? "border-red-300 bg-red-50/50 focus:border-red-400 focus:ring-red-200 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.10),0_10px_22px_rgba(239,68,68,0.08)]" : "")}
             onChange={(e) => dispatch({ type: "set_field", key: "text", value: e.target.value })}
             autoCorrect="on"
             autoCapitalize="sentences"
             spellCheck
           />
-          <p className="text-xs text-ink-500">Mínimo 10 caracteres.</p>
+          <p className={cn("text-xs", showValidation && textError ? "text-red-600" : "text-ink-500")}>
+            {showValidation && textError ? textError : "Mínimo 10 caracteres."}
+          </p>
         </div>
 
         <div className="sm:col-span-2 grid gap-2">
@@ -368,17 +387,20 @@ export function ReviewForm({ photoUploadsEnabled }: { photoUploadsEnabled: boole
 
       {state.error ? <p className="mt-3 text-sm text-red-600">{state.error}</p> : null}
       {state.status === "success" ? <p className="mt-3 text-sm text-ink-700">Gracias, reseña enviada.</p> : null}
+      {showValidation && hasValidationErrors ? (
+        <p className="mt-3 text-sm text-ink-700">Completa los campos marcados para poder enviar tu reseña.</p>
+      ) : null}
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-ink-500">Si quieres que tu captura salga en el carrusel, envíala por WhatsApp y la agregamos.</p>
         <Button
           type="button"
           onClick={onSubmit}
-          disabled={!canSubmit}
+          disabled={!canPressSubmit}
           variant="gold"
           className="hover:shadow-cta-hover disabled:cursor-not-allowed disabled:bg-antiqueGoldMuted disabled:text-ink-600 disabled:hover:bg-antiqueGoldMuted disabled:hover:shadow-none"
         >
-          Enviar reseña
+          {state.status === "submitting" ? "Enviando..." : state.uploading ? "Subiendo fotos..." : "Enviar reseña"}
         </Button>
       </div>
     </Card>
