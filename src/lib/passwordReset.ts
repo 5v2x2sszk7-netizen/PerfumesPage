@@ -73,7 +73,8 @@ export async function sendPasswordResetEmail(input: {
   const safeResetUrl = escapeHtml(input.resetUrl)
   const expiresAtLabel = new Intl.DateTimeFormat("es-MX", {
     dateStyle: "medium",
-    timeStyle: "short"
+    timeStyle: "short",
+    timeZone: "America/Mexico_City"
   }).format(new Date(input.expiresAt))
 
   const subject = "Recupera tu acceso | MALO Fragances"
