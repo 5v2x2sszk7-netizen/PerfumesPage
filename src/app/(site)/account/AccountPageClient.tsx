@@ -140,7 +140,7 @@ function orderDestinationLabel(order: OrderRecord) {
   if (order.customer.neighborhood?.trim()) {
     return `${order.customer.neighborhood}, ${location}`
   }
-  return location || "Direccion por confirmar"
+  return location || "Dirección por confirmar"
 }
 
 function profileFromCustomer(customer: PublicCustomer | null) {
@@ -155,6 +155,31 @@ function profileFromCustomer(customer: PublicCustomer | null) {
     city: customer.profile.city || "",
     state: customer.profile.state || "",
     postalCode: customer.profile.postalCode || ""
+  }
+}
+
+function resolveProfileWithPostalLookup(
+  profile: CustomerProfile,
+  postalLookup: ReturnType<typeof useMxPostalCodeLookup>
+) {
+  if (postalLookup.status !== "success") return profile
+
+  const { result } = postalLookup
+  if (normalizePostalCodeInput(profile.postalCode) !== result.postalCode) return profile
+
+  const nextCity = profile.city.trim() ? profile.city : result.city || result.municipality
+  const nextState = result.state || profile.state
+  const nextNeighborhood = profile.neighborhood.trim() || result.settlements.length !== 1 ? profile.neighborhood : result.settlements[0]
+
+  if (nextCity === profile.city && nextState === profile.state && nextNeighborhood === profile.neighborhood) {
+    return profile
+  }
+
+  return {
+    ...profile,
+    neighborhood: nextNeighborhood,
+    city: nextCity,
+    state: nextState
   }
 }
 
@@ -251,13 +276,15 @@ export function AccountPageClient({
   const accountStateLabel = customer ? "Activa" : "Invitado"
   const ordersLabel = `${totalOrders} ${totalOrders === 1 ? "pedido" : "pedidos"}`
   const spentLabel = totalSpent > 0 ? formatPrice(totalSpent) : "Sin compras"
+  const profilePostalLookup = useMxPostalCodeLookup(profile.postalCode)
+  const resolvedProfile = useMemo(() => resolveProfileWithPostalLookup(profile, profilePostalLookup), [profile, profilePostalLookup])
   const profileCompletionFields = [
-    profile.fullName,
-    profile.phone,
-    profile.postalCode,
-    profile.addressLine1,
-    profile.city,
-    profile.state
+    resolvedProfile.fullName,
+    resolvedProfile.phone,
+    resolvedProfile.postalCode,
+    resolvedProfile.addressLine1,
+    resolvedProfile.city,
+    resolvedProfile.state
   ]
   const profileCompletion = Math.round(
     (profileCompletionFields.filter((value) => value.trim().length > 0).length / profileCompletionFields.length) * 100
@@ -270,7 +297,7 @@ export function AccountPageClient({
         ? "Solo un paso más."
         : profileCompletion >= 50
           ? "Solo falta agregar tu dirección."
-      : profile.addressLine1.trim()
+      : resolvedProfile.addressLine1.trim()
         ? "Completa tu perfil para agilizar tus próximas compras."
         : "Agrega una dirección para agilizar tus próximas compras."
   const customerFirstName = customer?.profile.fullName.trim().split(/\s+/)[0] || ""
@@ -284,9 +311,11 @@ export function AccountPageClient({
   const recentOrders = featuredOrder ? orders.slice(1, 4) : []
   const latestPurchaseDate = featuredOrder?.completedAt || featuredOrder?.createdAt || ""
   const latestPurchaseItem = featuredOrder?.items[0] ?? null
-  const profileStateOptions = useMemo(() => buildMxStateOptions(profile.state), [profile.state])
-  const profilePostalCodeStatus = useMemo(() => getPostalCodeHelper(profile.postalCode, profile.state), [profile.postalCode, profile.state])
-  const profilePostalLookup = useMxPostalCodeLookup(profile.postalCode)
+  const profileStateOptions = useMemo(() => buildMxStateOptions(resolvedProfile.state), [resolvedProfile.state])
+  const profilePostalCodeStatus = useMemo(
+    () => getPostalCodeHelper(resolvedProfile.postalCode, resolvedProfile.state),
+    [resolvedProfile.postalCode, resolvedProfile.state]
+  )
   const neighborhoodListId = useId()
   const passwordRecoveryHref = useMemo(() => {
     const params = new URLSearchParams()
@@ -297,27 +326,6 @@ export function AccountPageClient({
     const query = params.toString()
     return query ? `/account/recover?${query}` : "/account/recover"
   }, [auth.email])
-
-  useEffect(() => {
-    if (profilePostalLookup.status !== "success") return
-    const { result } = profilePostalLookup
-    setProfile((current) => {
-      if (normalizePostalCodeInput(current.postalCode) !== result.postalCode) return current
-
-      const nextCity = current.city.trim() ? current.city : result.city || result.municipality
-      const nextState = result.state || current.state
-      const nextNeighborhood =
-        current.neighborhood.trim() || result.settlements.length !== 1 ? current.neighborhood : result.settlements[0]
-
-      if (nextCity === current.city && nextState === current.state && nextNeighborhood === current.neighborhood) return current
-      return {
-        ...current,
-        neighborhood: nextNeighborhood,
-        city: nextCity,
-        state: nextState
-      }
-    })
-  }, [profilePostalLookup])
 
   useEffect(() => {
     function syncHighlightedOrder() {
@@ -379,7 +387,7 @@ export function AccountPageClient({
     }
 
     if (authMode === "register" && auth.password !== auth.confirmPassword) {
-      setError("Las contrasenas no coinciden.")
+      setError("Las contraseñas no coinciden.")
       return
     }
 
@@ -420,7 +428,7 @@ export function AccountPageClient({
       }))
       setMessage(authMode === "register" ? "Tu cuenta ya está lista." : "Sesión iniciada correctamente.")
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "No se pudo completar la accion.")
+      setError(submitError instanceof Error ? submitError.message : "No se pudo completar la acción.")
     } finally {
       setStatus("idle")
     }
@@ -430,12 +438,12 @@ export function AccountPageClient({
     setError("")
     setMessage("")
 
-    if (normalizePostalCodeInput(profile.postalCode).length !== 5) {
-      setError("Ingresa un codigo postal valido de 5 digitos.")
+    if (normalizePostalCodeInput(resolvedProfile.postalCode).length !== 5) {
+      setError("Ingresa un código postal válido de 5 dígitos.")
       return
     }
 
-    if (!profile.state.trim()) {
+    if (!resolvedProfile.state.trim()) {
       setError("Selecciona un estado para tu dirección.")
       return
     }
@@ -449,7 +457,7 @@ export function AccountPageClient({
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          profile
+          profile: resolvedProfile
         })
       })
 
@@ -506,26 +514,25 @@ export function AccountPageClient({
               <div className="space-y-2">
                 <p className="text-[11px] tracking-section text-ink-400">{customer ? heroGreeting : "CUENTA"}</p>
                 <div className="flex flex-wrap gap-2">
-                  <span
-                    className={[
-                      "inline-flex rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em]",
-                      customer
-                        ? "border border-black/8 bg-white/72 text-ink-500"
-                        : "border border-antiqueGold/30 bg-antiqueGold/10 text-ink-800"
-                    ].join(" ")}
-                  >
-                    Compra como invitado
-                  </span>
-                  <span
-                    className={[
-                      "inline-flex rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em]",
-                      customer
-                        ? "border border-antiqueGold/30 bg-antiqueGold/10 text-ink-800"
-                        : "border border-black/8 bg-white/72 text-ink-500"
-                    ].join(" ")}
-                  >
-                    Cuenta con historial
-                  </span>
+                  {customer ? (
+                    <>
+                      <span className="inline-flex rounded-full border border-antiqueGold/30 bg-antiqueGold/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-800">
+                        Cuenta con historial
+                      </span>
+                      <span className="inline-flex rounded-full border border-black/8 bg-white/72 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">
+                        Sesión activa
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="inline-flex rounded-full border border-antiqueGold/30 bg-antiqueGold/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-800">
+                        Compra como invitado
+                      </span>
+                      <span className="inline-flex rounded-full border border-black/8 bg-white/72 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">
+                        Cuenta con historial
+                      </span>
+                    </>
+                  )}
                 </div>
                 <h1 className="font-display text-3xl leading-none text-ink-950 sm:text-[2.8rem]">{heroTitle}</h1>
                 <p className="max-w-2xl text-sm leading-6 text-ink-700">{heroDescription}</p>
@@ -541,7 +548,7 @@ export function AccountPageClient({
                   <p className="mt-1 text-xs leading-5 text-ink-600">{customer ? "Cuenta lista para comprar" : "Checkout rápido disponible"}</p>
                 </div>
                 <div className="rounded-luxe border border-black/10 bg-white/92 px-4 py-3 shadow-[0_12px_30px_rgba(10,10,10,0.04)] transition-all duration-200 ease-luxe hover:-translate-y-[2px] hover:shadow-[0_18px_36px_rgba(10,10,10,0.055)]">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-ink-500">02 Ordenes</p>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-ink-500">02 Órdenes</p>
                   <p className="mt-1.5 text-base font-medium text-ink-950">{ordersLabel}</p>
                   <p className="mt-1 text-xs leading-5 text-ink-600">
                     {totalOrders > 0 ? "Historial ligado a tu cuenta" : "Aún no hay compras registradas"}
@@ -912,7 +919,7 @@ export function AccountPageClient({
                             className="h-12 border-black/12 shadow-[0_8px_18px_rgba(10,10,10,0.03)]"
                             autoComplete="address-level3"
                             list={neighborhoodListId}
-                            value={profile.neighborhood}
+                          value={resolvedProfile.neighborhood}
                             onChange={(e) => setProfile((current) => ({ ...current, neighborhood: e.target.value }))}
                           />
                           <datalist id={neighborhoodListId}>
@@ -925,7 +932,7 @@ export function AccountPageClient({
                         <SelectWithCaret
                           id="profile-neighborhood"
                           className="h-12 border-black/12 shadow-[0_8px_18px_rgba(10,10,10,0.03)]"
-                          value={profile.neighborhood}
+                          value={resolvedProfile.neighborhood}
                           onChange={(e) => setProfile((current) => ({ ...current, neighborhood: e.target.value }))}
                         >
                           <option value="">Selecciona una colonia</option>
@@ -941,7 +948,7 @@ export function AccountPageClient({
                         id="profile-neighborhood"
                         className="h-12 border-black/12 shadow-[0_8px_18px_rgba(10,10,10,0.03)]"
                         autoComplete="address-level3"
-                        value={profile.neighborhood}
+                        value={resolvedProfile.neighborhood}
                         onChange={(e) => setProfile((current) => ({ ...current, neighborhood: e.target.value }))}
                       />
                     )}
@@ -951,7 +958,7 @@ export function AccountPageClient({
                     <Input
                       id="profile-city"
                       className="h-12 border-black/12 shadow-[0_8px_18px_rgba(10,10,10,0.03)]"
-                      value={profile.city}
+                      value={resolvedProfile.city}
                       onChange={(e) => setProfile((current) => ({ ...current, city: e.target.value }))}
                     />
                   </div>
@@ -960,7 +967,7 @@ export function AccountPageClient({
                     <SelectWithCaret
                       id="profile-state"
                       className="h-12 border-black/12 shadow-[0_8px_18px_rgba(10,10,10,0.03)]"
-                      value={profile.state}
+                      value={resolvedProfile.state}
                       onChange={(e) => setProfile((current) => ({ ...current, state: e.target.value }))}
                     >
                       <option value="">Selecciona tu estado</option>
@@ -989,7 +996,7 @@ export function AccountPageClient({
                       ].join(" ")}
                     >
                       {profilePostalLookup.status === "loading"
-                        ? "Consultando tu codigo postal..."
+                        ? "Consultando tu código postal..."
                         : profilePostalLookup.status === "success"
                           ? `Zona de entrega confirmada: ${profilePostalLookup.result.city || profilePostalLookup.result.municipality}, ${profilePostalLookup.result.state}.`
                           : profilePostalLookup.status === "error"
@@ -998,19 +1005,19 @@ export function AccountPageClient({
                     </p>
                     {profilePostalLookup.status === "success" && profilePostalLookup.result.settlements.length ? (
                       <p className="mt-2 text-xs leading-5 text-ink-500">
-                        {profile.neighborhood.trim()
-                          ? `Colonia seleccionada: ${profile.neighborhood}.`
+                        {resolvedProfile.neighborhood.trim()
+                          ? `Colonia seleccionada: ${resolvedProfile.neighborhood}.`
                           : `Colonias disponibles: ${profilePostalLookup.result.settlements.length}. Selecciona la tuya arriba.`}
                       </p>
                     ) : null}
                     {profilePostalLookup.status === "success" &&
                     profilePostalLookup.result.settlements.length > 12 &&
-                    profile.neighborhood.trim() &&
+                    resolvedProfile.neighborhood.trim() &&
                     !profilePostalLookup.result.settlements.some(
-                      (settlement) => normalizeLooseMatch(settlement) === normalizeLooseMatch(profile.neighborhood)
+                      (settlement) => normalizeLooseMatch(settlement) === normalizeLooseMatch(resolvedProfile.neighborhood)
                     ) ? (
                       <p className="mt-1 text-xs leading-5 text-ink-500">
-                        La colonia escrita no coincide con las sugeridas para este codigo postal. Puedes continuar si es una variante.
+                        La colonia escrita no coincide con las sugeridas para este código postal. Puedes continuar si es una variante.
                       </p>
                     ) : null}
                     {profilePostalLookup.status === "success" ? (
@@ -1074,7 +1081,7 @@ export function AccountPageClient({
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-luxe-xl border border-black/8 bg-white/88 px-4 py-3">
                       <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">
-                        {featuredOrder ? "Ultima compra" : "Ultimo acceso"}
+                        {featuredOrder ? "Última compra" : "Último acceso"}
                       </p>
                       {featuredOrder && latestPurchaseItem ? (
                         <>
@@ -1105,13 +1112,13 @@ export function AccountPageClient({
                 <div className="space-y-5">
                   <div>
                     <p className="text-xs tracking-section text-ink-500">PEDIDOS</p>
-                    <h2 className="mt-2 font-display text-2xl text-ink-950">Tus ordenes</h2>
-                    <p className="mt-2 text-sm leading-6 text-ink-700">Aqui aparecen las ordenes nuevas asociadas a tu cuenta.</p>
+                    <h2 className="mt-2 font-display text-2xl text-ink-950">Tus órdenes</h2>
+                    <p className="mt-2 text-sm leading-6 text-ink-700">Aquí aparecen las órdenes nuevas asociadas a tu cuenta.</p>
                   </div>
 
                   {orders.length === 0 ? (
                     <div className="rounded-luxe-xl border border-black/8 bg-ink-50/55 px-4 py-5 text-sm leading-6 text-ink-700">
-                      <p>Tu primera compra aparecera aqui cuando este lista.</p>
+                      <p>Tu primera compra aparecerá aquí cuando esté lista.</p>
                       <ButtonLink
                         href="/catalog"
                         variant="outline"
@@ -1148,7 +1155,7 @@ export function AccountPageClient({
                                   <p className="mt-0.5 text-sm text-ink-700">{featuredOrder.items[0].sizeMl} ml</p>
                                 </>
                               ) : (
-                                <p className="text-sm text-ink-700">Seleccion registrada</p>
+                                <p className="text-sm text-ink-700">Selección registrada</p>
                               )}
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -1175,7 +1182,7 @@ export function AccountPageClient({
                               </p>
                             </div>
                             <div className="rounded-luxe border border-black/8 bg-white/78 px-4 py-3">
-                              <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">Articulos</p>
+                              <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">Artículos</p>
                               <p className="mt-1 font-medium text-ink-950">
                                 {featuredOrder.items.reduce((sum, item) => sum + item.quantity, 0)}
                               </p>
