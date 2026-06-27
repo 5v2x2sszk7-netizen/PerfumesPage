@@ -370,10 +370,10 @@ export function ReviewForm({ photoUploadsEnabled }: { photoUploadsEnabled: boole
             Inicia sesión con tu cuenta para comentar una compra real y dejar la reseña asociada a tu pedido.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href="/account/login" variant="gold" className="w-full sm:w-auto">
+            <ButtonLink href="/account?mode=login" variant="gold" className="w-full sm:w-auto">
               Iniciar sesión
             </ButtonLink>
-            <ButtonLink href="/account" variant="outline" className="w-full sm:w-auto">
+            <ButtonLink href="/account?mode=register" variant="outline" className="w-full sm:w-auto">
               Crear cuenta
             </ButtonLink>
           </div>

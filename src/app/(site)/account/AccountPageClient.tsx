@@ -12,6 +12,7 @@ import { formatCustomerOrderNumber, orderStatusCustomerLabel, orderStatusSupport
 import { resolveStoredOrderTotal } from "@/lib/shipping"
 import { formatPrice } from "@/lib/whatsapp"
 import { evaluatePassword, passwordPolicyHint } from "@/lib/passwordPolicy"
+import { useSearchParams } from "next/navigation"
 
 function normalizeLooseMatch(value: string) {
   return value
@@ -256,9 +257,11 @@ export function AccountPageClient({
   initialCustomer: PublicCustomer | null
   initialOrders: OrderRecord[]
 }) {
+  const searchParams = useSearchParams()
+  const requestedAuthMode = searchParams.get("mode") === "login" ? "login" : "register"
   const [customer, setCustomer] = useState<PublicCustomer | null>(initialCustomer)
   const [orders, setOrders] = useState<OrderRecord[]>(initialOrders)
-  const [authMode, setAuthMode] = useState<"register" | "login">("register")
+  const [authMode, setAuthMode] = useState<"register" | "login">(requestedAuthMode)
   const [auth, setAuth] = useState({
     fullName: "",
     email: initialCustomer?.email || "",
