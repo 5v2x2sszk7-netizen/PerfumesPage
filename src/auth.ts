@@ -1,7 +1,6 @@
 import NextAuth, { type Session } from "next-auth"
 import type { JWT } from "next-auth/jwt"
 import type { Provider } from "next-auth/providers"
-import Apple from "next-auth/providers/apple"
 import Google from "next-auth/providers/google"
 import { ensureCustomerForOAuth } from "@/lib/customerAccount"
 import { normalizeCustomerEmail } from "@/lib/customerAuth"
@@ -19,14 +18,6 @@ const providers: Provider[] = []
 if (availableProviders.google) {
   providers.push(
     Google({
-      allowDangerousEmailAccountLinking: true
-    })
-  )
-}
-
-if (availableProviders.apple) {
-  providers.push(
-    Apple({
       allowDangerousEmailAccountLinking: true
     })
   )

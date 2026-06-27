@@ -92,7 +92,6 @@ type AccountResponse = {
 
 type SocialProvidersAvailability = {
   google: boolean
-  apple: boolean
 }
 
 const emptyProfile: CustomerProfile = {
@@ -269,7 +268,7 @@ export function AccountPageClient({
   const requestedAuthMode = searchParams.get("mode") === "login" ? "login" : "register"
   const socialCallbackProvider = useMemo(() => {
     const provider = searchParams.get("social")
-    return provider === "google" || provider === "apple" ? provider : ""
+    return provider === "google" ? provider : ""
   }, [searchParams])
   const [customer, setCustomer] = useState<PublicCustomer | null>(initialCustomer)
   const [orders, setOrders] = useState<OrderRecord[]>(initialOrders)
@@ -335,7 +334,7 @@ export function AccountPageClient({
     () => getPostalCodeHelper(resolvedProfile.postalCode, resolvedProfile.state),
     [resolvedProfile.postalCode, resolvedProfile.state]
   )
-  const hasSocialOptions = socialProviders.google || socialProviders.apple
+  const hasSocialOptions = socialProviders.google
   const neighborhoodListId = useId()
   const passwordRecoveryHref = useMemo(() => {
     const params = new URLSearchParams()
@@ -415,7 +414,7 @@ export function AccountPageClient({
         await refreshAccount()
         if (cancelled) return
 
-        setMessage(socialCallbackProvider === "apple" ? "Sesión iniciada con Apple ID." : "Sesión iniciada con Google.")
+        setMessage("Sesión iniciada con Google.")
 
         const params = new URLSearchParams(searchParams.toString())
         params.delete("social")
@@ -499,7 +498,7 @@ export function AccountPageClient({
     }
   }
 
-  async function onStartSocialAuth(provider: "google" | "apple") {
+  async function onStartSocialAuth(provider: "google") {
     setError("")
     setMessage("")
     setStatus("social")
@@ -727,17 +726,6 @@ export function AccountPageClient({
                             onClick={() => onStartSocialAuth("google")}
                           >
                             {status === "social" ? "Conectando..." : "Continuar con Google"}
-                          </Button>
-                        ) : null}
-                        {socialProviders.apple ? (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="h-12 w-full border-black/10 text-[13px] font-medium tracking-[0.08em] text-ink-800"
-                            disabled={isBusy}
-                            onClick={() => onStartSocialAuth("apple")}
-                          >
-                            {status === "social" ? "Conectando..." : "Continuar con Apple ID"}
                           </Button>
                         ) : null}
                       </div>

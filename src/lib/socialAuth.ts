@@ -1,4 +1,4 @@
-export const socialProviders = ["google", "apple"] as const
+export const socialProviders = ["google"] as const
 
 export type SocialProvider = (typeof socialProviders)[number]
 
@@ -7,7 +7,7 @@ function hasValue(value: string | undefined | null) {
 }
 
 export function isSocialProvider(value: string | undefined | null): value is SocialProvider {
-  return value === "google" || value === "apple"
+  return value === "google"
 }
 
 export function isAuthSecretConfigured() {
@@ -18,7 +18,6 @@ export function getAvailableSocialProviders() {
   const hasSecret = isAuthSecretConfigured()
 
   return {
-    google: hasSecret && hasValue(process.env.AUTH_GOOGLE_ID) && hasValue(process.env.AUTH_GOOGLE_SECRET),
-    apple: hasSecret && hasValue(process.env.AUTH_APPLE_ID) && hasValue(process.env.AUTH_APPLE_SECRET)
+    google: hasSecret && hasValue(process.env.AUTH_GOOGLE_ID) && hasValue(process.env.AUTH_GOOGLE_SECRET)
   } as const
 }
