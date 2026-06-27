@@ -56,8 +56,8 @@ function DeliveryGallery({ images, metaLabel }: { images: string[]; metaLabel: s
                 "group relative shrink-0 snap-start overflow-hidden rounded-ui border border-black/8 bg-white flex-shrink-0 transition-shadow duration-luxe-fast ease-out hover:shadow-thumb-hover " +
                 itemClass
               }
-              frameClassName="relative aspect-[16/9] w-full bg-ink-50"
-              imageClassName="object-cover transition-transform duration-luxe-fast ease-out group-hover:scale-[1.03]"
+              frameClassName="relative aspect-[16/9] w-full bg-ink-50 p-2"
+              imageClassName="object-contain transition-transform duration-luxe-fast ease-out group-hover:scale-[1.02]"
               dialogImageClassName="object-contain"
             />
           )
