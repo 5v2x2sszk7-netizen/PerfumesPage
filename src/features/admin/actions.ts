@@ -1,8 +1,8 @@
 import { useCallback } from "react"
 import type { Dispatch, SetStateAction } from "react"
 import type { Perfume } from "@/types/perfume"
-import type { Draft, ReviewDraft } from "@/lib/admin/types"
-import { emptyDraft, emptyReviewDraft } from "@/lib/admin/types"
+import type { Draft } from "@/lib/admin/types"
+import { emptyDraft } from "@/lib/admin/types"
 import { api } from "@/lib/admin/api"
 import { fromCsv, toNotesCsv } from "@/lib/admin/utils"
 import type { AdminUiState } from "@/features/admin/uiState"
@@ -10,8 +10,6 @@ import type { AdminUiState } from "@/features/admin/uiState"
 export function useAdminActions(opts: {
   draft: Draft
   setDraft: Dispatch<SetStateAction<Draft>>
-  reviewDraft: ReviewDraft
-  setReviewDraft: Dispatch<SetStateAction<ReviewDraft>>
   canSubmit: boolean
   isEditing: boolean
   setBusy: Dispatch<SetStateAction<boolean>>
@@ -19,15 +17,11 @@ export function useAdminActions(opts: {
   refresh: () => Promise<void>
   resetAdminData: () => void
   resetProductUpload: () => void
-  resetReviewUpload: () => void
-  routerReplace: (href: string) => void
   ui: AdminUiState
 }) {
   const {
     draft,
     setDraft,
-    reviewDraft,
-    setReviewDraft,
     canSubmit,
     isEditing,
     setBusy,
@@ -35,8 +29,6 @@ export function useAdminActions(opts: {
     refresh,
     resetAdminData,
     resetProductUpload,
-    resetReviewUpload,
-    routerReplace,
     ui
   } = opts
 
@@ -89,36 +81,6 @@ export function useAdminActions(opts: {
       setBusy(false)
     }
   }, [canSubmit, draft, isEditing, refresh, resetProductUpload, setBusy, setDraft, setError, ui])
-
-  const onCreateReview = useCallback(async () => {
-    const customerName = reviewDraft.customerName.trim()
-    const text = reviewDraft.text.trim()
-    const ratingNum = Number(reviewDraft.rating)
-    const rating = reviewDraft.rating.trim() ? (Number.isFinite(ratingNum) ? ratingNum : undefined) : undefined
-    if (!customerName || !text) return
-    setBusy(true)
-    setError(null)
-    try {
-      await api("/api/admin/reviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName,
-          text,
-          rating,
-          imageSrc: reviewDraft.imageSrc.trim() || undefined
-        })
-      })
-      setReviewDraft(emptyReviewDraft)
-      resetReviewUpload()
-      await refresh()
-      ui.setSection("reviews")
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error")
-    } finally {
-      setBusy(false)
-    }
-  }, [refresh, resetReviewUpload, reviewDraft, setBusy, setError, setReviewDraft, ui])
 
   const confirmDelete = useCallback(async () => {
     if (!ui.deleteTarget) return
@@ -210,12 +172,10 @@ export function useAdminActions(opts: {
     } finally {
       resetAdminData()
       setDraft(emptyDraft)
-      setReviewDraft(emptyReviewDraft)
       resetProductUpload()
-      resetReviewUpload()
       window.location.replace("/admin/login")
     }
-  }, [resetAdminData, resetProductUpload, resetReviewUpload, routerReplace, setDraft, setReviewDraft])
+  }, [resetAdminData, resetProductUpload, setDraft])
 
   const onStartForm = useCallback(() => {
     setDraft(emptyDraft)
@@ -223,5 +183,5 @@ export function useAdminActions(opts: {
     ui.setSection("form")
   }, [resetProductUpload, setDraft, ui])
 
-  return { onSave, onCreateReview, confirmDelete, confirmDeleteReview, confirmSell, onEdit, onLogout, onStartForm }
+  return { onSave, confirmDelete, confirmDeleteReview, confirmSell, onEdit, onLogout, onStartForm }
 }

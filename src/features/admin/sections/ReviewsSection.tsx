@@ -1,40 +1,19 @@
 import { Button } from "@/components/ui/Button"
-import { Input, Label, Textarea } from "@/components/ui/Field"
 import { Card } from "@/components/ui/Surface"
-import type { Dispatch, RefObject, SetStateAction } from "react"
-import type { Review, ReviewDraft } from "@/lib/admin/types"
-import { AdminImagePicker } from "@/features/admin/components/AdminImagePicker"
+import type { Review } from "@/lib/admin/types"
 import { AdminPanel } from "@/features/admin/components/AdminPanel"
 
 const adminReviewDateFormatter = new Intl.DateTimeFormat("es-MX", { timeZone: "America/Mexico_City" })
 
 type Props = {
   reviews: Review[]
-  reviewDraft: ReviewDraft
-  setReviewDraft: Dispatch<SetStateAction<ReviewDraft>>
   busy: boolean
-  reviewUploading: boolean
-  reviewUploadedPath: string | null
-  reviewSelectedFileName: string | null
-  reviewLocalPreviewUrl: string | null
-  reviewFileInputRef: RefObject<HTMLInputElement | null>
-  onUploadReview: (file: File) => void
-  onCreateReview: () => void
   onDeleteReview: (review: Review) => void
 }
 
 export function ReviewsSection({
   reviews,
-  reviewDraft,
-  setReviewDraft,
   busy,
-  reviewUploading,
-  reviewUploadedPath,
-  reviewSelectedFileName,
-  reviewLocalPreviewUrl,
-  reviewFileInputRef,
-  onUploadReview,
-  onCreateReview,
   onDeleteReview
 }: Props) {
   return (
@@ -49,58 +28,14 @@ export function ReviewsSection({
         </p>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <Card className="p-5">
-          <h3 className="font-display text-xl text-ink-950">Añadir reseña</h3>
-          <div className="mt-4 grid gap-4">
-            <div className="grid gap-2">
-              <Label>Nombre del cliente *</Label>
-              <Input
-                value={reviewDraft.customerName}
-                onChange={(e) => setReviewDraft((d) => ({ ...d, customerName: e.target.value }))}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>Calificación (1–5)</Label>
-              <Input
-                inputMode="numeric"
-                placeholder="Ej. 5"
-                value={reviewDraft.rating}
-                onChange={(e) => setReviewDraft((d) => ({ ...d, rating: e.target.value.replace(/[^\d]/g, "") }))}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>Reseña *</Label>
-              <Textarea value={reviewDraft.text} onChange={(e) => setReviewDraft((d) => ({ ...d, text: e.target.value }))} />
-            </div>
-            <div className="grid gap-2">
-              <AdminImagePicker
-                label="Imagen (captura)"
-                value={reviewDraft.imageSrc}
-                onChange={(next) => setReviewDraft((d) => ({ ...d, imageSrc: next }))}
-                placeholder="/uploads/tu-reseña.jpg"
-                busy={busy}
-                uploading={reviewUploading}
-                uploadedPath={reviewUploadedPath}
-                selectedFileName={reviewSelectedFileName}
-                localPreviewUrl={reviewLocalPreviewUrl}
-                inputRef={reviewFileInputRef}
-                accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
-                helpEmpty="Sube una captura para el carrusel del Home."
-                onUpload={onUploadReview}
-              />
-            </div>
-
-            <Button
-              type="button"
-              onClick={onCreateReview}
-              disabled={busy || !reviewDraft.customerName.trim() || !reviewDraft.text.trim()}
-              variant="gold"
-              className="w-full hover:shadow-cta-hover sm:w-auto"
-            >
-              Guardar reseña
-            </Button>
-          </div>
+      <div className="mt-4 grid gap-4">
+        <Card className="border-black/8 bg-ink-50/45 p-5">
+          <p className="text-xs tracking-section text-ink-500">POLÍTICA</p>
+          <h3 className="mt-2 font-display text-xl text-ink-950">Creación restringida</h3>
+          <p className="mt-2 text-sm leading-6 text-ink-700">
+            Las reseñas solo pueden publicarse desde una cuenta con compra verificada. Desde el panel admin puedes revisar y eliminar registros
+            existentes, pero ya no crear reseñas manuales.
+          </p>
         </Card>
 
         <Card className="p-5">

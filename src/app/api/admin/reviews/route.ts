@@ -1,7 +1,5 @@
-import { createReview, readReviews } from "@/lib/perfumeStore"
-import type { Review } from "@/lib/perfumeStore"
-import { isPersistenceNotConfiguredError } from "@/lib/persistence"
-import { jsonError, jsonNoStoreOk, jsonOk, readJsonBody } from "@/lib/apiResponse"
+import { readReviews } from "@/lib/perfumeStore"
+import { jsonError, jsonNoStoreOk } from "@/lib/apiResponse"
 
 export const runtime = "nodejs"
 
@@ -13,22 +11,6 @@ export async function GET() {
   return jsonNoStoreOk({ reviews })
 }
 
-export async function POST(req: Request) {
-  const body = await readJsonBody<Partial<Review>>(req)
-  if (!body) return jsonError("Invalid body", 400)
-
-  try {
-    const created = await createReview({
-      customerName: String(body.customerName ?? "").trim(),
-      text: String(body.text ?? "").trim(),
-      rating: typeof body.rating === "number" ? body.rating : undefined,
-      imageSrc: typeof body.imageSrc === "string" ? body.imageSrc.trim() : undefined
-    })
-    return jsonOk({ review: created }, { status: 201 })
-  } catch (e) {
-    if (isPersistenceNotConfiguredError(e)) {
-      return jsonError(e.message, 501)
-    }
-    return jsonError(e instanceof Error ? e.message : "Invalid review", 400)
-  }
+export async function POST() {
+  return jsonError("Las reseñas solo pueden crearse desde cuentas con compra verificada.", 403)
 }

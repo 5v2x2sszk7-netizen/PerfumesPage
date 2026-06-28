@@ -1,9 +1,8 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
-import type { Draft, ReviewDraft } from "@/lib/admin/types"
-import { emptyDraft, emptyReviewDraft } from "@/lib/admin/types"
+import type { Draft } from "@/lib/admin/types"
+import { emptyDraft } from "@/lib/admin/types"
 import { DeleteProductModal } from "./modals/DeleteProductModal"
 import { DeleteReviewModal } from "./modals/DeleteReviewModal"
 import { SellModal } from "./modals/SellModal"
@@ -21,10 +20,7 @@ import { useAdminActions } from "@/features/admin/actions"
 
 export function AdminClient() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const reviewFileInputRef = useRef<HTMLInputElement | null>(null)
-  const router = useRouter()
   const [draft, setDraft] = useState<Draft>(emptyDraft)
-  const [reviewDraft, setReviewDraft] = useState<ReviewDraft>(emptyReviewDraft)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const ui = useAdminUiState()
@@ -40,12 +36,6 @@ export function AdminClient() {
     setError,
     onUploaded: (path) => setDraft((d) => ({ ...d, imageSrc: path }))
   })
-  const reviewUpload = useSingleUpload({
-    endpoint: "/api/admin/upload",
-    setBusy,
-    setError,
-    onUploaded: (path) => setReviewDraft((d) => ({ ...d, imageSrc: path }))
-  })
 
   const { isEditing, canSubmit, missingFields, finance, brandSuggestions, nameSuggestions } = useDraftValidation({
     draft,
@@ -56,8 +46,6 @@ export function AdminClient() {
   const actions = useAdminActions({
     draft,
     setDraft,
-    reviewDraft,
-    setReviewDraft,
     canSubmit,
     isEditing,
     setBusy,
@@ -65,8 +53,6 @@ export function AdminClient() {
     refresh,
     resetAdminData,
     resetProductUpload: productUpload.resetUpload,
-    resetReviewUpload: reviewUpload.resetUpload,
-    routerReplace: router.replace,
     ui
   })
 
@@ -107,16 +93,7 @@ export function AdminClient() {
       {ui.section === "reviews" ? (
         <ReviewsSection
           reviews={reviews}
-          reviewDraft={reviewDraft}
-          setReviewDraft={setReviewDraft}
           busy={busy}
-          reviewUploading={reviewUpload.uploading}
-          reviewUploadedPath={reviewUpload.uploadedPath}
-          reviewSelectedFileName={reviewUpload.selectedFileName}
-          reviewLocalPreviewUrl={reviewUpload.localPreviewUrl}
-          reviewFileInputRef={reviewFileInputRef}
-          onUploadReview={reviewUpload.onUpload}
-          onCreateReview={actions.onCreateReview}
           onDeleteReview={ui.onDeleteReview}
         />
       ) : null}
