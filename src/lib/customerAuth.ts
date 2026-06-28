@@ -21,11 +21,10 @@ function fromBase64Url(value: string) {
 }
 
 function sessionSecret() {
-  return (
-    process.env.CUSTOMER_SESSION_SECRET?.trim() ||
-    process.env.ADMIN_TOKEN?.trim() ||
-    "perfimes-local-customer-session"
-  )
+  const configured = process.env.CUSTOMER_SESSION_SECRET?.trim()
+  if (configured) return configured
+  if (process.env.NODE_ENV !== "production") return "perfimes-local-customer-session"
+  throw new Error("CUSTOMER_SESSION_SECRET no esta configurado en produccion.")
 }
 
 function signValue(value: string) {

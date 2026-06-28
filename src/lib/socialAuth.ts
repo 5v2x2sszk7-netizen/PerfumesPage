@@ -11,7 +11,7 @@ export function isSocialProvider(value: string | undefined | null): value is Soc
 }
 
 export function isAuthSecretConfigured() {
-  return hasValue(process.env.AUTH_SECRET) || hasValue(process.env.CUSTOMER_SESSION_SECRET) || hasValue(process.env.ADMIN_TOKEN)
+  return hasValue(process.env.AUTH_SECRET) || hasValue(process.env.CUSTOMER_SESSION_SECRET)
 }
 
 export function getAvailableSocialProviders() {

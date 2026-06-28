@@ -10,7 +10,6 @@ const availableProviders = getAvailableSocialProviders()
 const authSecret =
   process.env.AUTH_SECRET?.trim() ||
   process.env.CUSTOMER_SESSION_SECRET?.trim() ||
-  process.env.ADMIN_TOKEN?.trim() ||
   undefined
 
 const providers: Provider[] = []
