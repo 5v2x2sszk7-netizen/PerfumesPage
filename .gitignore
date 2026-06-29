@@ -15,3 +15,4 @@ public/uploads/
 
 data/*.json
 !data/perfumes.json
+.vercel
