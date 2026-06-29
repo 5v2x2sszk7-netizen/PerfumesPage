@@ -1,7 +1,9 @@
 import { revalidatePath } from "next/cache"
 import { appendOrder, appendSale, readCheckoutOrders, readPerfumes, withCheckoutOrdersLock, withPerfumesLock, writeCheckoutOrders, writePerfumes } from "@/lib/perfumeStore"
+import { sendAdminNewOrderNotificationEmail, sendCustomerPurchaseConfirmationEmail } from "@/lib/orderPurchaseEmail"
 import { availabilityFromStock } from "@/lib/perfume/parsers"
 import type { CheckoutProvider } from "@/lib/payments"
+import type { ConfirmedOrderRecord } from "@/lib/stores/orders"
 
 export function isSuccessfulPayment(provider: CheckoutProvider, status: string) {
   const normalized = status.trim().toLowerCase()
@@ -15,7 +17,7 @@ export async function applyConfirmedCheckout(input: {
   paymentStatus: string
   paymentReference: string
 }) {
-  return await withCheckoutOrdersLock(async () => {
+  const result = await withCheckoutOrdersLock(async () => {
     const orders = await readCheckoutOrders()
     const orderIndex = orders.findIndex((entry) => entry.id === input.orderId)
     if (orderIndex === -1) {
@@ -33,7 +35,8 @@ export async function applyConfirmedCheckout(input: {
         inventoryUpdated: true,
         inventoryMessage: "Inventario ya aplicado previamente.",
         orderId: currentOrder.id,
-        completedAt: currentOrder.completedAt
+        completedAt: currentOrder.completedAt,
+        confirmedOrder: null as ConfirmedOrderRecord | null
       }
     }
 
@@ -85,7 +88,7 @@ export async function applyConfirmedCheckout(input: {
     }
     nextOrders[orderIndex] = completedOrder
     await writeCheckoutOrders(nextOrders)
-    await appendOrder({
+    const confirmedOrder: ConfirmedOrderRecord = {
       id: completedOrder.id,
       provider: completedOrder.provider,
       checkoutMode: completedOrder.checkoutMode,
@@ -101,7 +104,8 @@ export async function applyConfirmedCheckout(input: {
       shippingLabel: completedOrder.shippingLabel,
       total: completedOrder.total,
       items: completedOrder.items
-    })
+    }
+    await appendOrder(confirmedOrder)
 
     revalidatePath("/catalog")
     revalidatePath("/catalog/[slug]", "page")
@@ -110,7 +114,29 @@ export async function applyConfirmedCheckout(input: {
       inventoryUpdated: true,
       inventoryMessage: "Inventario y venta actualizados.",
       orderId: completedOrder.id,
-      completedAt
+      completedAt,
+      confirmedOrder
     }
   })
+
+  if (result.confirmedOrder) {
+    try {
+      await sendCustomerPurchaseConfirmationEmail(result.confirmedOrder)
+    } catch (error) {
+      console.error("[purchase-confirmation-email] No se pudo enviar el correo al cliente.", error)
+    }
+
+    try {
+      await sendAdminNewOrderNotificationEmail(result.confirmedOrder)
+    } catch (error) {
+      console.error("[admin-new-order-email] No se pudo enviar el aviso interno de compra.", error)
+    }
+  }
+
+  return {
+    inventoryUpdated: result.inventoryUpdated,
+    inventoryMessage: result.inventoryMessage,
+    orderId: result.orderId,
+    completedAt: result.completedAt
+  }
 }

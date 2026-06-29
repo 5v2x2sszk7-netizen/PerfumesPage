@@ -21,6 +21,13 @@ type FinalizeCheckoutBody = {
   status?: string
 }
 
+type FinalizeInventoryResult = {
+  inventoryUpdated: boolean
+  inventoryMessage: string
+  orderId?: string
+  completedAt?: string
+}
+
 async function readOrderSummary(orderId?: string) {
   const normalized = orderId?.trim() || ""
   if (!normalized) {
@@ -44,7 +51,7 @@ export async function POST(req: Request) {
     if (body.provider === "paypal") {
       if (!body.orderId?.trim()) return jsonError("Falta el ID de PayPal.", 400)
       const result = await capturePayPalOrder(body.orderId.trim())
-      const inventory =
+      const inventory: FinalizeInventoryResult =
         result.orderId && isSuccessfulPayment("paypal", result.status)
           ? await applyConfirmedCheckout({
               orderId: result.orderId,
@@ -115,7 +122,7 @@ export async function POST(req: Request) {
         throw lastError || new Error("No se pudo localizar el pago de Mercado Pago.")
       }
 
-      const inventory =
+      const inventory: FinalizeInventoryResult =
         result.orderId && isSuccessfulPayment("mercado_pago", result.status)
           ? await applyConfirmedCheckout({
               orderId: result.orderId,
