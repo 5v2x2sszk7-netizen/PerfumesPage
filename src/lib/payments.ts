@@ -194,8 +194,8 @@ export async function createMercadoPagoCheckout(input: {
   })
 
   const checkoutUrl =
-    (typeof json?.sandbox_init_point === "string" && json.sandbox_init_point) ||
     (typeof json?.init_point === "string" && json.init_point) ||
+    (typeof json?.sandbox_init_point === "string" && json.sandbox_init_point) ||
     ""
 
   if (!checkoutUrl) throw new Error("Mercado Pago no devolvio un checkout valido.")
