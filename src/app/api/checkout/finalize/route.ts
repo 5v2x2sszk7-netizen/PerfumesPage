@@ -1,12 +1,23 @@
 import { jsonError, jsonNoStoreOk, readJsonBody } from "@/lib/apiResponse"
 import { applyConfirmedCheckout, isSuccessfulPayment } from "@/lib/checkout/confirmation"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
-import { capturePayPalOrder, getMercadoPagoPayment, type CheckoutProvider } from "@/lib/payments"
+import {
+  capturePayPalOrder,
+  getMercadoPagoMerchantOrder,
+  getMercadoPagoPayment,
+  searchMercadoPagoPaymentByExternalReference,
+  type CheckoutProvider,
+  type MercadoPagoPaymentLookupResult
+} from "@/lib/payments"
 
 type FinalizeCheckoutBody = {
   provider?: CheckoutProvider
   orderId?: string
   paymentId?: string
+  collectionId?: string
+  merchantOrderId?: string
+  externalReference?: string
+  status?: string
 }
 
 export async function POST(req: Request) {
@@ -41,8 +52,49 @@ export async function POST(req: Request) {
     }
 
     if (body.provider === "mercado_pago") {
-      if (!body.paymentId?.trim()) return jsonError("Falta el pago de Mercado Pago.", 400)
-      const result = await getMercadoPagoPayment(body.paymentId.trim())
+      const paymentId = body.paymentId?.trim() || body.collectionId?.trim() || ""
+      const merchantOrderId = body.merchantOrderId?.trim() || ""
+      const externalReference = body.externalReference?.trim() || ""
+      const statusHint = body.status?.trim() || ""
+
+      if (!paymentId && !merchantOrderId && !externalReference) {
+        return jsonError("Falta la referencia de Mercado Pago.", 400)
+      }
+
+      let result: MercadoPagoPaymentLookupResult | null = null
+      let lastError: Error | null = null
+
+      if (paymentId) {
+        try {
+          result = await getMercadoPagoPayment(paymentId)
+        } catch (error) {
+          lastError = error instanceof Error ? error : new Error("No se pudo consultar el pago de Mercado Pago.")
+        }
+      }
+
+      if (!result && externalReference) {
+        try {
+          result = await searchMercadoPagoPaymentByExternalReference({
+            externalReference,
+            status: statusHint || undefined
+          })
+        } catch (error) {
+          lastError = error instanceof Error ? error : new Error("No se pudo buscar el pago de Mercado Pago por referencia.")
+        }
+      }
+
+      if (!result && merchantOrderId) {
+        try {
+          result = await getMercadoPagoMerchantOrder(merchantOrderId)
+        } catch (error) {
+          lastError = error instanceof Error ? error : new Error("No se pudo consultar la orden comercial de Mercado Pago.")
+        }
+      }
+
+      if (!result) {
+        throw lastError || new Error("No se pudo localizar el pago de Mercado Pago.")
+      }
+
       const inventory =
         result.orderId && isSuccessfulPayment("mercado_pago", result.status)
           ? await applyConfirmedCheckout({

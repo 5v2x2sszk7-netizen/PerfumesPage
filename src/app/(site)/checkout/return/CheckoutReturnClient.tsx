@@ -56,16 +56,23 @@ export function CheckoutReturnClient({
   provider,
   status,
   orderId,
-  paymentId
+  paymentId,
+  collectionId,
+  merchantOrderId,
+  externalReference
 }: {
   provider: CheckoutProvider | null
   status: string
   orderId: string
   paymentId: string
+  collectionId: string
+  merchantOrderId: string
+  externalReference: string
 }) {
   const { clearCart } = useCart()
   const clearedRef = useRef(false)
-  const finalizeKey = provider ? `${provider}:${orderId || paymentId || status}` : ""
+  const mercadoPagoReference = paymentId || collectionId || merchantOrderId || externalReference
+  const finalizeKey = provider ? `${provider}:${orderId || mercadoPagoReference || status}` : ""
   const [result, setResult] = useState<ResultState>(() => ({
     kind: "loading",
     message: "Validando tu pago..."
@@ -73,9 +80,9 @@ export function CheckoutReturnClient({
 
   const isImmediateResult = useMemo(() => {
     if (status === "cancelled" || status === "failure") return true
-    if (provider === "mercado_pago" && status && status !== "approved" && !paymentId) return true
+    if (provider === "mercado_pago" && status && status !== "approved" && !mercadoPagoReference) return true
     return false
-  }, [paymentId, provider, status])
+  }, [mercadoPagoReference, provider, status])
 
   useEffect(() => {
     if (isImmediateResult) {
@@ -105,7 +112,7 @@ export function CheckoutReturnClient({
       return
     }
 
-    if (provider === "mercado_pago" && !paymentId && !status) {
+    if (provider === "mercado_pago" && !mercadoPagoReference && !status) {
       setResult({
         kind: "error",
         title: "Falta la referencia de Mercado Pago",
@@ -160,7 +167,11 @@ export function CheckoutReturnClient({
           body: JSON.stringify({
             provider,
             orderId,
-            paymentId
+            paymentId,
+            collectionId,
+            merchantOrderId,
+            externalReference,
+            status
           })
         })
 
@@ -216,7 +227,7 @@ export function CheckoutReturnClient({
     return () => {
       cancelled = true
     }
-  }, [finalizeKey, isImmediateResult, orderId, paymentId, provider, status])
+  }, [collectionId, externalReference, finalizeKey, isImmediateResult, merchantOrderId, orderId, paymentId, provider, status])
 
   useEffect(() => {
     if (result.kind === "success" && !clearedRef.current) {

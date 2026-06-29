@@ -17,6 +17,19 @@ export default async function CheckoutReturnPage({
   const status = typeof params.status === "string" ? params.status : ""
   const orderId = typeof params.token === "string" ? params.token : ""
   const paymentId = typeof params.payment_id === "string" ? params.payment_id : ""
+  const collectionId = typeof params.collection_id === "string" ? params.collection_id : ""
+  const merchantOrderId = typeof params.merchant_order_id === "string" ? params.merchant_order_id : ""
+  const externalReference = typeof params.external_reference === "string" ? params.external_reference : ""
 
-  return <CheckoutReturnClient provider={provider} status={status} orderId={orderId} paymentId={paymentId} />
+  return (
+    <CheckoutReturnClient
+      provider={provider}
+      status={status}
+      orderId={orderId}
+      paymentId={paymentId}
+      collectionId={collectionId}
+      merchantOrderId={merchantOrderId}
+      externalReference={externalReference}
+    />
+  )
 }

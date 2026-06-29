@@ -20,6 +20,12 @@ export type CheckoutCustomer = {
   notes?: string
 }
 
+export type MercadoPagoPaymentLookupResult = {
+  status: string
+  id: string
+  orderId?: string
+}
+
 type CheckoutPricing = Pick<ShippingQuote, "subtotal" | "shippingAmount" | "shippingLabel" | "total">
 
 const localEnvCache = new Map<string, string>()
@@ -351,6 +357,91 @@ export async function getMercadoPagoPayment(paymentId: string) {
       (typeof json?.metadata?.orderId === "string" && json.metadata.orderId.trim()) ||
       undefined
   }
+}
+
+export async function searchMercadoPagoPaymentByExternalReference(input: {
+  externalReference: string
+  status?: string
+}) {
+  const accessToken = envValue("MERCADO_PAGO_ACCESS_TOKEN")
+  if (!accessToken) throw new Error("Mercado Pago no esta configurado.")
+
+  const externalReference = input.externalReference.trim()
+  if (!externalReference) throw new Error("Falta la referencia externa de Mercado Pago.")
+
+  const search = new URL("https://api.mercadopago.com/v1/payments/search")
+  search.searchParams.set("sort", "date_created")
+  search.searchParams.set("criteria", "desc")
+  search.searchParams.set("limit", "10")
+  search.searchParams.set("external_reference", externalReference)
+  if (input.status?.trim()) {
+    search.searchParams.set("status", input.status.trim())
+  }
+
+  const json = await fetchJson(search.toString(), {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  })
+
+  const results = Array.isArray(json?.results) ? json.results : []
+  const match = results.find((entry: Record<string, unknown>) => {
+    const metadata = entry.metadata as Record<string, unknown> | undefined
+    const entryExternalReference =
+      (typeof entry?.external_reference === "string" && entry.external_reference.trim()) ||
+      (typeof metadata?.orderId === "string" && metadata.orderId.trim()) ||
+      ""
+    return entryExternalReference === externalReference
+  })
+
+  if (!match) {
+    throw new Error("Mercado Pago no devolvio un pago para esta orden.")
+  }
+
+  return {
+    status: typeof match?.status === "string" ? match.status : input.status?.trim() || "unknown",
+    id: typeof match?.id === "number" || typeof match?.id === "string" ? String(match.id) : externalReference,
+    orderId: externalReference
+  } satisfies MercadoPagoPaymentLookupResult
+}
+
+export async function getMercadoPagoMerchantOrder(merchantOrderId: string) {
+  const accessToken = envValue("MERCADO_PAGO_ACCESS_TOKEN")
+  if (!accessToken) throw new Error("Mercado Pago no esta configurado.")
+
+  const id = merchantOrderId.trim()
+  if (!id) throw new Error("Falta el merchant_order_id de Mercado Pago.")
+
+  const json = await fetchJson(`https://api.mercadopago.com/merchant_orders/${id}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  })
+
+  const payments = Array.isArray(json?.payments) ? json.payments : []
+  const approvedPayment =
+    payments.find(
+      (entry: Record<string, unknown>) => typeof entry?.status === "string" && entry.status.trim().toLowerCase() === "approved"
+    ) ||
+    payments[0] ||
+    null
+
+  return {
+    status:
+      (typeof approvedPayment?.status === "string" && approvedPayment.status) ||
+      (typeof json?.order_status === "string" && json.order_status) ||
+      "unknown",
+    id:
+      (typeof approvedPayment?.id === "number" || typeof approvedPayment?.id === "string"
+        ? String(approvedPayment.id)
+        : id),
+    orderId:
+      (typeof json?.external_reference === "string" && json.external_reference.trim()) ||
+      (typeof json?.preference_id === "string" && json.preference_id.trim()) ||
+      undefined
+  } satisfies MercadoPagoPaymentLookupResult
 }
 
 export function hasPayPalWebhookVerificationConfigured() {
