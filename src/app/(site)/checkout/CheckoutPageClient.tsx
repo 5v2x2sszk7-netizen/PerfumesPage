@@ -238,7 +238,7 @@ export function CheckoutPageClient({
   initialCustomer: PublicCustomer | null
   providers: ProviderAvailability
 }) {
-  const { items: cartItems, subtotal: cartSubtotal } = useCart()
+  const { items: cartItems, subtotal: cartSubtotal, syncNotice, syncCart } = useCart()
   const [customerAccount, setCustomerAccount] = useState<PublicCustomer | null>(initialCustomer)
   const [checkoutMode, setCheckoutMode] = useState<"guest" | "account">(initialCustomer ? "account" : "guest")
   const [authMode, setAuthMode] = useState<"register" | "login">(initialCustomer ? "login" : "register")
@@ -395,6 +395,13 @@ export function CheckoutPageClient({
     setStatus("submitting")
 
     try {
+      if (!buyNowItem) {
+        const syncResult = await syncCart()
+        if (syncResult.changed) {
+          throw new Error("Tu carrito cambio por disponibilidad real. Revisa tu seleccion antes de continuar al pago.")
+        }
+      }
+
       const account = checkoutMode === "account" ? await authenticateCheckoutAccount() : null
       const customerPayload =
         checkoutMode === "account" && account
@@ -909,6 +916,12 @@ export function CheckoutPageClient({
                 {error ? (
                   <div className="rounded-luxe-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
                     {error}
+                  </div>
+                ) : null}
+
+                {syncNotice ? (
+                  <div className="rounded-luxe-xl border border-antiqueGold/20 bg-antiqueGold/10 px-4 py-3 text-sm leading-6 text-ink-700">
+                    {syncNotice}
                   </div>
                 ) : null}
 

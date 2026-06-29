@@ -9,7 +9,7 @@ import { useCart } from "@/components/cart/CartProvider"
 import { formatPrice } from "@/lib/whatsapp"
 
 export function CartPageClient() {
-  const { items, subtotal, isReady, updateQuantity, removeItem, clearCart } = useCart()
+  const { items, subtotal, isReady, syncNotice, updateQuantity, removeItem, clearCart } = useCart()
 
   return (
     <Container className="py-10 sm:py-14">
@@ -37,6 +37,11 @@ export function CartPageClient() {
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="space-y-4">
+              {syncNotice ? (
+                <Card className="border-antiqueGold/20 bg-antiqueGold/10 p-4 text-sm leading-6 text-ink-700">
+                  {syncNotice}
+                </Card>
+              ) : null}
               {items.map((item) => {
                 const isUploadImage = item.imageSrc.startsWith("/uploads/")
                 return (

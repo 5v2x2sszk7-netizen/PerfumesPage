@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { normalizeCartItems, type CartItem } from "@/lib/cart"
 
 const storageKey = "perfimes-cart:v1"
@@ -10,12 +10,15 @@ type AddCartItem = Omit<CartItem, "quantity"> & { quantity?: number }
 type CartContextValue = {
   items: CartItem[]
   isReady: boolean
+  syncNotice: string
   itemCount: number
   subtotal: number
   addItem: (item: AddCartItem) => void
   removeItem: (id: string) => void
+  removeItems: (ids: string[]) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
+  syncCart: () => Promise<{ changed: boolean }>
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
@@ -23,6 +26,12 @@ const CartContext = createContext<CartContextValue | null>(null)
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [isReady, setIsReady] = useState(false)
+  const [syncNotice, setSyncNotice] = useState("")
+  const itemsRef = useRef<CartItem[]>([])
+
+  useEffect(() => {
+    itemsRef.current = items
+  }, [items])
 
   useEffect(() => {
     try {
@@ -40,6 +49,71 @@ export function CartProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(storageKey, JSON.stringify(items))
   }, [isReady, items])
 
+  const syncCart = useCallback(async () => {
+    if (!isReady) return { changed: false }
+
+    const currentItems = itemsRef.current
+    if (!currentItems.length) {
+      setSyncNotice("")
+      return { changed: false }
+    }
+
+    try {
+      const response = await fetch("/api/cart/sync", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ items: currentItems }),
+        cache: "no-store"
+      })
+
+      const json = (await response.json().catch(() => null)) as
+        | { ok?: boolean; items?: CartItem[]; changed?: boolean; message?: string }
+        | null
+
+      if (!response.ok || !json?.ok || !Array.isArray(json.items)) {
+        return { changed: false }
+      }
+
+      const nextItems = normalizeCartItems(json.items)
+      if (json.changed) {
+        setItems(nextItems)
+        setSyncNotice(json.message?.trim() || "Actualizamos tu carrito con la disponibilidad real.")
+      }
+
+      return { changed: Boolean(json.changed) }
+    } catch {
+      return { changed: false }
+    }
+  }, [isReady])
+
+  useEffect(() => {
+    if (!isReady) return
+    void syncCart()
+  }, [isReady, syncCart])
+
+  useEffect(() => {
+    if (!isReady) return
+
+    const handleFocus = () => {
+      void syncCart()
+    }
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        void syncCart()
+      }
+    }
+
+    window.addEventListener("focus", handleFocus)
+    document.addEventListener("visibilitychange", handleVisibility)
+
+    return () => {
+      window.removeEventListener("focus", handleFocus)
+      document.removeEventListener("visibilitychange", handleVisibility)
+    }
+  }, [isReady, syncCart])
+
   const value = useMemo<CartContextValue>(() => {
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -47,9 +121,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return {
       items,
       isReady,
+      syncNotice,
       itemCount,
       subtotal,
       addItem(item) {
+        setSyncNotice("")
         setItems((current) => {
           const quantity = Math.max(1, Math.trunc(item.quantity ?? 1))
           const existing = current.find((entry) => entry.id === item.id)
@@ -66,9 +142,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
         })
       },
       removeItem(id) {
+        setSyncNotice("")
         setItems((current) => current.filter((item) => item.id !== id))
       },
+      removeItems(ids) {
+        setSyncNotice("")
+        const normalizedIds = new Set(ids.map((entry) => entry.trim()).filter(Boolean))
+        if (!normalizedIds.size) return
+        setItems((current) => current.filter((item) => !normalizedIds.has(item.id)))
+      },
       updateQuantity(id, quantity) {
+        setSyncNotice("")
         setItems((current) =>
           current.map((item) =>
             item.id === id
@@ -81,10 +165,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         )
       },
       clearCart() {
+        setSyncNotice("")
         setItems([])
-      }
+      },
+      syncCart
     }
-  }, [isReady, items])
+  }, [isReady, items, syncCart, syncNotice])
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }

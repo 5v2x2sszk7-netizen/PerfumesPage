@@ -21,11 +21,19 @@ type FinalizeCheckoutBody = {
   status?: string
 }
 
-async function readFulfillmentStatus(orderId?: string) {
+async function readOrderSummary(orderId?: string) {
   const normalized = orderId?.trim() || ""
-  if (!normalized) return ""
+  if (!normalized) {
+    return {
+      fulfillmentStatus: "",
+      purchasedItemIds: [] as string[]
+    }
+  }
   const order = (await readOrders()).find((entry) => entry.id === normalized)
-  return order?.fulfillmentStatus || ""
+  return {
+    fulfillmentStatus: order?.fulfillmentStatus || "",
+    purchasedItemIds: order?.items.map((item) => item.perfumeId).filter(Boolean) || []
+  }
 }
 
 export async function POST(req: Request) {
@@ -49,13 +57,15 @@ export async function POST(req: Request) {
               inventoryMessage: "Pago sin cambios de inventario."
             }
       const resolvedOrderId = inventory.orderId || result.orderId
+      const orderSummary = await readOrderSummary(resolvedOrderId)
       return jsonNoStoreOk({
         provider: "paypal",
         status: result.status,
         reference: result.id,
         orderId: resolvedOrderId,
         completedAt: inventory.completedAt,
-        fulfillmentStatus: await readFulfillmentStatus(resolvedOrderId),
+        fulfillmentStatus: orderSummary.fulfillmentStatus,
+        purchasedItemIds: orderSummary.purchasedItemIds,
         inventoryUpdated: inventory.inventoryUpdated,
         inventoryMessage: inventory.inventoryMessage
       })
@@ -118,13 +128,15 @@ export async function POST(req: Request) {
               inventoryMessage: "Pago sin cambios de inventario."
             }
       const resolvedOrderId = inventory.orderId || result.orderId
+      const orderSummary = await readOrderSummary(resolvedOrderId)
       return jsonNoStoreOk({
         provider: "mercado_pago",
         status: result.status,
         reference: result.id,
         orderId: resolvedOrderId,
         completedAt: inventory.completedAt,
-        fulfillmentStatus: await readFulfillmentStatus(resolvedOrderId),
+        fulfillmentStatus: orderSummary.fulfillmentStatus,
+        purchasedItemIds: orderSummary.purchasedItemIds,
         inventoryUpdated: inventory.inventoryUpdated,
         inventoryMessage: inventory.inventoryMessage
       })

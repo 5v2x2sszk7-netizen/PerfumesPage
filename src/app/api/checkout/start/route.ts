@@ -19,6 +19,16 @@ type StartCheckoutBody = {
   customer?: Partial<CheckoutCustomer>
 }
 
+function invalidCartMessage(input: { invalidCount: number; adjustedCount: number }) {
+  if (input.invalidCount > 0 && input.adjustedCount > 0) {
+    return "Tu carrito cambio: algunos perfumes ya no estan disponibles y otros tienen menor stock. Revisa tu seleccion antes de pagar."
+  }
+  if (input.invalidCount > 0) {
+    return "Tu carrito cambio: uno o mas perfumes ya no estan disponibles. Revisa tu seleccion antes de pagar."
+  }
+  return "Tu carrito cambio: una o mas cantidades ya no estan disponibles. Revisa tu seleccion antes de pagar."
+}
+
 function readCookieValue(req: Request, name: string) {
   const raw = req.headers.get("cookie") || ""
   const cookies = raw.split(/;\s*/)
@@ -92,12 +102,19 @@ export async function POST(req: Request) {
   if (!requestedItems.length) return jsonError("Tu carrito esta vacio.", 400)
 
   const perfumes = await readPerfumesCached()
+  let invalidCount = 0
+  let adjustedCount = 0
   const orderItems = requestedItems.flatMap((line) => {
     if (!line?.id || typeof line.id !== "string") return []
     const perfume = perfumes.find((entry) => entry.id === line.id)
-    if (!perfume || perfume.price <= 0 || perfume.stock <= 0 || perfume.availability === "out_of_stock") return []
+    if (!perfume || perfume.price <= 0 || perfume.stock <= 0 || perfume.availability === "out_of_stock") {
+      invalidCount += 1
+      return []
+    }
 
-    const quantity = Math.max(1, Math.min(perfume.stock, Math.trunc(line.quantity ?? 1) || 1))
+    const requestedQuantity = Math.max(1, Math.trunc(line.quantity ?? 1) || 1)
+    const quantity = Math.max(1, Math.min(perfume.stock, requestedQuantity))
+    if (quantity !== requestedQuantity) adjustedCount += 1
     return [
       {
         cartItem: toCartItem(perfume, quantity),
@@ -113,6 +130,10 @@ export async function POST(req: Request) {
       }
     ]
   })
+
+  if (invalidCount > 0 || adjustedCount > 0) {
+    return jsonError(invalidCartMessage({ invalidCount, adjustedCount }), 409)
+  }
 
   if (!orderItems.length) return jsonError("No hay productos validos para cobrar.", 400)
 

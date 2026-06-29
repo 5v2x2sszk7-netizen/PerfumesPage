@@ -20,6 +20,7 @@ type ResultState =
       confirmedAt: string
       paymentStatus: string
       fulfillmentStatus: string
+      purchasedItemIds: string[]
     }
   | { kind: "error"; title: string; detail: string }
 
@@ -31,6 +32,7 @@ type CachedReturnState = {
   confirmedAt?: string
   paymentStatus?: string
   fulfillmentStatus?: string
+  purchasedItemIds?: string[]
 }
 
 function formatConfirmationDate(value: string) {
@@ -58,6 +60,7 @@ function buildSuccessState(input: {
   confirmedAt?: string
   paymentStatus?: string
   fulfillmentStatus?: string
+  purchasedItemIds?: string[]
 }): ResultState {
   const rawOrderId = input.orderId || input.orderNumber || ""
   return {
@@ -69,7 +72,8 @@ function buildSuccessState(input: {
     providerLabel: input.providerLabel || "",
     confirmedAt: input.confirmedAt || "",
     paymentStatus: input.paymentStatus || "approved",
-    fulfillmentStatus: input.fulfillmentStatus || ""
+    fulfillmentStatus: input.fulfillmentStatus || "",
+    purchasedItemIds: Array.isArray(input.purchasedItemIds) ? input.purchasedItemIds.filter(Boolean) : []
   }
 }
 
@@ -146,8 +150,8 @@ export function CheckoutReturnClient({
   merchantOrderId: string
   externalReference: string
 }) {
-  const { clearCart } = useCart()
-  const clearedRef = useRef(false)
+  const { removeItems } = useCart()
+  const clearedRef = useRef("")
   const mercadoPagoReference = paymentId || collectionId || merchantOrderId || externalReference
   const finalizeKey = provider ? `${provider}:${orderId || mercadoPagoReference || status}` : ""
   const [result, setResult] = useState<ResultState>(() => ({
@@ -216,7 +220,8 @@ export function CheckoutReturnClient({
                   providerLabel: parsed.providerLabel || paymentProviderLabel(provider),
                   confirmedAt: parsed.confirmedAt || "",
                   paymentStatus: parsed.paymentStatus || status || "",
-                  fulfillmentStatus: parsed.fulfillmentStatus || ""
+                  fulfillmentStatus: parsed.fulfillmentStatus || "",
+                  purchasedItemIds: parsed.purchasedItemIds || []
                 })
               )
             }
@@ -229,7 +234,8 @@ export function CheckoutReturnClient({
                   providerLabel: paymentProviderLabel(provider),
                   confirmedAt: "",
                   paymentStatus: status || "",
-                  fulfillmentStatus: ""
+                  fulfillmentStatus: "",
+                  purchasedItemIds: []
                 })
               )
             }
@@ -263,6 +269,7 @@ export function CheckoutReturnClient({
               provider?: CheckoutProvider
               completedAt?: string
               fulfillmentStatus?: string
+              purchasedItemIds?: string[]
             }
           | null
         if (!response.ok || !json?.ok) throw new Error(json?.error || "No se pudo confirmar el pago.")
@@ -282,7 +289,8 @@ export function CheckoutReturnClient({
                 providerLabel: successProviderLabel,
                 confirmedAt: successConfirmedAt,
                 paymentStatus: json.status || status || "",
-                fulfillmentStatus: json.fulfillmentStatus || ""
+                fulfillmentStatus: json.fulfillmentStatus || "",
+                purchasedItemIds: Array.isArray(json.purchasedItemIds) ? json.purchasedItemIds.filter(Boolean) : []
               } satisfies CachedReturnState)
             )
           }
@@ -293,7 +301,8 @@ export function CheckoutReturnClient({
                   providerLabel: successProviderLabel,
                   confirmedAt: successConfirmedAt,
                   paymentStatus: json.status || status || "",
-                  fulfillmentStatus: json.fulfillmentStatus || ""
+                  fulfillmentStatus: json.fulfillmentStatus || "",
+                  purchasedItemIds: Array.isArray(json.purchasedItemIds) ? json.purchasedItemIds.filter(Boolean) : []
                 })
               : {
                   kind: "error",
@@ -321,11 +330,14 @@ export function CheckoutReturnClient({
   }, [collectionId, externalReference, finalizeKey, isImmediateResult, merchantOrderId, orderId, paymentId, provider, status])
 
   useEffect(() => {
-    if (result.kind === "success" && !clearedRef.current) {
-      clearCart()
-      clearedRef.current = true
+    if (result.kind !== "success") return
+    const removalKey = result.orderId || result.purchasedItemIds.join(",")
+    if (!removalKey || clearedRef.current === removalKey) return
+    if (result.purchasedItemIds.length) {
+      removeItems(result.purchasedItemIds)
+      clearedRef.current = removalKey
     }
-  }, [clearCart, result.kind])
+  }, [removeItems, result])
 
   return (
     <Container className="py-12 sm:py-16">
