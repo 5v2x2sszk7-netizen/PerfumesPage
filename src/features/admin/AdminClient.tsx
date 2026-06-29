@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useState } from "react"
 import type { Draft } from "@/lib/admin/types"
 import { emptyDraft } from "@/lib/admin/types"
 import { DeleteProductModal } from "./modals/DeleteProductModal"
@@ -14,12 +14,10 @@ import { ReviewsSection } from "./sections/ReviewsSection"
 import { AdminShell } from "./AdminShell"
 import { useAdminData } from "@/lib/admin/hooks/useAdminData"
 import { useDraftValidation } from "@/lib/admin/hooks/useDraftValidation"
-import { useSingleUpload } from "@/lib/admin/hooks/useSingleUpload"
 import { useAdminUiState } from "@/features/admin/uiState"
 import { useAdminActions } from "@/features/admin/actions"
 
 export function AdminClient() {
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,13 +26,6 @@ export function AdminClient() {
   const { perfumes, suggestions, sales, orders, reviews, refresh, reset: resetAdminData } = useAdminData({
     setBusy,
     setError
-  })
-
-  const productUpload = useSingleUpload({
-    endpoint: "/api/admin/upload",
-    setBusy,
-    setError,
-    onUploaded: (path) => setDraft((d) => ({ ...d, imageSrc: path }))
   })
 
   const { isEditing, canSubmit, missingFields, finance, brandSuggestions, nameSuggestions } = useDraftValidation({
@@ -52,7 +43,7 @@ export function AdminClient() {
     setError,
     refresh,
     resetAdminData,
-    resetProductUpload: productUpload.resetUpload,
+    resetProductUpload: () => undefined,
     ui
   })
 
@@ -106,14 +97,10 @@ export function AdminClient() {
           missingFields={missingFields}
           finance={finance}
           busy={busy}
-          uploading={productUpload.uploading}
-          uploadedPath={productUpload.uploadedPath}
-          selectedFileName={productUpload.selectedFileName}
-          localPreviewUrl={productUpload.localPreviewUrl}
-          fileInputRef={fileInputRef}
+          setBusy={setBusy}
+          setError={setError}
           brandSuggestions={brandSuggestions}
           nameSuggestions={nameSuggestions}
-          onUpload={productUpload.onUpload}
           onSave={actions.onSave}
           onCancelEdit={() => setDraft(emptyDraft)}
         />

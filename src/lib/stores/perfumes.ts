@@ -1,6 +1,6 @@
 import type { Perfume } from "@/types/perfume"
 import { dataFilePath, readJsonArray, withStorageLock, writeJson } from "@/lib/storage/jsonFile"
-import { availabilityFromStock } from "@/lib/perfume/parsers"
+import { availabilityFromStock, resolvePerfumeImageGallery } from "@/lib/perfume/parsers"
 
 const perfumesPath = dataFilePath("perfumes.json")
 
@@ -13,7 +13,10 @@ function normalizePerfume(input: unknown): Perfume | null {
   const name = typeof raw.name === "string" ? raw.name.trim() : ""
   const brand = typeof raw.brand === "string" ? raw.brand.trim() : ""
   const description = typeof raw.description === "string" ? raw.description.trim() : ""
-  const imageSrc = typeof raw.imageSrc === "string" ? raw.imageSrc.trim() : ""
+  const { imageSrc, imageGallery } = resolvePerfumeImageGallery({
+    imageSrc: raw.imageSrc,
+    imageGallery: raw.imageGallery
+  })
 
   if (!id || !slug || !name || !brand || !description || !imageSrc) return null
 
@@ -79,6 +82,7 @@ function normalizePerfume(input: unknown): Perfume | null {
     stock,
     availability,
     imageSrc,
+    imageGallery,
     notes
   }
 }

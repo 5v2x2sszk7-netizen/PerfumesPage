@@ -12,7 +12,7 @@ export type Draft = {
   cost: string
   stock: string
   availability: Perfume["availability"]
-  imageSrc: string
+  imageGallery: string[]
   notesTop: string
   notesHeart: string
   notesBase: string
@@ -97,7 +97,7 @@ export const emptyDraft: Draft = {
   cost: "",
   stock: "1",
   availability: "in_stock",
-  imageSrc: "",
+  imageGallery: ["", "", "", "", "", ""],
   notesTop: "",
   notesHeart: "",
   notesBase: ""

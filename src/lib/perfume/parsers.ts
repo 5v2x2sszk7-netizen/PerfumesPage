@@ -1,11 +1,55 @@
 import type { PerfumeAvailability, PerfumeNotes } from "@/types/perfume"
 
+export const perfumeImagePlaceholder = "/images/bottle-placeholder.svg"
+export const maxPerfumeImages = 6
+
 export function isAllowedPerfumeImageSrc(value: string) {
   const v = value.trim()
   if (!v) return false
-  if (v === "/images/bottle-placeholder.svg") return true
+  if (v === perfumeImagePlaceholder) return true
   if (v.startsWith("/uploads/") && v.toLowerCase().endsWith(".webp")) return true
   return false
+}
+
+function uniqueAllowedImages(values: string[]) {
+  const seen = new Set<string>()
+  const gallery: string[] = []
+  for (const raw of values) {
+    const value = raw.trim()
+    if (!value || !isAllowedPerfumeImageSrc(value) || seen.has(value)) continue
+    seen.add(value)
+    gallery.push(value)
+    if (gallery.length >= maxPerfumeImages) break
+  }
+  return gallery
+}
+
+export function parsePerfumeImageGallery(value: unknown): string[] | null {
+  if (value == null) return null
+  if (!Array.isArray(value)) return null
+
+  for (const entry of value) {
+    if (typeof entry !== "string") return null
+    const trimmed = entry.trim()
+    if (trimmed && !isAllowedPerfumeImageSrc(trimmed)) return null
+  }
+
+  return uniqueAllowedImages(value)
+}
+
+export function resolvePerfumeImageGallery(input: { imageSrc?: unknown; imageGallery?: unknown }) {
+  const rawImageSrc = typeof input.imageSrc === "string" ? input.imageSrc.trim() : ""
+  const rawGallery = Array.isArray(input.imageGallery)
+    ? input.imageGallery.filter((entry): entry is string => typeof entry === "string")
+    : []
+
+  const gallery = uniqueAllowedImages([rawImageSrc, ...rawGallery])
+  const primaryImage = gallery[0] || perfumeImagePlaceholder
+
+  return {
+    imageSrc: primaryImage,
+    imageGallery: gallery.length ? gallery : [primaryImage]
+  }
 }
 
 function parseStringArray(value: unknown): string[] | undefined {

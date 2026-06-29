@@ -21,5 +21,6 @@ export type Perfume = {
   stock: number
   availability: PerfumeAvailability
   imageSrc: string
+  imageGallery?: string[]
   notes?: PerfumeNotes
 }

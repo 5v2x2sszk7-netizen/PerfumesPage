@@ -2,7 +2,17 @@ import type { Perfume } from "@/types/perfume"
 import { addSuggestion, readOrders, readPerfumes, readSales, readSuggestions, withPerfumesLock, writePerfumes } from "@/lib/perfumeStore"
 import { slugify } from "@/lib/slug"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
-import { availabilityFromStock, isAllowedPerfumeImageSrc, parseCost, parseNotes, parseSold, parseStock } from "@/lib/perfume/parsers"
+import {
+  availabilityFromStock,
+  isAllowedPerfumeImageSrc,
+  parseCost,
+  parseNotes,
+  parsePerfumeImageGallery,
+  parseSold,
+  parseStock,
+  perfumeImagePlaceholder,
+  resolvePerfumeImageGallery
+} from "@/lib/perfume/parsers"
 import { jsonError, jsonNoStoreOk, jsonOk, readJsonBody } from "@/lib/apiResponse"
 
 export const runtime = "nodejs"
@@ -69,8 +79,13 @@ export async function POST(req: Request) {
   const availability = stockParsed != null ? availabilityFromStock(stock) : availabilityBody
 
   const imageSrcRaw = typeof body.imageSrc === "string" ? body.imageSrc.trim() : ""
-  const imageSrc = imageSrcRaw ? imageSrcRaw : "/images/bottle-placeholder.svg"
   if (imageSrcRaw && !isAllowedPerfumeImageSrc(imageSrcRaw)) return jsonError("Invalid imageSrc", 400)
+  const parsedImageGallery = parsePerfumeImageGallery(body.imageGallery)
+  if (body.imageGallery != null && parsedImageGallery === null) return jsonError("Invalid imageGallery", 400)
+  const { imageSrc, imageGallery } = resolvePerfumeImageGallery({
+    imageSrc: imageSrcRaw || perfumeImagePlaceholder,
+    imageGallery: parsedImageGallery ?? undefined
+  })
 
   try {
     const created = await withPerfumesLock(async () => {
@@ -96,6 +111,7 @@ export async function POST(req: Request) {
         stock,
         availability,
         imageSrc,
+        imageGallery,
         notes
       }
 

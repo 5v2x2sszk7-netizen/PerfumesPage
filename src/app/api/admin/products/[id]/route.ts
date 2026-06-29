@@ -1,7 +1,16 @@
 import type { Perfume } from "@/types/perfume"
 import { addSuggestion, appendSale, readPerfumes, withPerfumesLock, writePerfumes } from "@/lib/perfumeStore"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
-import { availabilityFromStock, isAllowedPerfumeImageSrc, parseCost, parseNotes, parseSold, parseStock } from "@/lib/perfume/parsers"
+import {
+  availabilityFromStock,
+  isAllowedPerfumeImageSrc,
+  parseCost,
+  parseNotes,
+  parsePerfumeImageGallery,
+  parseSold,
+  parseStock,
+  resolvePerfumeImageGallery
+} from "@/lib/perfume/parsers"
 import { jsonError, jsonOk, readJsonBody } from "@/lib/apiResponse"
 
 export const runtime = "nodejs"
@@ -19,6 +28,10 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
     if (!isAllowedPerfumeImageSrc(body.imageSrc)) {
       return jsonError("Invalid imageSrc", 400)
     }
+  }
+  const parsedImageGallery = parsePerfumeImageGallery((body as Record<string, unknown>).imageGallery)
+  if ((body as Record<string, unknown>).imageGallery != null && parsedImageGallery === null) {
+    return jsonError("Invalid imageGallery", 400)
   }
   const notes = parseNotes(body.notes)
   const stockParsed = parseStock((body as unknown as { stock?: unknown }).stock)
@@ -43,6 +56,16 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
       const current = perfumes[idx]
       const availability =
         stockParsed != null ? availabilityFromStock(stockParsed) : body.availability ?? current.availability
+      const nextImages =
+        body.imageSrc != null || (body as Record<string, unknown>).imageGallery != null
+          ? resolvePerfumeImageGallery({
+              imageSrc: typeof body.imageSrc === "string" ? body.imageSrc : undefined,
+              imageGallery: parsedImageGallery ?? undefined
+            })
+          : {
+              imageSrc: current.imageSrc,
+              imageGallery: current.imageGallery ?? [current.imageSrc]
+            }
 
       const updated: Perfume = {
         ...current,
@@ -52,6 +75,8 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
         sold: soldParsed ?? current.sold,
         stock: stockParsed ?? current.stock,
         availability,
+        imageSrc: nextImages.imageSrc,
+        imageGallery: nextImages.imageGallery,
         notes: body.notes ? notes : current.notes
       }
 

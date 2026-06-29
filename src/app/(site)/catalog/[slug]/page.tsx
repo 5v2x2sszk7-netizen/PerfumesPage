@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import Image from "next/image"
 import Link from "next/link"
 import type { ReactNode } from "react"
 import { Container } from "@/components/ui/Container"
@@ -12,6 +11,7 @@ import { LazyReveal } from "@/components/ui/LazyReveal"
 import { guessOlfactoryFamily, splitSentences } from "@/lib/editorialLogic"
 import { Badge, availabilityBadgeTone } from "@/components/ui/Badge"
 import type { Perfume } from "@/types/perfume"
+import { PerfumeImageGallery } from "@/components/perfume/PerfumeImageGallery"
 
 export const revalidate = 60
 
@@ -132,7 +132,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      images: [{ url: perfume.imageSrc }]
+      images: (perfume.imageGallery?.length ? perfume.imageGallery : [perfume.imageSrc]).map((url) => ({ url }))
     }
   }
 }
@@ -258,7 +258,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
         : "Disponible"
   const stockLabel =
     perfume.stock <= 0 ? "Agotado" : perfume.stock === 1 ? "Queda 1 pieza" : `Quedan ${perfume.stock} piezas`
-  const isUploadImage = perfume.imageSrc.startsWith("/uploads/")
+  const galleryImages = perfume.imageGallery?.length ? perfume.imageGallery : [perfume.imageSrc]
 
   return (
     <div>
@@ -274,34 +274,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
 
           <div className="mt-8 grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-start">
             <LazyReveal delayMs={0}>
-              <div className="relative overflow-visible rounded-luxe-xl border border-black/8 bg-ink-50 p-4 shadow-media-xl sm:p-5 lg:justify-self-start">
-                <div className="pointer-events-none absolute inset-0 bg-perfume-detail-card-glow" />
-                <div className="relative overflow-visible rounded-luxe bg-white ring-1 ring-inset ring-black/8">
-                  <div className="pointer-events-none absolute left-1/2 bottom-6 h-10 w-perfume-shadow -translate-x-1/2 rounded-full bg-black/30 opacity-ink-14 blur-2xl" />
-                  <div className="relative -mt-4 overflow-hidden rounded-luxe sm:-mt-6">
-                    <div className="relative aspect-[4/5]">
-                      {isUploadImage ? (
-                        <img
-                          src={perfume.imageSrc}
-                          alt={`${perfume.name} de ${perfume.brand}`}
-                          className="h-full w-full object-cover transform-gpu -translate-y-1.5 sm:-translate-y-2.5"
-                        />
-                      ) : (
-                        <Image
-                          src={perfume.imageSrc}
-                          alt={`${perfume.name} de ${perfume.brand}`}
-                          fill
-                          className="object-cover transform-gpu -translate-y-1.5 sm:-translate-y-2.5"
-                          sizes="(max-width: 1024px) 92vw, 720px"
-                          priority
-                        />
-                      )}
-                    </div>
-                  </div>
-                  <div className="pointer-events-none absolute inset-0 bg-perfume-detail-card-shine opacity-60" />
-                  <div className="pointer-events-none absolute inset-0 shadow-inset-xl" />
-                </div>
-              </div>
+              <PerfumeImageGallery images={galleryImages} alt={`${perfume.name} de ${perfume.brand}`} />
             </LazyReveal>
 
             <LazyReveal delayMs={120}>

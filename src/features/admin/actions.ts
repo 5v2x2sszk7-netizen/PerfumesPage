@@ -6,6 +6,23 @@ import { emptyDraft } from "@/lib/admin/types"
 import { api } from "@/lib/admin/api"
 import { fromCsv, toNotesCsv } from "@/lib/admin/utils"
 import type { AdminUiState } from "@/features/admin/uiState"
+import { maxPerfumeImages, perfumeImagePlaceholder } from "@/lib/perfume/parsers"
+
+function normalizeDraftGallery(values: string[]) {
+  const unique: string[] = []
+  for (const entry of values) {
+    const value = entry.trim()
+    if (!value || unique.includes(value)) continue
+    unique.push(value)
+    if (unique.length >= maxPerfumeImages) break
+  }
+  return unique
+}
+
+function toDraftGallery(values: string[] | undefined, fallbackImageSrc: string) {
+  const normalized = normalizeDraftGallery([...(values ?? []), fallbackImageSrc])
+  return Array.from({ length: maxPerfumeImages }, (_, index) => normalized[index] || "")
+}
 
 export function useAdminActions(opts: {
   draft: Draft
@@ -40,6 +57,8 @@ export function useAdminActions(opts: {
       const stock = Math.max(0, Math.floor(Number(draft.stock)))
       const costRaw = Number(draft.cost)
       const cost = Math.max(0, Number.isFinite(costRaw) ? costRaw : 0)
+      const gallery = normalizeDraftGallery(draft.imageGallery)
+      const imageSrc = gallery[0] || perfumeImagePlaceholder
       const payload: Partial<Perfume> = {
         name: draft.name.trim(),
         brand: draft.brand.trim(),
@@ -50,7 +69,8 @@ export function useAdminActions(opts: {
         cost,
         stock,
         availability: draft.availability,
-        imageSrc: draft.imageSrc.trim() || "/images/bottle-placeholder.svg",
+        imageSrc,
+        imageGallery: gallery.length ? gallery : [imageSrc],
         notes: {
           top: fromCsv(draft.notesTop),
           heart: fromCsv(draft.notesHeart),
@@ -154,7 +174,7 @@ export function useAdminActions(opts: {
         cost: String(p.cost),
         stock: String(p.stock),
         availability: p.availability,
-        imageSrc: p.imageSrc,
+        imageGallery: toDraftGallery(p.imageGallery, p.imageSrc),
         notesTop: toNotesCsv(p.notes?.top),
         notesHeart: toNotesCsv(p.notes?.heart),
         notesBase: toNotesCsv(p.notes?.base)

@@ -1,14 +1,14 @@
 "use client"
 
-import type { Dispatch, RefObject, SetStateAction } from "react"
+import type { Dispatch, SetStateAction } from "react"
 import type { Perfume } from "@/types/perfume"
 import { Button } from "@/components/ui/Button"
 import { Input, Label, SelectWithCaret, Textarea } from "@/components/ui/Field"
 import { Card } from "@/components/ui/Surface"
 import type { Draft } from "@/lib/admin/types"
 import { formatMoney } from "@/lib/admin/utils"
-import { AdminImagePicker } from "@/features/admin/components/AdminImagePicker"
 import { AdminPanel } from "@/features/admin/components/AdminPanel"
+import { AdminProductGalleryPicker } from "../components/AdminProductGalleryPicker"
 
 type Finance = {
   price: number
@@ -25,14 +25,10 @@ type Props = {
   missingFields: string[]
   finance: Finance
   busy: boolean
-  uploading: boolean
-  uploadedPath: string | null
-  selectedFileName: string | null
-  localPreviewUrl: string | null
-  fileInputRef: RefObject<HTMLInputElement | null>
+  setBusy: Dispatch<SetStateAction<boolean>>
+  setError: Dispatch<SetStateAction<string | null>>
   brandSuggestions: string[]
   nameSuggestions: string[]
-  onUpload: (file: File) => void
   onSave: () => void
   onCancelEdit: () => void
 }
@@ -45,14 +41,10 @@ export function ProductFormSection({
   missingFields,
   finance,
   busy,
-  uploading,
-  uploadedPath,
-  selectedFileName,
-  localPreviewUrl,
-  fileInputRef,
+  setBusy,
+  setError,
   brandSuggestions,
   nameSuggestions,
-  onUpload,
   onSave,
   onCancelEdit
 }: Props) {
@@ -182,20 +174,15 @@ export function ProductFormSection({
           </div>
 
           <div className="md:col-span-2 grid gap-2">
-            <AdminImagePicker
-              label="Imagen"
-              value={draft.imageSrc}
-              onChange={(next) => setDraft((d) => ({ ...d, imageSrc: next }))}
-              placeholder="/uploads/tu-imagen.jpg"
+            <AdminProductGalleryPicker
+              label="Galería del producto"
+              values={draft.imageGallery}
+              onChange={(next: string[]) => setDraft((d) => ({ ...d, imageGallery: next }))}
               busy={busy}
-              uploading={uploading}
-              uploadedPath={uploadedPath}
-              selectedFileName={selectedFileName}
-              localPreviewUrl={localPreviewUrl}
-              inputRef={fileInputRef}
+              setBusy={setBusy}
+              setError={setError}
+              endpoint="/api/admin/upload"
               accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
-              helpEmpty="Selecciona una imagen para que aquí aparezca “Cambiar imagen”."
-              onUpload={onUpload}
             />
           </div>
 
