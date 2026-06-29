@@ -437,6 +437,34 @@ export function AccountPageClient({
     }
   }, [customer, refreshAccount, searchParams, socialCallbackProvider])
 
+  useEffect(() => {
+    if (!customer || orders.length === 0) return
+
+    let cancelled = false
+
+    const syncOrders = () => {
+      if (document.hidden) return
+      void refreshAccount().catch(() => {
+        if (cancelled) return
+      })
+    }
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) syncOrders()
+    }
+
+    window.addEventListener("focus", syncOrders)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    const intervalId = window.setInterval(syncOrders, 60_000)
+
+    return () => {
+      cancelled = true
+      window.removeEventListener("focus", syncOrders)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      window.clearInterval(intervalId)
+    }
+  }, [customer, orders.length, refreshAccount])
+
   function toggleOrderDetails(orderId: string) {
     setExpandedOrderId((current) => (current === orderId ? "" : orderId))
   }

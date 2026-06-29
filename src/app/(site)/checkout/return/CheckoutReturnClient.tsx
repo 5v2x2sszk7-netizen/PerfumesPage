@@ -5,12 +5,22 @@ import { ButtonLink } from "@/components/ui/Button"
 import { Container } from "@/components/ui/Container"
 import { Card } from "@/components/ui/Surface"
 import { useCart } from "@/components/cart/CartProvider"
-import { formatCustomerOrderNumber } from "@/lib/orderPresentation"
+import { formatCustomerOrderNumber, fulfillmentStatusCustomerLabel, orderStatusCustomerLabel, orderStatusSupportingLabel } from "@/lib/orderPresentation"
 import type { CheckoutProvider } from "@/lib/payments"
 
 type ResultState =
   | { kind: "loading"; message: string }
-  | { kind: "success"; title: string; detail: string; orderId: string; orderNumber: string; providerLabel: string; confirmedAt: string }
+  | {
+      kind: "success"
+      title: string
+      detail: string
+      orderId: string
+      orderNumber: string
+      providerLabel: string
+      confirmedAt: string
+      paymentStatus: string
+      fulfillmentStatus: string
+    }
   | { kind: "error"; title: string; detail: string }
 
 type CachedReturnState = {
@@ -19,6 +29,8 @@ type CachedReturnState = {
   orderNumber?: string
   providerLabel?: string
   confirmedAt?: string
+  paymentStatus?: string
+  fulfillmentStatus?: string
 }
 
 function formatConfirmationDate(value: string) {
@@ -39,7 +51,14 @@ function paymentProviderLabel(provider: CheckoutProvider | null) {
   return ""
 }
 
-function buildSuccessState(input: { orderId?: string; orderNumber?: string; providerLabel?: string; confirmedAt?: string }): ResultState {
+function buildSuccessState(input: {
+  orderId?: string
+  orderNumber?: string
+  providerLabel?: string
+  confirmedAt?: string
+  paymentStatus?: string
+  fulfillmentStatus?: string
+}): ResultState {
   const rawOrderId = input.orderId || input.orderNumber || ""
   return {
     kind: "success",
@@ -48,7 +67,65 @@ function buildSuccessState(input: { orderId?: string; orderNumber?: string; prov
     orderId: rawOrderId,
     orderNumber: rawOrderId ? formatCustomerOrderNumber(rawOrderId) : "",
     providerLabel: input.providerLabel || "",
-    confirmedAt: input.confirmedAt || ""
+    confirmedAt: input.confirmedAt || "",
+    paymentStatus: input.paymentStatus || "approved",
+    fulfillmentStatus: input.fulfillmentStatus || ""
+  }
+}
+
+function resolveStepState(input: { paymentStatus: string; fulfillmentStatus: string }) {
+  const fulfillmentStatus = input.fulfillmentStatus.trim().toLowerCase()
+  const currentLabel = orderStatusCustomerLabel(input)
+  const currentSupportingLabel = orderStatusSupportingLabel(input)
+
+  if (fulfillmentStatus === "delivered") {
+    return {
+      currentLabel,
+      currentSupportingLabel,
+      steps: [
+        { title: "Pago confirmado", state: "done", aside: "Listo" },
+        { title: "Preparacion", state: "done", aside: "Listo" },
+        { title: "Envio", state: "done", aside: "Listo" },
+        { title: "Entregado", state: "active", aside: "Actual" }
+      ]
+    }
+  }
+
+  if (fulfillmentStatus === "shipped") {
+    return {
+      currentLabel,
+      currentSupportingLabel,
+      steps: [
+        { title: "Pago confirmado", state: "done", aside: "Listo" },
+        { title: "Preparacion", state: "done", aside: "Listo" },
+        { title: "Envio", state: "active", aside: "Actual" },
+        { title: "Entregado", state: "upcoming", aside: "Despues" }
+      ]
+    }
+  }
+
+  if (["preparing", "processing", "packing"].includes(fulfillmentStatus)) {
+    return {
+      currentLabel,
+      currentSupportingLabel,
+      steps: [
+        { title: "Pago confirmado", state: "done", aside: "Listo" },
+        { title: "Preparacion", state: "active", aside: "Actual" },
+        { title: "Envio", state: "upcoming", aside: "Despues" },
+        { title: "Entregado", state: "upcoming", aside: "Final" }
+      ]
+    }
+  }
+
+  return {
+    currentLabel,
+    currentSupportingLabel,
+    steps: [
+      { title: "Pago confirmado", state: "active", aside: "Actual" },
+      { title: "Preparacion", state: "upcoming", aside: "Siguiente" },
+      { title: "Envio", state: "upcoming", aside: "Despues" },
+      { title: "Entregado", state: "upcoming", aside: "Final" }
+    ]
   }
 }
 
@@ -137,10 +214,11 @@ export function CheckoutReturnClient({
                   orderNumber: parsed.orderNumber || "",
                   orderId: parsed.orderId || parsed.orderNumber || "",
                   providerLabel: parsed.providerLabel || paymentProviderLabel(provider),
-                  confirmedAt: parsed.confirmedAt || ""
+                  confirmedAt: parsed.confirmedAt || "",
+                  paymentStatus: parsed.paymentStatus || status || "",
+                  fulfillmentStatus: parsed.fulfillmentStatus || ""
                 })
               )
-              return
             }
           } catch {
             if (cached === "success") {
@@ -149,10 +227,11 @@ export function CheckoutReturnClient({
                   orderNumber: "",
                   orderId: "",
                   providerLabel: paymentProviderLabel(provider),
-                  confirmedAt: ""
+                  confirmedAt: "",
+                  paymentStatus: status || "",
+                  fulfillmentStatus: ""
                 })
               )
-              return
             }
           }
         }
@@ -176,7 +255,15 @@ export function CheckoutReturnClient({
         })
 
         const json = (await response.json().catch(() => null)) as
-          | { ok?: boolean; error?: string; status?: string; orderId?: string; provider?: CheckoutProvider; completedAt?: string }
+          | {
+              ok?: boolean
+              error?: string
+              status?: string
+              orderId?: string
+              provider?: CheckoutProvider
+              completedAt?: string
+              fulfillmentStatus?: string
+            }
           | null
         if (!response.ok || !json?.ok) throw new Error(json?.error || "No se pudo confirmar el pago.")
 
@@ -193,7 +280,9 @@ export function CheckoutReturnClient({
                 orderId: json.orderId || "",
                 orderNumber: json.orderId || "",
                 providerLabel: successProviderLabel,
-                confirmedAt: successConfirmedAt
+                confirmedAt: successConfirmedAt,
+                paymentStatus: json.status || status || "",
+                fulfillmentStatus: json.fulfillmentStatus || ""
               } satisfies CachedReturnState)
             )
           }
@@ -202,7 +291,9 @@ export function CheckoutReturnClient({
               ? buildSuccessState({
                   orderNumber: json.orderId || "",
                   providerLabel: successProviderLabel,
-                  confirmedAt: successConfirmedAt
+                  confirmedAt: successConfirmedAt,
+                  paymentStatus: json.status || status || "",
+                  fulfillmentStatus: json.fulfillmentStatus || ""
                 })
               : {
                   kind: "error",
@@ -269,6 +360,12 @@ export function CheckoutReturnClient({
                         {result.confirmedAt ? `Confirmado el ${formatConfirmationDate(result.confirmedAt)}` : ""}
                       </p>
                     ) : null}
+                    <div className="inline-flex rounded-full border border-black/8 bg-white/72 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-700">
+                      {resolveStepState({
+                        paymentStatus: result.paymentStatus,
+                        fulfillmentStatus: result.fulfillmentStatus
+                      }).currentSupportingLabel}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -277,23 +374,38 @@ export function CheckoutReturnClient({
                 <div className="rounded-luxe-xl border border-black/8 bg-white/82 p-4 sm:p-5">
                   <p className="text-xs tracking-section text-ink-500">SIGUIENTE PASO</p>
                   <div className="mt-3 grid gap-2 text-sm text-ink-700">
-                    <div className="flex items-center justify-between rounded-luxe border border-black/8 bg-ink-50/70 px-4 py-3">
-                      <span className="font-medium text-ink-950">Pago confirmado</span>
-                      <span className="text-[11px] uppercase tracking-[0.14em] text-ink-600">Listo</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-luxe border border-black/8 bg-white/85 px-4 py-3">
-                      <span>Preparacion</span>
-                      <span className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Siguiente</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-luxe border border-black/8 bg-white/85 px-4 py-3">
-                      <span>Envio</span>
-                      <span className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Despues</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-luxe border border-black/8 bg-white/85 px-4 py-3">
-                      <span>Entregado</span>
-                      <span className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Final</span>
-                    </div>
+                    {resolveStepState({
+                      paymentStatus: result.paymentStatus,
+                      fulfillmentStatus: result.fulfillmentStatus
+                    }).steps.map((step) => (
+                      <div
+                        key={step.title}
+                        className={[
+                          "flex items-center justify-between rounded-luxe border px-4 py-3",
+                          step.state === "active"
+                            ? "border-antiqueGold/30 bg-antiqueGold/10"
+                            : step.state === "done"
+                              ? "border-black/8 bg-ink-50/70"
+                              : "border-black/8 bg-white/85"
+                        ].join(" ")}
+                      >
+                        <span className={step.state !== "upcoming" ? "font-medium text-ink-950" : ""}>{step.title}</span>
+                        <span
+                          className={[
+                            "text-[11px] uppercase tracking-[0.14em]",
+                            step.state === "active" ? "text-ink-950" : step.state === "done" ? "text-ink-600" : "text-ink-500"
+                          ].join(" ")}
+                        >
+                          {step.aside}
+                        </span>
+                      </div>
+                    ))}
                   </div>
+                  {result.fulfillmentStatus ? (
+                    <p className="mt-4 text-xs leading-6 text-ink-500">
+                      Estado sincronizado: {fulfillmentStatusCustomerLabel(result.fulfillmentStatus)}.
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">

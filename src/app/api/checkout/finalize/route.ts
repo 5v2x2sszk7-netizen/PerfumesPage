@@ -1,6 +1,7 @@
 import { jsonError, jsonNoStoreOk, readJsonBody } from "@/lib/apiResponse"
 import { applyConfirmedCheckout, isSuccessfulPayment } from "@/lib/checkout/confirmation"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
+import { readOrders } from "@/lib/stores/orders"
 import {
   capturePayPalOrder,
   getMercadoPagoMerchantOrder,
@@ -18,6 +19,13 @@ type FinalizeCheckoutBody = {
   merchantOrderId?: string
   externalReference?: string
   status?: string
+}
+
+async function readFulfillmentStatus(orderId?: string) {
+  const normalized = orderId?.trim() || ""
+  if (!normalized) return ""
+  const order = (await readOrders()).find((entry) => entry.id === normalized)
+  return order?.fulfillmentStatus || ""
 }
 
 export async function POST(req: Request) {
@@ -40,12 +48,14 @@ export async function POST(req: Request) {
               inventoryUpdated: false,
               inventoryMessage: "Pago sin cambios de inventario."
             }
+      const resolvedOrderId = inventory.orderId || result.orderId
       return jsonNoStoreOk({
         provider: "paypal",
         status: result.status,
         reference: result.id,
-        orderId: inventory.orderId || result.orderId,
+        orderId: resolvedOrderId,
         completedAt: inventory.completedAt,
+        fulfillmentStatus: await readFulfillmentStatus(resolvedOrderId),
         inventoryUpdated: inventory.inventoryUpdated,
         inventoryMessage: inventory.inventoryMessage
       })
@@ -107,12 +117,14 @@ export async function POST(req: Request) {
               inventoryUpdated: false,
               inventoryMessage: "Pago sin cambios de inventario."
             }
+      const resolvedOrderId = inventory.orderId || result.orderId
       return jsonNoStoreOk({
         provider: "mercado_pago",
         status: result.status,
         reference: result.id,
-        orderId: inventory.orderId || result.orderId,
+        orderId: resolvedOrderId,
         completedAt: inventory.completedAt,
+        fulfillmentStatus: await readFulfillmentStatus(resolvedOrderId),
         inventoryUpdated: inventory.inventoryUpdated,
         inventoryMessage: inventory.inventoryMessage
       })
