@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache"
 import { appendOrder, appendSale, readCheckoutOrders, readPerfumes, withCheckoutOrdersLock, withPerfumesLock, writeCheckoutOrders, writePerfumes } from "@/lib/perfumeStore"
 import { availabilityFromStock } from "@/lib/perfume/parsers"
 import type { CheckoutProvider } from "@/lib/payments"
@@ -26,6 +27,8 @@ export async function applyConfirmedCheckout(input: {
 
     const currentOrder = orders[orderIndex]
     if (currentOrder.status === "completed") {
+      revalidatePath("/catalog")
+      revalidatePath("/catalog/[slug]", "page")
       return {
         inventoryUpdated: true,
         inventoryMessage: "Inventario ya aplicado previamente.",
@@ -99,6 +102,9 @@ export async function applyConfirmedCheckout(input: {
       total: completedOrder.total,
       items: completedOrder.items
     })
+
+    revalidatePath("/catalog")
+    revalidatePath("/catalog/[slug]", "page")
 
     return {
       inventoryUpdated: true,
