@@ -310,7 +310,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                   <p className="text-xs tracking-section text-ink-500">{perfume.brand}</p>
                   <h1 className="mt-2 font-display text-4xl leading-display text-ink-950 sm:text-5xl">{perfume.name}</h1>
 
-                  <div className="mt-5 flex flex-wrap gap-2">
+                  <div className="mt-5 flex flex-wrap gap-x-2 gap-y-2">
                     <Badge>{concentration}</Badge>
                     <Badge>{family}</Badge>
                     <Badge>{perfume.sizeMl} ml</Badge>
@@ -326,24 +326,24 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                 </div>
 
                 <div className="space-y-3">
+                  <PurchaseActions perfume={perfume} />
+
                   <div className="flex flex-wrap gap-3">
                     <ButtonExternal
                       href={waHref}
                       target="_blank"
                       rel="noreferrer"
-                      variant="gold"
-                      className="group transition-luxe duration-luxe ease-luxe hover:-translate-y-0.5 hover:shadow-cta-soft"
+                      variant="soft"
+                      className="group w-full justify-between border border-black/8 bg-ink-50/65 text-ink-800 transition-luxe duration-luxe ease-luxe hover:-translate-y-0.5 hover:bg-white sm:w-auto"
                     >
                       <span className="inline-flex items-center gap-2">
                         <span>Solicitar por WhatsApp</span>
-                        <span className="text-ink-800/70 transition-transform duration-luxe ease-luxe group-hover:translate-x-0.5">
+                        <span className="text-ink-600 transition-transform duration-luxe ease-luxe group-hover:translate-x-0.5">
                           →
                         </span>
                       </span>
                     </ButtonExternal>
                   </div>
-
-                  <PurchaseActions perfume={perfume} />
                 </div>
 
                 <AvailabilityPanel

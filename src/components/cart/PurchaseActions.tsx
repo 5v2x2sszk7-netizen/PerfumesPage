@@ -34,10 +34,15 @@ export function PurchaseActions({ perfume }: { perfume: PurchasePerfume }) {
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Button type="button" variant="outline" className="sm:min-w-44" onClick={addToCart}>
+        <Button type="button" variant="outline" className="border-black/10 bg-white/90 sm:min-w-44" onClick={addToCart}>
           {added ? "Agregado" : "Agregar al carrito"}
         </Button>
-        <Button type="button" variant="gold" className="sm:min-w-44" onClick={startCheckout}>
+        <Button
+          type="button"
+          variant="gold"
+          className="shadow-cta-soft transition-luxe duration-luxe ease-luxe hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(188,149,79,0.26)] sm:min-w-44"
+          onClick={startCheckout}
+        >
           Pago en linea
         </Button>
       </div>
