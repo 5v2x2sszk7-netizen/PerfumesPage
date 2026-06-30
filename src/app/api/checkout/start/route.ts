@@ -13,6 +13,7 @@ import { readCustomers, withCustomersLock, writeCustomers } from "@/lib/stores/c
 import { readPerfumes } from "@/lib/stores/perfumes"
 
 const activeReservationCookieName = "perfimes_active_checkout_reservation"
+const guestReservationOwnerCookieName = "perfimes_guest_checkout_owner"
 
 type CheckoutLineInput = {
   id?: string
@@ -55,10 +56,6 @@ function readCookieValue(req: Request, name: string) {
   return ""
 }
 
-function getClientIp(req: Request) {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
-}
-
 function hashOwnerKey(value: string) {
   return createHash("sha256").update(value).digest("hex")
 }
@@ -66,14 +63,14 @@ function hashOwnerKey(value: string) {
 function buildReservationOwnerKey(input: {
   checkoutMode: "guest" | "account"
   sessionCustomerId?: string
+  guestReservationOwnerId?: string
   customerEmail: string
-  ip: string
 }) {
   if (input.checkoutMode === "account" && input.sessionCustomerId) {
     return hashOwnerKey(`account:${input.sessionCustomerId}`)
   }
-  if (input.ip && input.ip !== "unknown") {
-    return hashOwnerKey(`guest-ip:${input.ip}`)
+  if (input.guestReservationOwnerId) {
+    return hashOwnerKey(`guest-session:${input.guestReservationOwnerId}`)
   }
   return hashOwnerKey(`guest-email:${input.customerEmail.trim().toLowerCase()}`)
 }
@@ -143,11 +140,15 @@ export async function POST(req: Request) {
       email: sessionCustomer.email
     }
   }
+  const guestReservationOwnerId =
+    checkoutMode === "guest"
+      ? readCookieValue(req, guestReservationOwnerCookieName) || globalThis.crypto?.randomUUID?.() || `guest-${Date.now()}`
+      : ""
   const reservationOwnerKey = buildReservationOwnerKey({
     checkoutMode,
     sessionCustomerId: sessionCustomer?.id,
-    customerEmail: customer.email,
-    ip: getClientIp(req)
+    guestReservationOwnerId,
+    customerEmail: customer.email
   })
 
   const requestedItems = Array.isArray(body.items) ? body.items : []
@@ -370,6 +371,15 @@ export async function POST(req: Request) {
       secure: true,
       maxAge
     })
+    if (checkoutMode === "guest" && guestReservationOwnerId) {
+      response.cookies.set(guestReservationOwnerCookieName, guestReservationOwnerId, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 30
+      })
+    }
 
     return response
   } catch (error) {

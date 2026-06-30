@@ -13,6 +13,8 @@ type LoginBody = {
   password?: string
 }
 
+const invalidLoginMessage = "No pudimos iniciar sesion con esas credenciales."
+
 export async function POST(req: Request) {
   const rate = await checkRateLimit(req, { keyPrefix: "customer-login", windowMs: 10 * 60 * 1000, max: 25 })
   if (!rate.allowed) {
@@ -30,13 +32,13 @@ export async function POST(req: Request) {
 
   const customers = await readCustomers()
   const customer = customers.find((entry) => entry.email === email)
-  if (!customer) return jsonError("No encontramos una cuenta con ese correo.", 404)
+  if (!customer) return jsonError(invalidLoginMessage, 401)
   if (!customer.passwordHash || !customer.passwordSalt) {
-    return jsonError("Esta cuenta se creó con Google o Apple ID. Continúa con ese acceso o define una contraseña.", 400)
+    return jsonError(invalidLoginMessage, 401)
   }
 
   const isValidPassword = await verifyCustomerPassword(password, customer.passwordHash, customer.passwordSalt)
-  if (!isValidPassword) return jsonError("La contrasena es incorrecta.", 401)
+  if (!isValidPassword) return jsonError(invalidLoginMessage, 401)
 
   let signedInCustomer = customer
   await withCustomersLock(async () => {
