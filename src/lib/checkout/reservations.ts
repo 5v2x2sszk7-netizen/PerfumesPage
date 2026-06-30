@@ -3,7 +3,7 @@ import { readPerfumes } from "@/lib/stores/perfumes"
 import { readCheckoutOrders, type CheckoutOrderRecord } from "@/lib/stores/checkoutOrders"
 import type { Perfume } from "@/types/perfume"
 
-const defaultReservationMinutes = 15
+const defaultReservationMinutes = 10
 
 function parseReservationMinutes(rawValue: string | undefined) {
   const parsed = Number(rawValue)

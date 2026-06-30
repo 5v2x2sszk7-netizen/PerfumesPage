@@ -76,7 +76,7 @@ function getReservationExpiresAtMs(order: CheckoutReservationRecord) {
   const createdAtMs = new Date(order.createdAt).getTime()
   if (Number.isNaN(createdAtMs)) return 0
 
-  return createdAtMs + 15 * 60_000
+  return createdAtMs + 10 * 60_000
 }
 
 function formatReservationRemaining(ms: number) {
@@ -169,6 +169,7 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
   const [pendingOrderId, setPendingOrderId] = useState("")
   const [pendingReservationId, setPendingReservationId] = useState("")
   const [pendingBulkReservationAction, setPendingBulkReservationAction] = useState("")
+  const [pendingMaintenanceAction, setPendingMaintenanceAction] = useState("")
   const [reservationFilter, setReservationFilter] = useState<"all" | "active" | "expired">("all")
   const [reservationProviderFilter, setReservationProviderFilter] = useState<"all" | "mercado_pago" | "paypal">("all")
   const [reservationSort, setReservationSort] = useState<"expires_asc" | "expires_desc">("expires_asc")
@@ -603,7 +604,7 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
     async function silentRefreshReservations() {
       if (cancelled) return
       if (document.visibilityState !== "visible") return
-      if (pendingReservationId || pendingBulkReservationAction || pendingOrderId) return
+      if (pendingReservationId || pendingBulkReservationAction || pendingMaintenanceAction || pendingOrderId) return
 
       setIsAutoRefreshingReservations(true)
       try {
@@ -636,7 +637,7 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
       window.removeEventListener("focus", onFocus)
       document.removeEventListener("visibilitychange", onFocus)
     }
-  }, [pendingBulkReservationAction, pendingOrderId, pendingReservationId, refresh])
+  }, [pendingBulkReservationAction, pendingMaintenanceAction, pendingOrderId, pendingReservationId, refresh])
 
   function resetFilters() {
     setQuery("")
@@ -708,6 +709,29 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
       setUpdateError(error instanceof Error ? error.message : "No se pudieron liberar las reservas expiradas.")
     } finally {
       setPendingBulkReservationAction("")
+    }
+  }
+
+  async function resetTestData() {
+    if (pendingMaintenanceAction) return
+    const confirmed = window.confirm(
+      "Esto borrara TODAS las ventas, ordenes confirmadas y checkout-orders (reservas) actuales. Usalo solo si todo es de prueba. ¿Continuar?"
+    )
+    if (!confirmed) return
+
+    setPendingMaintenanceAction("reset_test_data")
+    setUpdateError("")
+    try {
+      await api("/api/admin/products", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reset_test_data" })
+      })
+      await refresh()
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : "No se pudieron limpiar los datos de prueba.")
+    } finally {
+      setPendingMaintenanceAction("")
     }
   }
 
@@ -1213,6 +1237,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                 placeholder="Cliente, correo, telefono o perfume"
                 value={reservationQuery}
                 onChange={(event) => setReservationQuery(event.target.value)}
+                variant="pill"
+                uiSize="sm"
                 className="mt-2"
               />
             </div>
@@ -1222,6 +1248,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                 id="reservation-filter"
                 value={reservationFilter}
                 onChange={(event) => setReservationFilter(event.target.value as "all" | "active" | "expired")}
+                variant="pill"
+                uiSize="sm"
                 className="mt-2"
               >
                 <option value="all">Todas</option>
@@ -1235,6 +1263,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                 id="reservation-provider-filter"
                 value={reservationProviderFilter}
                 onChange={(event) => setReservationProviderFilter(event.target.value as "all" | "mercado_pago" | "paypal")}
+                variant="pill"
+                uiSize="sm"
                 className="mt-2"
               >
                 <option value="all">Todos</option>
@@ -1248,6 +1278,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                 id="reservation-alert-filter"
                 value={reservationAlertFilter}
                 onChange={(event) => setReservationAlertFilter(event.target.value as "all" | "sent" | "pending")}
+                variant="pill"
+                uiSize="sm"
                 className="mt-2"
               >
                 <option value="all">Todos</option>
@@ -1261,6 +1293,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                 id="reservation-sort"
                 value={reservationSort}
                 onChange={(event) => setReservationSort(event.target.value as "expires_asc" | "expires_desc")}
+                variant="pill"
+                uiSize="sm"
                 className="mt-2"
               >
                 <option value="expires_asc">Vence primero</option>
@@ -1275,6 +1309,15 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
               </span>
               <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Auto-refresh cada 60 s</p>
             </div>
+            <Button
+              type="button"
+              variant="danger"
+              className="mt-6"
+              onClick={() => void resetTestData()}
+              disabled={Boolean(pendingMaintenanceAction)}
+            >
+              {pendingMaintenanceAction ? "Limpiando..." : "Limpiar pruebas"}
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -1470,6 +1513,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                     setReservationEventPreset("all")
                     setReservationEventQuery(event.target.value)
                   }}
+                  variant="pill"
+                  uiSize="sm"
                   className="mt-2"
                 />
               </div>
@@ -1482,6 +1527,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                     setReservationEventPreset("all")
                     setReservationEventQuickFilter(event.target.value as "all" | "with_retries" | "alerted_today" | "critical_open")
                   }}
+                  variant="pill"
+                  uiSize="sm"
                   className="mt-2"
                 >
                   <option value="all">Todos</option>
@@ -1501,6 +1548,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                       event.target.value as "all" | CheckoutReservationEvent["type"] | "critical" | "payment" | "operational"
                     )
                   }}
+                  variant="pill"
+                  uiSize="sm"
                   className="mt-2"
                 >
                   <option value="all">Todos</option>
@@ -1526,6 +1575,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                     setReservationEventProviderFilter(event.target.value as "all" | "mercado_pago" | "paypal")
                     setReservationEventsPage(1)
                   }}
+                  variant="pill"
+                  uiSize="sm"
                   className="mt-2"
                 >
                   <option value="all">Todos</option>
@@ -1545,6 +1596,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                     )
                     setReservationEventsPage(1)
                   }}
+                  variant="pill"
+                  uiSize="sm"
                   className="mt-2"
                 >
                   <option value="all">Todos</option>
@@ -1562,6 +1615,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                     setReservationEventPreset("all")
                     setReservationEventSort(event.target.value as "newest" | "oldest")
                   }}
+                  variant="pill"
+                  uiSize="sm"
                   className="mt-2"
                 >
                   <option value="newest">Recientes primero</option>
@@ -1578,6 +1633,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                     setReservationEventPreset("all")
                     setReservationEventFromDate(event.target.value)
                   }}
+                  variant="pill"
+                  uiSize="sm"
                   className="mt-2"
                 />
               </div>
@@ -1591,6 +1648,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                     setReservationEventPreset("all")
                     setReservationEventToDate(event.target.value)
                   }}
+                  variant="pill"
+                  uiSize="sm"
                   className="mt-2"
                 />
               </div>
@@ -1742,7 +1801,7 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                 {paginatedReservationEventLog.map((entry) => (
                   <div
                     key={`${entry.reservationId}-${entry.event.type}-${entry.event.at}-table`}
-                    className="grid grid-cols-[1.1fr_1.4fr_1fr_1.1fr_0.8fr_2fr] gap-3 border-b border-black/8 px-4 py-3 text-sm text-ink-700 last:border-b-0"
+                    className="grid grid-cols-[1.1fr_1.4fr_1fr_1.1fr_0.8fr_2fr] gap-3 border-b border-black/8 px-4 py-3 text-sm text-ink-700 transition-colors hover:bg-ink-50/55 last:border-b-0"
                   >
                     <div>
                       <p className="text-sm text-ink-950">{formatDateTimeCompact(entry.event.at)}</p>
@@ -2095,6 +2154,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                   setQuery(e.target.value)
                   setCurrentPage(1)
                 }}
+                variant="pill"
+                uiSize="sm"
               />
             </div>
             <div className="grid gap-2">
@@ -2106,6 +2167,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                   setProvider(e.target.value as typeof provider)
                   setCurrentPage(1)
                 }}
+                variant="pill"
+                uiSize="sm"
               >
                 <option value="all">Todos</option>
                 <option value="mercado_pago">Mercado Pago</option>
@@ -2121,6 +2184,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                   setPaymentStatus(e.target.value)
                   setCurrentPage(1)
                 }}
+                variant="pill"
+                uiSize="sm"
               >
                 <option value="all">Todos</option>
                 {paymentStatuses.map((status) => (
@@ -2139,6 +2204,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                   setFulfillmentStatusFilter(e.target.value)
                   setCurrentPage(1)
                 }}
+                variant="pill"
+                uiSize="sm"
               >
                 {fulfillmentStatusFilters.map((status) => (
                   <option key={status.value} value={status.value}>
@@ -2159,6 +2226,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                   setFromDate(e.target.value)
                   setCurrentPage(1)
                 }}
+                variant="pill"
+                uiSize="sm"
               />
             </div>
             <div className="grid gap-2">
@@ -2173,6 +2242,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                   setToDate(e.target.value)
                   setCurrentPage(1)
                 }}
+                variant="pill"
+                uiSize="sm"
               />
             </div>
           </div>

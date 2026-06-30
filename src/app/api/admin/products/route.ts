@@ -1,5 +1,5 @@
 import type { Perfume } from "@/types/perfume"
-import { addSuggestion, readOrders, readPerfumes, readSales, readSuggestions, withPerfumesLock, writePerfumes } from "@/lib/perfumeStore"
+import { addSuggestion, clearCheckoutOrders, clearOrders, clearSales, readOrders, readPerfumes, readSales, readSuggestions, withPerfumesLock, writePerfumes } from "@/lib/perfumeStore"
 import { slugify } from "@/lib/slug"
 import { isPersistenceNotConfiguredError } from "@/lib/persistence"
 import {
@@ -14,6 +14,8 @@ import {
   resolvePerfumeImageGallery
 } from "@/lib/perfume/parsers"
 import { jsonError, jsonNoStoreOk, jsonOk, readJsonBody } from "@/lib/apiResponse"
+import { cookies } from "next/headers"
+import { adminCookieName, isValidAdminSessionValue } from "@/lib/adminSession"
 
 export const runtime = "nodejs"
 
@@ -33,6 +35,27 @@ export async function GET() {
   const sales = await readSales()
   const orders = await readOrders()
   return jsonNoStoreOk({ perfumes, suggestions, sales, orders })
+}
+
+export async function PUT(req: Request) {
+  const cookieStore = await cookies()
+  const sessionValue = cookieStore.get(adminCookieName)?.value
+  if (!(await isValidAdminSessionValue(sessionValue))) {
+    return jsonError("Unauthorized", 401)
+  }
+
+  const body = await readJsonBody<{ action?: string }>(req)
+  if (!body) return jsonError("Invalid body", 400)
+
+  if (body.action !== "reset_test_data") {
+    return jsonError("Accion invalida.", 400)
+  }
+
+  await Promise.all([clearOrders(), clearSales(), clearCheckoutOrders()])
+
+  return jsonOk({
+    ok: true
+  })
 }
 
 export async function POST(req: Request) {

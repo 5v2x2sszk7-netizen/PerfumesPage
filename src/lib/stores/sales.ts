@@ -64,6 +64,12 @@ async function writeSales(sales: SaleRecord[]) {
   await writeJson(salesPath, sales)
 }
 
+export async function clearSales() {
+  await withStorageLock(salesPath, async () => {
+    await writeSales([])
+  })
+}
+
 export async function appendSale(record: {
   perfumeId: string
   brand: string

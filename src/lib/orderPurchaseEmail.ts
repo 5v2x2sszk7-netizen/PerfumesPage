@@ -53,7 +53,7 @@ function buildReservationItemsSummary(order: CheckoutOrderRecord) {
 function getReservationExpiresAtLabel(order: CheckoutOrderRecord) {
   const explicit = order.reservationExpiresAt ? new Date(order.reservationExpiresAt).getTime() : Number.NaN
   const createdAtMs = new Date(order.createdAt).getTime()
-  const fallback = Number.isNaN(createdAtMs) ? Date.now() : createdAtMs + 15 * 60_000
+  const fallback = Number.isNaN(createdAtMs) ? Date.now() : createdAtMs + 10 * 60_000
   const targetMs = Number.isNaN(explicit) ? fallback : explicit
   return formatDateLabel(new Date(targetMs).toISOString())
 }

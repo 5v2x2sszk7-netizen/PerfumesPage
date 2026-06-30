@@ -284,7 +284,7 @@ export async function POST(req: Request) {
     })
 
     const expiresAtMs = new Date(reservation.reservationExpiresAt).getTime()
-    const maxAge = Number.isNaN(expiresAtMs) ? 15 * 60 : Math.max(1, Math.ceil((expiresAtMs - Date.now()) / 1000))
+    const maxAge = Number.isNaN(expiresAtMs) ? 10 * 60 : Math.max(1, Math.ceil((expiresAtMs - Date.now()) / 1000))
     response.cookies.set(activeReservationCookieName, JSON.stringify({
       orderId,
       provider,

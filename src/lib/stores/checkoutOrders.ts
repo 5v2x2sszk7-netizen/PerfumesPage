@@ -253,6 +253,12 @@ export async function writeCheckoutOrders(orders: CheckoutOrderRecord[]) {
   await writeJson(checkoutOrdersPath, orders)
 }
 
+export async function clearCheckoutOrders() {
+  await withCheckoutOrdersLock(async () => {
+    await writeCheckoutOrders([])
+  })
+}
+
 export async function appendCheckoutOrder(order: CheckoutOrderRecord) {
   await withStorageLock(checkoutOrdersPath, async () => {
     const existing = await readCheckoutOrders()

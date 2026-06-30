@@ -80,6 +80,12 @@ async function writeOrders(orders: ConfirmedOrderRecord[]) {
   await writeJson(ordersPath, orders)
 }
 
+export async function clearOrders() {
+  await withStorageLock(ordersPath, async () => {
+    await writeOrders([])
+  })
+}
+
 export async function appendOrder(order: ConfirmedOrderRecord) {
   await withStorageLock(ordersPath, async () => {
     const existing = await readOrders()

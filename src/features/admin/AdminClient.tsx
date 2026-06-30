@@ -33,7 +33,7 @@ function getReservationExpiresAtMs(createdAt: string, reservationExpiresAt?: str
   const createdAtMs = new Date(createdAt).getTime()
   if (Number.isNaN(createdAtMs)) return 0
 
-  return createdAtMs + 15 * 60_000
+  return createdAtMs + 10 * 60_000
 }
 
 export function AdminClient() {
