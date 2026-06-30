@@ -546,18 +546,30 @@ export function CheckoutPageClient({
       const json = (await response.json().catch(() => null)) as
         | { ok?: boolean; error?: string; url?: string; orderId?: string; reservationExpiresAt?: string }
         | null
-      if (!response.ok || !json?.ok || !json.url || !json.orderId || !json.reservationExpiresAt) {
+      const checkoutUrl = json?.url
+      const orderId = json?.orderId
+      const reservationExpiresAt = json?.reservationExpiresAt
+
+      if (!response.ok || !json?.ok || !checkoutUrl || !orderId || !reservationExpiresAt) {
         throw new Error(json?.error || "No se pudo iniciar el checkout.")
       }
 
       writeActiveCheckoutReservation({
-        orderId: json.orderId,
+        orderId,
         provider,
-        expiresAt: json.reservationExpiresAt,
+        expiresAt: reservationExpiresAt,
         linesKey: reservationLinesKey
       })
 
-      window.location.assign(json.url)
+      setActiveReservation({
+        orderId,
+        provider,
+        expiresAt: reservationExpiresAt
+      })
+      setReservationNowMs(Date.now())
+      window.setTimeout(() => {
+        window.location.assign(checkoutUrl)
+      }, 450)
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "No se pudo iniciar el checkout.")
       setStatus("idle")
