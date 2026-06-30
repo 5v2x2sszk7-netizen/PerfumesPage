@@ -1,9 +1,25 @@
 "use client"
 
-import { useEffect } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { clearActiveCheckoutReservation, readActiveCheckoutReservation } from "@/lib/checkout/clientReservation"
 
 function splitTokens(value: string) {
   return value.split(/\s+/g).map((v) => v.trim()).filter(Boolean)
+}
+
+function formatMinutesAndSeconds(totalMs: number) {
+  const totalSeconds = Math.max(0, Math.ceil(totalMs / 1000))
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+}
+
+type ReservationBannerState = {
+  orderId: string
+  provider: "mercado_pago" | "paypal"
+  expiresAt: string
 }
 
 export function HeaderScrollClient({
@@ -17,6 +33,10 @@ export function HeaderScrollClient({
   scrolledClassName: string
   threshold?: number
 }) {
+  const pathname = usePathname()
+  const [reservation, setReservation] = useState<ReservationBannerState | null>(null)
+  const [nowMs, setNowMs] = useState(() => Date.now())
+
   useEffect(() => {
     const el = document.getElementById(targetId)
     if (!el) return
@@ -51,6 +71,96 @@ export function HeaderScrollClient({
     }
   }, [scrolledClassName, targetId, threshold, topClassName])
 
-  return null
-}
+  useEffect(() => {
+    let cancelled = false
+    const stored = readActiveCheckoutReservation()
+    if (!stored) {
+      setReservation(null)
+      return
+    }
 
+    const expiresAtMs = new Date(stored.expiresAt).getTime()
+    if (Number.isNaN(expiresAtMs) || expiresAtMs <= Date.now()) {
+      clearActiveCheckoutReservation(stored.orderId)
+      setReservation(null)
+      return
+    }
+
+    setReservation({
+      orderId: stored.orderId,
+      provider: stored.provider,
+      expiresAt: stored.expiresAt
+    })
+
+    fetch(`/api/checkout/reservation?orderId=${encodeURIComponent(stored.orderId)}`, {
+      cache: "no-store"
+    })
+      .then(async (response) => {
+        const json = (await response.json().catch(() => null)) as
+          | {
+              ok?: boolean
+              active?: boolean
+              provider?: ReservationBannerState["provider"]
+              reservationExpiresAt?: string | null
+            }
+          | null
+
+        if (cancelled) return
+
+        if (!response.ok || !json?.ok || !json.active || !json.provider || !json.reservationExpiresAt) {
+          clearActiveCheckoutReservation(stored.orderId)
+          setReservation(null)
+          return
+        }
+
+        setReservation({
+          orderId: stored.orderId,
+          provider: json.provider,
+          expiresAt: json.reservationExpiresAt
+        })
+      })
+      .catch(() => undefined)
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!reservation) return
+
+    const tick = window.setInterval(() => {
+      setNowMs(Date.now())
+    }, 1000)
+
+    return () => {
+      window.clearInterval(tick)
+    }
+  }, [reservation])
+
+  const remainingMs = useMemo(() => {
+    if (!reservation) return 0
+    const expiresAtMs = new Date(reservation.expiresAt).getTime()
+    if (Number.isNaN(expiresAtMs)) return 0
+    return expiresAtMs - nowMs
+  }, [nowMs, reservation])
+
+  const shouldShowBanner = Boolean(reservation && remainingMs > 0 && !pathname.startsWith("/checkout"))
+  const providerLabel = reservation?.provider === "paypal" ? "PayPal" : "Mercado Pago"
+
+  return shouldShowBanner ? (
+    <div className="border-b border-black/6 bg-white/72 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-700">
+          Reserva activa · {providerLabel} · {formatMinutesAndSeconds(remainingMs)}
+        </p>
+        <div className="flex items-center gap-3 text-xs text-ink-600">
+          <span className="hidden sm:inline">Puede aparecer como agotado mientras completas el pago.</span>
+          <Link href="/checkout" className="font-medium text-ink-950 underline decoration-black/20 underline-offset-4 hover:decoration-black/40">
+            Volver al checkout
+          </Link>
+        </div>
+      </div>
+    </div>
+  ) : null
+}
