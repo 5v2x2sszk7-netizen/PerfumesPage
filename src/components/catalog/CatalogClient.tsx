@@ -369,7 +369,7 @@ function CatalogResults({
 
     if (view === "grid" && ordered.length === 2) {
       return (
-        <div className="mt-10 mx-auto grid max-w-catalog-grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div className="mt-10 mx-auto grid max-w-catalog-grid grid-cols-2 gap-4 sm:gap-6">
           {ordered.map((p, idx) => (
             idx < 12 ? (
               <LazyReveal key={p.id} delayMs={idx * 90} className="w-full">
@@ -386,7 +386,7 @@ function CatalogResults({
     }
 
     return (
-      <div className={cn("mt-8 grid gap-6", view === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1")}>
+      <div className={cn("mt-8 grid gap-4 sm:gap-6", view === "grid" ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1")}>
         {ordered.map((p, idx) => (
           idx < 12 ? (
             <LazyReveal key={p.id} delayMs={idx * 55} className="w-full">
