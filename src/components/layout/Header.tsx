@@ -22,10 +22,18 @@ export function Header() {
       />
       <Container className="flex h-16 items-center justify-between">
         <Link href="/" className="group inline-flex flex-col leading-none">
-          <span className="font-display text-logo uppercase tracking-brand text-ink-950 transition-[letter-spacing,opacity] duration-200 ease-luxe group-hover:opacity-85 group-hover:tracking-[0.38em] sm:text-logo-sm sm:tracking-brandSm sm:group-hover:tracking-[0.46em]">
-            {siteConfig.wordmark}
+          <span className="relative inline-grid items-center">
+            <span
+              aria-hidden="true"
+              className="invisible font-display text-logo uppercase tracking-[0.35em] sm:text-logo-sm sm:tracking-[0.42em]"
+            >
+              {siteConfig.wordmark}
+            </span>
+            <span className="absolute inset-0 font-display text-logo uppercase tracking-brand text-ink-950 transition-[letter-spacing,opacity,color] duration-300 ease-luxe group-hover:opacity-90 group-hover:text-black sm:text-logo-sm sm:tracking-brandSm md:duration-[420ms] group-hover:md:tracking-[0.35em] sm:group-hover:md:tracking-[0.42em]">
+              {siteConfig.wordmark}
+            </span>
           </span>
-          <span className="mt-1 text-[11px] font-light tracking-[0.24em] text-ink-600 transition-[opacity,color] duration-200 ease-luxe group-hover:text-ink-700 group-hover:opacity-85">
+          <span className="mt-1 text-[11px] font-light tracking-[0.24em] text-ink-600 transition-[opacity,color,transform] duration-300 ease-luxe group-hover:text-ink-700 group-hover:opacity-90 md:duration-[420ms]">
             {siteConfig.descriptor}
           </span>
         </Link>
