@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { normalizeCartItems, type CartItem } from "@/lib/cart"
+import { buildCheckoutReservationLinesKey, readActiveCheckoutReservation } from "@/lib/checkout/clientReservation"
 
 const storageKey = "perfimes-cart:v1"
 
@@ -58,13 +59,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return { changed: false }
     }
 
+    const storedReservation = readActiveCheckoutReservation()
+    const storedExpiresAtMs = storedReservation ? new Date(storedReservation.expiresAt).getTime() : Number.NaN
+    const currentLinesKey = buildCheckoutReservationLinesKey(currentItems.map((item) => ({ id: item.id, quantity: item.quantity })))
+    const excludeOrderId =
+      storedReservation &&
+      storedReservation.orderId &&
+      storedReservation.linesKey === currentLinesKey &&
+      !Number.isNaN(storedExpiresAtMs) &&
+      storedExpiresAtMs > Date.now()
+        ? storedReservation.orderId
+        : ""
+
     try {
       const response = await fetch("/api/cart/sync", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ items: currentItems }),
+        body: JSON.stringify({ items: currentItems, excludeOrderId }),
         cache: "no-store"
       })
 

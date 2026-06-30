@@ -1,9 +1,10 @@
 import { jsonError, jsonNoStoreOk, readJsonBody } from "@/lib/apiResponse"
 import { normalizeCartItems, toCartItem, type CartItem } from "@/lib/cart"
-import { readSellablePerfumes } from "@/lib/checkout/reservations"
+import { readSellablePerfumesExcludingReservation } from "@/lib/checkout/reservations"
 
 type SyncCartBody = {
   items?: CartItem[]
+  excludeOrderId?: string
 }
 
 function buildSyncMessage(input: { removedCount: number; adjustedCount: number }) {
@@ -36,7 +37,8 @@ export async function POST(req: Request) {
     })
   }
 
-  const perfumes = await readSellablePerfumes()
+  const excludeOrderId = typeof body.excludeOrderId === "string" ? body.excludeOrderId.trim() : ""
+  const perfumes = await readSellablePerfumesExcludingReservation(excludeOrderId || undefined)
   let removedCount = 0
   let adjustedCount = 0
 

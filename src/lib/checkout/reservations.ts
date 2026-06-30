@@ -93,3 +93,17 @@ export async function readSellablePerfumes() {
     })
   )
 }
+
+export async function readSellablePerfumesExcludingReservation(excludeOrderId?: string) {
+  const [perfumes, checkoutOrders] = await Promise.all([readPerfumes(), readCheckoutOrders()])
+  const nowMs = Date.now()
+  const normalizedExclude = excludeOrderId?.trim() || undefined
+  return perfumes.map((perfume) =>
+    toSellablePerfume({
+      perfume,
+      checkoutOrders,
+      excludeOrderId: normalizedExclude,
+      nowMs
+    })
+  )
+}
