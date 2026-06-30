@@ -26,13 +26,13 @@ export function PerfumeImageGallery({
           <div className="relative -mt-4 overflow-hidden rounded-luxe sm:-mt-6">
             <div className="relative aspect-[4/5]">
               {isUploadImage ? (
-                <img src={activeImage} alt={alt} className="h-full w-full object-cover transform-gpu -translate-y-1.5 sm:-translate-y-2.5" />
+                <img src={activeImage} alt={alt} className="h-full w-full object-contain object-center" />
               ) : (
                 <Image
                   src={activeImage}
                   alt={alt}
                   fill
-                  className="object-cover transform-gpu -translate-y-1.5 sm:-translate-y-2.5"
+                  className="object-contain object-center"
                   sizes="(max-width: 1024px) 92vw, 720px"
                   priority
                 />
