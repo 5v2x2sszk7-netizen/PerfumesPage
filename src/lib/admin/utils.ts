@@ -15,9 +15,6 @@ export function fromCsv(value: string) {
 
 export function formatMoney(value: number) {
   const formatted = new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: siteConfig.currency,
-    currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 0
   }).format(value)
   return `${siteConfig.currency} ${formatted}`
