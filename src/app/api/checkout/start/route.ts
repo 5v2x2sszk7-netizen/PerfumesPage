@@ -1,10 +1,12 @@
+import { createHash } from "node:crypto"
 import { revalidatePath } from "next/cache"
 import { jsonError, jsonNoStoreOk, readJsonBody } from "@/lib/apiResponse"
 import { createMercadoPagoCheckout, createPayPalCheckout, type CheckoutCustomer, type CheckoutProvider } from "@/lib/payments"
-import { getCheckoutReservationExpiresAt, toSellablePerfume } from "@/lib/checkout/reservations"
+import { getCheckoutReservationExpiresAt, isCheckoutReservationActive, toSellablePerfume } from "@/lib/checkout/reservations"
 import { toCartItem } from "@/lib/cart"
 import { customerCookieName } from "@/lib/customerAuth"
 import { mergeCustomerProfile, readCustomerFromSessionValue } from "@/lib/customerAccount"
+import { checkRateLimit } from "@/lib/rateLimit"
 import { calculateShippingQuote } from "@/lib/shipping"
 import { appendCheckoutOrderEventRecord, readCheckoutOrders, removeCheckoutOrder, withCheckoutOrdersLock, writeCheckoutOrders } from "@/lib/stores/checkoutOrders"
 import { readCustomers, withCustomersLock, writeCustomers } from "@/lib/stores/customers"
@@ -53,6 +55,29 @@ function readCookieValue(req: Request, name: string) {
   return ""
 }
 
+function getClientIp(req: Request) {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
+}
+
+function hashOwnerKey(value: string) {
+  return createHash("sha256").update(value).digest("hex")
+}
+
+function buildReservationOwnerKey(input: {
+  checkoutMode: "guest" | "account"
+  sessionCustomerId?: string
+  customerEmail: string
+  ip: string
+}) {
+  if (input.checkoutMode === "account" && input.sessionCustomerId) {
+    return hashOwnerKey(`account:${input.sessionCustomerId}`)
+  }
+  if (input.ip && input.ip !== "unknown") {
+    return hashOwnerKey(`guest-ip:${input.ip}`)
+  }
+  return hashOwnerKey(`guest-email:${input.customerEmail.trim().toLowerCase()}`)
+}
+
 function normalizeCustomer(value: Partial<CheckoutCustomer> | null | undefined): CheckoutCustomer | null {
   if (!value) return null
 
@@ -86,6 +111,15 @@ function normalizeCustomer(value: Partial<CheckoutCustomer> | null | undefined):
 }
 
 export async function POST(req: Request) {
+  const rate = await checkRateLimit(req, { keyPrefix: "checkout-start", windowMs: 10 * 60 * 1000, max: 6 })
+  if (!rate.allowed) {
+    return jsonError("Demasiados intentos de checkout. Espera un momento antes de volver a intentar.", 429, {
+      headers: {
+        "Retry-After": String(Math.ceil(rate.retryAfterMs / 1000))
+      }
+    })
+  }
+
   const body = await readJsonBody<StartCheckoutBody>(req)
   if (!body) return jsonError("No se pudo leer el checkout.", 400)
   if (body.provider !== "mercado_pago" && body.provider !== "paypal") {
@@ -109,9 +143,16 @@ export async function POST(req: Request) {
       email: sessionCustomer.email
     }
   }
+  const reservationOwnerKey = buildReservationOwnerKey({
+    checkoutMode,
+    sessionCustomerId: sessionCustomer?.id,
+    customerEmail: customer.email,
+    ip: getClientIp(req)
+  })
 
   const requestedItems = Array.isArray(body.items) ? body.items : []
   if (!requestedItems.length) return jsonError("Tu carrito esta vacio.", 400)
+  const requestedItemIds = new Set(requestedItems.map((line) => (typeof line?.id === "string" ? line.id : "")).filter(Boolean))
 
   const orderId = globalThis.crypto?.randomUUID?.() || `order-${Date.now()}`
   const createdAt = new Date().toISOString()
@@ -138,10 +179,34 @@ export async function POST(req: Request) {
 
     const reservation = await withCheckoutOrdersLock(async () => {
       const checkoutOrders = await readCheckoutOrders()
+      const nowIso = new Date().toISOString()
       const perfumes = await readPerfumes()
       const nowMs = Date.now()
       let invalidCount = 0
       let adjustedCount = 0
+      const normalizedCheckoutOrders = checkoutOrders.map((entry) => {
+        if (
+          entry.status !== "pending" ||
+          entry.reservationOwnerKey !== reservationOwnerKey ||
+          !isCheckoutReservationActive(entry, nowMs)
+        ) {
+          return entry
+        }
+
+        const overlapsRequestedItems = entry.items.some((item) => requestedItemIds.has(item.perfumeId))
+        if (!overlapsRequestedItems) return entry
+
+        return appendCheckoutOrderEventRecord({
+          ...entry,
+          reservationExpiresAt: nowIso,
+          reservationReleasedAt: nowIso,
+          reservationReleaseReason: "manual"
+        }, {
+          type: "reservation_released",
+          at: nowIso,
+          detail: "Reserva previa liberada al iniciar un nuevo checkout con los mismos articulos."
+        })
+      })
 
       const orderItems = requestedItems.flatMap((line) => {
         if (!line?.id || typeof line.id !== "string") return []
@@ -153,7 +218,7 @@ export async function POST(req: Request) {
 
         const sellablePerfume = toSellablePerfume({
           perfume,
-          checkoutOrders,
+          checkoutOrders: normalizedCheckoutOrders,
           nowMs
         })
 
@@ -219,6 +284,7 @@ export async function POST(req: Request) {
           provider,
           checkoutMode,
           customerId: checkoutMode === "account" ? sessionCustomer?.id : undefined,
+          reservationOwnerKey,
           status: "pending",
           createdAt,
           reservationExpiresAt: getCheckoutReservationExpiresAt(createdAt),
@@ -233,7 +299,7 @@ export async function POST(req: Request) {
           at: createdAt,
           detail: "Reserva temporal creada al iniciar checkout."
         }),
-        ...checkoutOrders.filter((entry) => entry.id !== orderId)
+        ...normalizedCheckoutOrders.filter((entry) => entry.id !== orderId)
       ])
 
       return {

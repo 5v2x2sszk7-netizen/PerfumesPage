@@ -20,7 +20,10 @@ export async function POST(req: Request) {
 
   try {
     const verification = await verifyPayPalWebhookSignature(req.headers, event)
-    if (hasPayPalWebhookVerificationConfigured() && !verification.verified) {
+    if (process.env.NODE_ENV === "production" && !hasPayPalWebhookVerificationConfigured()) {
+      return jsonError("Verificacion de webhook PayPal no configurada en produccion.", 503)
+    }
+    if (!verification.skipped && !verification.verified) {
       return jsonError(`Firma de PayPal invalida. ${verification.reason}`, 400)
     }
 

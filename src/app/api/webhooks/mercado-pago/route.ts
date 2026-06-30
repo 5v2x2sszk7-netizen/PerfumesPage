@@ -37,7 +37,10 @@ export async function POST(req: Request) {
       requestUrl: req.url,
       dataId: paymentId
     })
-    if (hasMercadoPagoWebhookSecretConfigured() && !verification.verified) {
+    if (process.env.NODE_ENV === "production" && !hasMercadoPagoWebhookSecretConfigured()) {
+      return jsonError("Verificacion de webhook Mercado Pago no configurada en produccion.", 503)
+    }
+    if (!verification.skipped && !verification.verified) {
       return jsonError(`Firma de Mercado Pago invalida. ${verification.reason}`, 400)
     }
 

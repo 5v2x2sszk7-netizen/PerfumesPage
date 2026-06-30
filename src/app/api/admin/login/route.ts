@@ -2,6 +2,8 @@ import { adminCookieName, createAdminSessionValue, expectedAdminToken } from "@/
 import { jsonError, jsonOk, readJsonBody } from "@/lib/apiResponse"
 import { checkRateLimit } from "@/lib/rateLimit"
 
+const adminSessionMaxAgeSeconds = 60 * 60 * 12
+
 export async function POST(req: Request) {
   const expected = expectedAdminToken()
   if (!expected) return jsonError("Server not configured", 500)
@@ -24,14 +26,14 @@ export async function POST(req: Request) {
     return jsonError("Unauthorized", 401)
   }
 
-  const value = await createAdminSessionValue(expected)
+  const value = await createAdminSessionValue(expected, adminSessionMaxAgeSeconds)
   const res = jsonOk({})
   res.cookies.set(adminCookieName, value, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 14
+    maxAge: adminSessionMaxAgeSeconds
   })
   return res
 }
