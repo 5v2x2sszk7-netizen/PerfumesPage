@@ -11,7 +11,7 @@ export const revalidate = 60
 
 export const metadata: Metadata = {
   title: "Catálogo",
-  description: "Explora perfumes disponibles, detalles, tamaños y precios. Pide por WhatsApp."
+  description: "Explora perfumes disponibles, detalles, tamaños y precios con una presentación clara."
 }
 
 export default async function CatalogPage() {
@@ -34,9 +34,7 @@ export default async function CatalogPage() {
         kicker="CATÁLOGO"
         title={<h1>Perfumes disponibles</h1>}
         description={
-          <p>
-            Selección curada con información clara. Para confirmar disponibilidad final y envíos, pide por WhatsApp.
-          </p>
+          <p>Selección curada con información clara, disponibilidad visible y precios presentados con nitidez.</p>
         }
       />
       <Suspense fallback={<Card className="shimmer mt-8 h-[520px] w-full p-6" aria-hidden="true" />}>

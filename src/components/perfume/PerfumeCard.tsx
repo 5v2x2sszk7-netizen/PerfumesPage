@@ -107,12 +107,11 @@ export function PerfumeCard({
           <div className="pointer-events-none absolute inset-0 shadow-inset-soft opacity-70 transition-opacity duration-luxe ease-luxe group-hover:opacity-100" />
           <div className="pointer-events-none absolute inset-0 bg-perfume-media-highlight opacity-0 transition-opacity duration-luxe-fast ease-luxe group-hover:opacity-100" />
 
-          <div className="absolute left-4 top-4 flex items-center gap-2">
-            <Badge size="xs">{concentration}</Badge>
-          </div>
-
-          <div className="absolute right-4 top-4">
-            <Badge size="xs" tone={availabilityBadgeTone(perfume.availability)}>
+          <div className="absolute inset-x-3 top-3 z-10 flex items-start justify-between gap-2 sm:inset-x-4 sm:top-4">
+            <Badge size="xs" className="max-w-[65%]">
+              {concentration}
+            </Badge>
+            <Badge size="xs" tone={availabilityBadgeTone(perfume.availability)} className="shrink-0">
               {availabilityLabel[perfume.availability]}
             </Badge>
           </div>
