@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
-import { clearActiveCheckoutReservation, readActiveCheckoutReservation } from "@/lib/checkout/clientReservation"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { clearActiveCheckoutReservation, onActiveCheckoutReservationChange, readActiveCheckoutReservation } from "@/lib/checkout/clientReservation"
 
 function splitTokens(value: string) {
   return value.split(/\s+/g).map((v) => v.trim()).filter(Boolean)
@@ -71,19 +71,23 @@ export function HeaderScrollClient({
     }
   }, [scrolledClassName, targetId, threshold, topClassName])
 
-  useEffect(() => {
+  const syncReservation = useCallback(() => {
     let cancelled = false
     const stored = readActiveCheckoutReservation()
     if (!stored) {
       setReservation(null)
-      return
+      return () => {
+        cancelled = true
+      }
     }
 
     const expiresAtMs = new Date(stored.expiresAt).getTime()
     if (Number.isNaN(expiresAtMs) || expiresAtMs <= Date.now()) {
       clearActiveCheckoutReservation(stored.orderId)
       setReservation(null)
-      return
+      return () => {
+        cancelled = true
+      }
     }
 
     setReservation({
@@ -125,6 +129,24 @@ export function HeaderScrollClient({
       cancelled = true
     }
   }, [])
+
+  useEffect(() => {
+    const cleanupSync = syncReservation()
+    const unsubscribe = onActiveCheckoutReservationChange(() => {
+      syncReservation()
+    })
+
+    const onFocus = () => {
+      syncReservation()
+    }
+
+    window.addEventListener("focus", onFocus)
+    return () => {
+      cleanupSync()
+      unsubscribe()
+      window.removeEventListener("focus", onFocus)
+    }
+  }, [syncReservation])
 
   useEffect(() => {
     if (!reservation) return

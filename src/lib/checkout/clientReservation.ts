@@ -7,6 +7,12 @@ export type ActiveCheckoutReservation = {
 
 const activeReservationStorageKey = "perfimes-active-checkout-reservation:v1"
 const activeReservationCookieName = "perfimes_active_checkout_reservation"
+const activeReservationChangeEventName = "perfimes:active-checkout-reservation-change"
+
+function dispatchActiveReservationChange() {
+  if (typeof window === "undefined") return
+  window.dispatchEvent(new CustomEvent(activeReservationChangeEventName))
+}
 
 function readCookieValue(name: string) {
   if (typeof document === "undefined") return ""
@@ -75,6 +81,7 @@ export function readActiveCheckoutReservation() {
       } satisfies ActiveCheckoutReservation
 
       window.localStorage.setItem(activeReservationStorageKey, JSON.stringify(value))
+      dispatchActiveReservationChange()
       return value
     } catch {
       return null
@@ -108,6 +115,7 @@ export function writeActiveCheckoutReservation(value: ActiveCheckoutReservation)
     const maxAgeSeconds = Math.max(1, Math.ceil((expiresAtMs - Date.now()) / 1000))
     writeCookieValue(activeReservationCookieName, JSON.stringify(value), maxAgeSeconds)
   }
+  dispatchActiveReservationChange()
 }
 
 export function clearActiveCheckoutReservation(orderId?: string) {
@@ -115,6 +123,7 @@ export function clearActiveCheckoutReservation(orderId?: string) {
   if (!orderId?.trim()) {
     window.localStorage.removeItem(activeReservationStorageKey)
     clearCookieValue(activeReservationCookieName)
+    dispatchActiveReservationChange()
     return
   }
 
@@ -122,5 +131,15 @@ export function clearActiveCheckoutReservation(orderId?: string) {
   if (current?.orderId === orderId.trim()) {
     window.localStorage.removeItem(activeReservationStorageKey)
     clearCookieValue(activeReservationCookieName)
+    dispatchActiveReservationChange()
+  }
+}
+
+export function onActiveCheckoutReservationChange(listener: () => void) {
+  if (typeof window === "undefined") return () => undefined
+  const handler = () => listener()
+  window.addEventListener(activeReservationChangeEventName, handler)
+  return () => {
+    window.removeEventListener(activeReservationChangeEventName, handler)
   }
 }

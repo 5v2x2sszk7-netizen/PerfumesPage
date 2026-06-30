@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { normalizeCartItems, type CartItem } from "@/lib/cart"
-import { buildCheckoutReservationLinesKey, readActiveCheckoutReservation } from "@/lib/checkout/clientReservation"
+import { buildCheckoutReservationLinesKey, clearActiveCheckoutReservation, readActiveCheckoutReservation } from "@/lib/checkout/clientReservation"
 
 const storageKey = "perfimes-cart:v1"
 
@@ -101,10 +101,43 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [isReady])
 
+  const releaseMismatchedReservation = useCallback(async (orderId: string) => {
+    const normalizedOrderId = orderId.trim()
+    if (!normalizedOrderId) return
+
+    try {
+      await fetch(`/api/checkout/reservation?orderId=${encodeURIComponent(normalizedOrderId)}`, {
+        method: "DELETE",
+        cache: "no-store"
+      })
+    } catch {
+    } finally {
+      clearActiveCheckoutReservation(normalizedOrderId)
+    }
+  }, [])
+
   useEffect(() => {
     if (!isReady) return
     void syncCart()
   }, [isReady, syncCart])
+
+  useEffect(() => {
+    if (!isReady) return
+
+    const storedReservation = readActiveCheckoutReservation()
+    if (!storedReservation) return
+
+    const storedExpiresAtMs = new Date(storedReservation.expiresAt).getTime()
+    if (Number.isNaN(storedExpiresAtMs) || storedExpiresAtMs <= Date.now()) {
+      clearActiveCheckoutReservation(storedReservation.orderId)
+      return
+    }
+
+    const currentLinesKey = buildCheckoutReservationLinesKey(items.map((item) => ({ id: item.id, quantity: item.quantity })))
+    if (currentLinesKey && currentLinesKey === storedReservation.linesKey) return
+
+    void releaseMismatchedReservation(storedReservation.orderId)
+  }, [isReady, items, releaseMismatchedReservation])
 
   useEffect(() => {
     if (!isReady) return
