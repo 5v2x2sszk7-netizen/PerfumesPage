@@ -628,6 +628,18 @@ export function CheckoutPageClient({
           </div>
         </div>
 
+        {error ? (
+          <div className="rounded-luxe-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+            {error}
+          </div>
+        ) : null}
+
+        {syncNotice ? (
+          <div className="rounded-luxe-xl border border-antiqueGold/20 bg-antiqueGold/10 px-4 py-3 text-sm leading-6 text-ink-700">
+            {syncNotice}
+          </div>
+        ) : null}
+
         {hasItems ? (
           <Card className="border-black/8 bg-gradient-to-r from-white to-ink-50/70 p-4 shadow-[0_16px_42px_rgba(10,10,10,0.04)] sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1080,18 +1092,6 @@ export function CheckoutPageClient({
                     <p className="mt-3 text-sm leading-6 text-ink-700">{providerDescription}</p>
                   </div>
                 </div>
-
-                {error ? (
-                  <div className="rounded-luxe-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
-                    {error}
-                  </div>
-                ) : null}
-
-                {syncNotice ? (
-                  <div className="rounded-luxe-xl border border-antiqueGold/20 bg-antiqueGold/10 px-4 py-3 text-sm leading-6 text-ink-700">
-                    {syncNotice}
-                  </div>
-                ) : null}
 
                 <div className="rounded-luxe-xl border border-black/8 bg-gradient-to-r from-white to-ink-50/70 p-4 sm:p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
