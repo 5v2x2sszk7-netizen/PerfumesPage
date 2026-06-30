@@ -32,15 +32,15 @@ export function PurchaseActions({ perfume }: { perfume: PurchasePerfume }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="w-full min-w-0 max-w-full space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Button type="button" variant="outline" className="h-12 border-black/10 bg-white/90 text-[15px] sm:min-w-44 sm:text-sm" onClick={addToCart}>
+        <Button type="button" variant="outline" className="h-12 w-full min-w-0 border-black/10 bg-white/90 text-[15px] sm:min-w-44 sm:text-sm" onClick={addToCart}>
           {added ? "Agregado" : "Agregar al carrito"}
         </Button>
         <Button
           type="button"
           variant="gold"
-          className="h-12 text-[15px] shadow-cta-soft transition-luxe duration-luxe ease-luxe hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(188,149,79,0.26)] sm:min-w-44 sm:text-sm"
+          className="h-12 w-full min-w-0 text-[15px] shadow-cta-soft transition-luxe duration-luxe ease-luxe hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(188,149,79,0.26)] sm:min-w-44 sm:text-sm"
           onClick={startCheckout}
         >
           Pago en linea

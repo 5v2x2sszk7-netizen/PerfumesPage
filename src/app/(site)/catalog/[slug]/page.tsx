@@ -42,7 +42,7 @@ function PerfumeDescription({ value }: { value: string }) {
   const isSingleDenseBlock = blocks.length === 1 && raw.includes("\n") && !raw.includes("\n\n")
 
   return (
-    <div className="mt-4 max-w-prose space-y-4 text-ui-body leading-body text-ink-700">
+    <div className="mt-4 max-w-prose space-y-4 text-ui-body leading-body text-ink-700 [overflow-wrap:anywhere]">
       {(isSingleDenseBlock ? blocks[0].split("\n").map((l) => l.trim()).filter(Boolean) : blocks).map(
         (block, idx) => {
           const lines = block
@@ -65,7 +65,7 @@ function PerfumeDescription({ value }: { value: string }) {
           const single = items.join(" ")
           if (isSingleDenseBlock && idx === 0 && !single.includes(":")) {
             return (
-              <p key={idx} className="font-display text-xl leading-display text-ink-950">
+              <p key={idx} className="max-w-full break-words font-display text-xl leading-display text-ink-950 [overflow-wrap:anywhere]">
                 {renderInlineBold(single)}
               </p>
             )
@@ -93,7 +93,7 @@ function PerfumeDescription({ value }: { value: string }) {
             )
           }
 
-          return <p key={idx}>{renderInlineBold(single)}</p>
+          return <p key={idx} className="max-w-full break-words [overflow-wrap:anywhere]">{renderInlineBold(single)}</p>
         }
       )}
     </div>
@@ -150,7 +150,7 @@ function AvailabilityPanel({
   stockLabel: string
 }) {
   return (
-    <div className="rounded-luxe border border-black/8 bg-white px-5 py-5 shadow-panel sm:px-7 sm:py-7">
+    <div className="w-full max-w-full overflow-hidden rounded-luxe border border-black/8 bg-white px-5 py-5 shadow-panel sm:px-7 sm:py-7">
       <p className="text-ui-xs font-medium tracking-section text-ink-500">DISPONIBILIDAD</p>
       <p className="mt-3 font-display text-[2rem] leading-[1.02] text-ink-950 sm:text-2xl sm:leading-display">{availabilityEditorial}</p>
       <p className="mt-2 text-[15px] tracking-wide text-ink-700 sm:text-sm">
@@ -183,9 +183,9 @@ function DetailsSection({
   return (
     <section>
       <Container className="py-10 sm:py-14">
-        <div className="grid gap-6 lg:grid-cols-3">
-          <LazyReveal delayMs={0} className="lg:col-span-1">
-            <div className="rounded-luxe border border-black/8 bg-white p-6 shadow-panel">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-3">
+          <LazyReveal delayMs={0} className="min-w-0 lg:col-span-1">
+            <div className="w-full max-w-full overflow-hidden rounded-luxe border border-black/8 bg-white p-6 shadow-panel">
               <p className="text-xs tracking-section text-ink-500">DETALLES</p>
               <div className="mt-5 grid gap-4">
                 <div className="flex items-center justify-between gap-4">
@@ -208,8 +208,8 @@ function DetailsSection({
             </div>
           </LazyReveal>
 
-          <LazyReveal delayMs={120} className="lg:col-span-2">
-            <div className="rounded-luxe border border-black/8 bg-white p-7 shadow-panel">
+          <LazyReveal delayMs={120} className="min-w-0 lg:col-span-2">
+            <div className="w-full max-w-full overflow-hidden rounded-luxe border border-black/8 bg-white p-7 shadow-panel">
               <p className="text-xs tracking-section text-ink-500">NOTAS OLFATIVAS</p>
               <div className="mt-6 grid max-w-3xl gap-y-6 sm:grid-cols-3 sm:gap-x-8">
                 <div className="space-y-3">
@@ -228,8 +228,8 @@ function DetailsSection({
             </div>
           </LazyReveal>
 
-          <LazyReveal delayMs={240} className="lg:col-span-3">
-            <div className="rounded-luxe-xl border border-black/8 bg-white px-7 py-12 shadow-panel-lg sm:px-9 sm:py-12">
+          <LazyReveal delayMs={240} className="min-w-0 lg:col-span-3">
+            <div className="w-full max-w-full overflow-hidden rounded-luxe-xl border border-black/8 bg-white px-6 py-10 shadow-panel-lg sm:px-9 sm:py-12">
               <p className="text-xs tracking-section text-ink-500">HISTORIA</p>
               <PerfumeDescription value={perfume.description} />
             </div>
@@ -262,7 +262,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
   const galleryImages = perfume.imageGallery?.length ? perfume.imageGallery : [perfume.imageSrc]
 
   return (
-    <div className="overflow-x-hidden">
+    <div className="w-full max-w-full overflow-x-clip">
       <section className="border-b border-black/6 bg-white/70">
         <Container className="py-5 pb-10 sm:py-14">
           <LazyReveal>
@@ -273,30 +273,32 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
             </div>
           </LazyReveal>
 
-          <div className="mt-5 grid gap-7 lg:mt-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-start lg:gap-10">
-            <LazyReveal delayMs={0}>
+          <div className="mt-5 grid min-w-0 gap-7 lg:mt-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-start lg:gap-10">
+            <LazyReveal delayMs={0} className="min-w-0 max-w-full">
               <PerfumeImageGallery images={galleryImages} alt={`${perfume.name} de ${perfume.brand}`} />
             </LazyReveal>
 
-            <LazyReveal delayMs={120}>
-              <div className="min-w-0 space-y-5 sm:space-y-8">
+            <LazyReveal delayMs={120} className="min-w-0 max-w-full">
+              <div className="min-w-0 max-w-full overflow-hidden space-y-5 sm:space-y-8">
                 <div>
                   <p className="text-xs tracking-section text-ink-500">{perfume.brand}</p>
-                  <h1 className="mt-2 font-display text-[2.45rem] leading-[0.95] text-ink-950 sm:text-5xl">{perfume.name}</h1>
+                  <h1 className="mt-2 max-w-full break-words font-display text-[2.45rem] leading-[0.95] text-ink-950 [overflow-wrap:anywhere] sm:text-5xl">
+                    {perfume.name}
+                  </h1>
 
-                  <div className="mt-4 flex flex-wrap gap-2 sm:mt-5 sm:gap-x-2 sm:gap-y-2">
-                    <Badge className="px-3 py-1 text-[10px] tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{concentration}</Badge>
-                    <Badge className="px-3 py-1 text-[10px] tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{family}</Badge>
-                    <Badge className="px-3 py-1 text-[10px] tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{perfume.sizeMl} ml</Badge>
-                    <Badge tone={availabilityBadgeTone(perfume.availability)} className="px-3 py-1 text-[10px] tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{availabilityLabel[perfume.availability]}</Badge>
+                  <div className="mt-4 flex max-w-full flex-wrap gap-2 sm:mt-5 sm:gap-x-2 sm:gap-y-2">
+                    <Badge className="max-w-full whitespace-normal px-3 py-1 text-center text-[10px] leading-tight tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{concentration}</Badge>
+                    <Badge className="max-w-full whitespace-normal px-3 py-1 text-center text-[10px] leading-tight tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{family}</Badge>
+                    <Badge className="max-w-full whitespace-normal px-3 py-1 text-center text-[10px] leading-tight tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{perfume.sizeMl} ml</Badge>
+                    <Badge tone={availabilityBadgeTone(perfume.availability)} className="max-w-full whitespace-normal px-3 py-1 text-center text-[10px] leading-tight tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{availabilityLabel[perfume.availability]}</Badge>
                   </div>
 
                   {headline ? (
-                    <p className="mt-4 max-w-xl font-display text-[1.7rem] leading-[1.05] text-ink-950 sm:mt-6 sm:text-2xl sm:leading-display">
+                    <p className="mt-4 max-w-xl break-words font-display text-[1.7rem] leading-[1.05] text-ink-950 [overflow-wrap:anywhere] sm:mt-6 sm:text-2xl sm:leading-display">
                       {headline}
                     </p>
                   ) : null}
-                  {rest ? <p className="mt-3 max-w-xl text-[14px] leading-7 text-ink-700 sm:text-sm sm:leading-body">{rest}</p> : null}
+                  {rest ? <p className="mt-3 max-w-xl break-words text-[14px] leading-7 text-ink-700 [overflow-wrap:anywhere] sm:text-sm sm:leading-body">{rest}</p> : null}
                 </div>
 
                 <div className="space-y-3">

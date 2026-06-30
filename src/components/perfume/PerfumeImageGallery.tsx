@@ -18,8 +18,8 @@ export function PerfumeImageGallery({
   if (!activeImage) return null
 
   return (
-    <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-luxe-xl border border-black/8 bg-ink-50 p-2.5 shadow-media-xl sm:p-5 lg:justify-self-start">
+    <div className="w-full min-w-0 max-w-full space-y-4">
+      <div className="relative w-full max-w-full overflow-hidden rounded-luxe-xl border border-black/8 bg-ink-50 p-2.5 shadow-media-xl sm:p-5 lg:justify-self-start">
         <div className="pointer-events-none absolute inset-0 bg-perfume-detail-card-glow" />
         <div className="relative overflow-hidden rounded-luxe bg-white ring-1 ring-inset ring-black/8">
           <div className="pointer-events-none absolute left-1/2 bottom-6 h-10 w-perfume-shadow -translate-x-1/2 rounded-full bg-black/30 opacity-ink-14 blur-2xl" />
@@ -45,7 +45,7 @@ export function PerfumeImageGallery({
       </div>
 
       {gallery.length > 1 ? (
-        <div className="flex gap-2.5 overflow-x-auto overscroll-x-contain pb-1 sm:gap-3">
+        <div className="scrollbar-none flex w-full max-w-full gap-2.5 overflow-x-auto overscroll-x-contain pb-1 sm:gap-3">
           {gallery.map((image, index) => {
             const isActive = index === activeIndex
             const isUploadThumb = image.startsWith("/uploads/")
