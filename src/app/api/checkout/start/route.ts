@@ -10,6 +10,8 @@ import { appendCheckoutOrderEventRecord, readCheckoutOrders, removeCheckoutOrder
 import { readCustomers, withCustomersLock, writeCustomers } from "@/lib/stores/customers"
 import { readPerfumes } from "@/lib/stores/perfumes"
 
+const activeReservationCookieName = "perfimes_active_checkout_reservation"
+
 type CheckoutLineInput = {
   id?: string
   quantity?: number
@@ -275,11 +277,35 @@ export async function POST(req: Request) {
       await writeCheckoutOrders(next)
     })
 
-    return jsonNoStoreOk({
+    const response = jsonNoStoreOk({
       url: result.checkoutUrl,
       orderId,
       reservationExpiresAt: reservation.reservationExpiresAt
     })
+
+    const expiresAtMs = new Date(reservation.reservationExpiresAt).getTime()
+    const maxAge = Number.isNaN(expiresAtMs) ? 15 * 60 : Math.max(1, Math.ceil((expiresAtMs - Date.now()) / 1000))
+    response.cookies.set(activeReservationCookieName, JSON.stringify({
+      orderId,
+      provider,
+      expiresAt: reservation.reservationExpiresAt,
+      linesKey: requestedItems
+        .map((line) => ({
+          id: typeof line.id === "string" ? line.id.trim() : "",
+          quantity: Math.max(1, Math.trunc(line.quantity ?? 1) || 1)
+        }))
+        .filter((line) => line.id)
+        .sort((a, b) => a.id.localeCompare(b.id, "es"))
+        .map((line) => `${line.id}:${line.quantity}`)
+        .join("|")
+    }), {
+      path: "/",
+      sameSite: "lax",
+      secure: true,
+      maxAge
+    })
+
+    return response
   } catch (error) {
     await removeCheckoutOrder(orderId)
     revalidateShopInventory()
