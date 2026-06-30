@@ -1,5 +1,6 @@
 import type { CheckoutProvider } from "@/lib/payments"
 import { dataFilePath, readJsonArrayResult, withStorageLock, writeJson } from "@/lib/storage/jsonFile"
+import { getCheckoutReservationExpiresAtMs } from "@/lib/checkout/reservations"
 
 export type CheckoutOrderItem = {
   perfumeId: string
@@ -341,14 +342,15 @@ export async function releaseExpiredCheckoutOrderReservations(releasedAt = new D
 
     const next = orders.map((order) => {
       if (order.status !== "pending") return order
-      const expiresAtMs = order.reservationExpiresAt ? new Date(order.reservationExpiresAt).getTime() : Number.NaN
-      if (Number.isNaN(expiresAtMs) || expiresAtMs > nowMs) return order
+      const expiresAtMs = getCheckoutReservationExpiresAtMs(order)
+      if (!Number.isFinite(expiresAtMs) || expiresAtMs > nowMs) return order
       if (order.reservationReleasedAt) return order
 
       releasedCount += 1
+      const normalizedExpiresAt = order.reservationExpiresAt || new Date(expiresAtMs).toISOString()
       return appendCheckoutOrderEventRecord({
         ...order,
-        reservationExpiresAt: order.reservationExpiresAt || releasedAt,
+        reservationExpiresAt: normalizedExpiresAt,
         reservationReleasedAt: releasedAt,
         reservationReleaseReason: "expired_cleanup" as const
       }, {
