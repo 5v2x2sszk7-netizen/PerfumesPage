@@ -262,7 +262,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
   const galleryImages = perfume.imageGallery?.length ? perfume.imageGallery : [perfume.imageSrc]
 
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <section className="border-b border-black/6 bg-white/70">
         <Container className="py-10 sm:py-14">
           <LazyReveal>
