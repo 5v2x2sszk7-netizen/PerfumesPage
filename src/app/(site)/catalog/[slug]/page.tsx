@@ -150,20 +150,20 @@ function AvailabilityPanel({
   stockLabel: string
 }) {
   return (
-    <div className="rounded-luxe border border-black/8 bg-white px-7 py-7 shadow-panel">
+    <div className="rounded-luxe border border-black/8 bg-white px-5 py-5 shadow-panel sm:px-7 sm:py-7">
       <p className="text-ui-xs font-medium tracking-section text-ink-500">DISPONIBILIDAD</p>
-      <p className="mt-3 font-display text-2xl leading-display text-ink-950">{availabilityEditorial}</p>
-      <p className="mt-2 text-sm tracking-wide text-ink-700">
+      <p className="mt-3 font-display text-[2rem] leading-[1.02] text-ink-950 sm:text-2xl sm:leading-display">{availabilityEditorial}</p>
+      <p className="mt-2 text-[15px] tracking-wide text-ink-700 sm:text-sm">
         {perfume.sizeMl} ml <span className="text-ink-400">·</span> {concentration}
       </p>
 
-      <div className="mt-7">
+      <div className="mt-6 sm:mt-7">
         <p className="text-ui-xs font-medium tracking-section text-ink-500">PRECIO</p>
-        <p className="mt-2 font-display text-3xl leading-display text-ink-950">{formatPrice(perfume.price)}</p>
+        <p className="mt-2 font-display text-[2.3rem] leading-[1.02] text-ink-950 sm:text-3xl sm:leading-display">{formatPrice(perfume.price)}</p>
       </div>
 
-      <div className="mt-7">
-        <Badge size="md" className="text-ink-950">
+      <div className="mt-6 sm:mt-7">
+        <Badge size="md" className="px-4 py-2 text-[13px] tracking-[0.04em] text-ink-950 sm:px-5 sm:py-2.5 sm:text-sm sm:tracking-wide">
           {stockLabel}
         </Badge>
       </div>
@@ -264,7 +264,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="overflow-x-hidden">
       <section className="border-b border-black/6 bg-white/70">
-        <Container className="py-6 sm:py-14">
+        <Container className="py-5 pb-10 sm:py-14">
           <LazyReveal>
             <div className="flex items-center gap-3">
               <Link href="/catalog" className="text-sm text-ink-600 transition hover:text-ink-950">
@@ -279,10 +279,10 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
             </LazyReveal>
 
             <LazyReveal delayMs={120}>
-              <div className="min-w-0 space-y-6 sm:space-y-8">
+              <div className="min-w-0 space-y-5 sm:space-y-8">
                 <div>
                   <p className="text-xs tracking-section text-ink-500">{perfume.brand}</p>
-                  <h1 className="mt-2 font-display text-[2.7rem] leading-[0.95] text-ink-950 sm:text-5xl">{perfume.name}</h1>
+                  <h1 className="mt-2 font-display text-[2.45rem] leading-[0.95] text-ink-950 sm:text-5xl">{perfume.name}</h1>
 
                   <div className="mt-4 flex flex-wrap gap-2 sm:mt-5 sm:gap-x-2 sm:gap-y-2">
                     <Badge className="px-3 py-1 text-[10px] tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{concentration}</Badge>
@@ -292,11 +292,11 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                   </div>
 
                   {headline ? (
-                    <p className="mt-5 max-w-xl font-display text-[2rem] leading-[1.03] text-ink-950 sm:mt-6 sm:text-2xl sm:leading-display">
+                    <p className="mt-4 max-w-xl font-display text-[1.7rem] leading-[1.05] text-ink-950 sm:mt-6 sm:text-2xl sm:leading-display">
                       {headline}
                     </p>
                   ) : null}
-                  {rest ? <p className="mt-3 max-w-xl text-[15px] leading-7 text-ink-700 sm:text-sm sm:leading-body">{rest}</p> : null}
+                  {rest ? <p className="mt-3 max-w-xl text-[14px] leading-7 text-ink-700 sm:text-sm sm:leading-body">{rest}</p> : null}
                 </div>
 
                 <div className="space-y-3">
