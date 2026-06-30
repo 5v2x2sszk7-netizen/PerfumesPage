@@ -264,7 +264,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="overflow-x-hidden">
       <section className="border-b border-black/6 bg-white/70">
-        <Container className="py-10 sm:py-14">
+        <Container className="py-6 sm:py-14">
           <LazyReveal>
             <div className="flex items-center gap-3">
               <Link href="/catalog" className="text-sm text-ink-600 transition hover:text-ink-950">
@@ -273,30 +273,30 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
             </div>
           </LazyReveal>
 
-          <div className="mt-8 grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-start">
+          <div className="mt-5 grid gap-7 lg:mt-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-start lg:gap-10">
             <LazyReveal delayMs={0}>
               <PerfumeImageGallery images={galleryImages} alt={`${perfume.name} de ${perfume.brand}`} />
             </LazyReveal>
 
             <LazyReveal delayMs={120}>
-              <div className="space-y-8">
+              <div className="min-w-0 space-y-6 sm:space-y-8">
                 <div>
                   <p className="text-xs tracking-section text-ink-500">{perfume.brand}</p>
-                  <h1 className="mt-2 font-display text-4xl leading-display text-ink-950 sm:text-5xl">{perfume.name}</h1>
+                  <h1 className="mt-2 font-display text-[2.7rem] leading-[0.95] text-ink-950 sm:text-5xl">{perfume.name}</h1>
 
-                  <div className="mt-5 flex flex-wrap gap-x-2 gap-y-2">
-                    <Badge>{concentration}</Badge>
-                    <Badge>{family}</Badge>
-                    <Badge>{perfume.sizeMl} ml</Badge>
-                    <Badge tone={availabilityBadgeTone(perfume.availability)}>{availabilityLabel[perfume.availability]}</Badge>
+                  <div className="mt-4 flex flex-wrap gap-2 sm:mt-5 sm:gap-x-2 sm:gap-y-2">
+                    <Badge className="px-3 py-1 text-[10px] tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{concentration}</Badge>
+                    <Badge className="px-3 py-1 text-[10px] tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{family}</Badge>
+                    <Badge className="px-3 py-1 text-[10px] tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{perfume.sizeMl} ml</Badge>
+                    <Badge tone={availabilityBadgeTone(perfume.availability)} className="px-3 py-1 text-[10px] tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{availabilityLabel[perfume.availability]}</Badge>
                   </div>
 
                   {headline ? (
-                    <p className="mt-6 max-w-xl font-display text-2xl leading-display text-ink-950">
+                    <p className="mt-5 max-w-xl font-display text-[2rem] leading-[1.03] text-ink-950 sm:mt-6 sm:text-2xl sm:leading-display">
                       {headline}
                     </p>
                   ) : null}
-                  {rest ? <p className="mt-3 max-w-xl text-sm leading-body text-ink-700">{rest}</p> : null}
+                  {rest ? <p className="mt-3 max-w-xl text-[15px] leading-7 text-ink-700 sm:text-sm sm:leading-body">{rest}</p> : null}
                 </div>
 
                 <div className="space-y-3">
