@@ -567,9 +567,7 @@ export function CheckoutPageClient({
         expiresAt: reservationExpiresAt
       })
       setReservationNowMs(Date.now())
-      window.setTimeout(() => {
-        window.location.assign(checkoutUrl)
-      }, 450)
+      window.location.assign(checkoutUrl)
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "No se pudo iniciar el checkout.")
       setStatus("idle")
