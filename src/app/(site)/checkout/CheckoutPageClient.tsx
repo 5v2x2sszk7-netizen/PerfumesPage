@@ -10,6 +10,12 @@ import { Pill } from "@/components/ui/Pill"
 import { useCart } from "@/components/cart/CartProvider"
 import { useMxPostalCodeLookup } from "@/hooks/useMxPostalCodeLookup"
 import type { CartItem } from "@/lib/cart"
+import {
+  buildCheckoutReservationLinesKey,
+  clearActiveCheckoutReservation,
+  readActiveCheckoutReservation,
+  writeActiveCheckoutReservation
+} from "@/lib/checkout/clientReservation"
 import { formatPrice } from "@/lib/whatsapp"
 import type { CheckoutProvider } from "@/lib/payments"
 import { cn } from "@/lib/cn"
@@ -22,12 +28,25 @@ type ProviderAvailability = {
   paypal: boolean
 }
 
+type ActiveReservationUi = {
+  orderId: string
+  provider: CheckoutProvider
+  expiresAt: string
+}
+
 function normalizeLooseMatch(value: string) {
   return value
     .trim()
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+}
+
+function formatMinutesAndSeconds(totalMs: number) {
+  const totalSeconds = Math.max(0, Math.ceil(totalMs / 1000))
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
 }
 
 type PublicCustomer = {
@@ -232,11 +251,13 @@ function PasswordStrengthMeter({
 export function CheckoutPageClient({
   buyNowItem,
   initialCustomer,
-  providers
+  providers,
+  reservationWindowMinutes
 }: {
   buyNowItem: CartItem | null
   initialCustomer: PublicCustomer | null
   providers: ProviderAvailability
+  reservationWindowMinutes: number
 }) {
   const { items: cartItems, subtotal: cartSubtotal, syncNotice, syncCart } = useCart()
   const [customerAccount, setCustomerAccount] = useState<PublicCustomer | null>(initialCustomer)
@@ -254,6 +275,8 @@ export function CheckoutPageClient({
   const [provider, setProvider] = useState<CheckoutProvider>(providers.mercadoPago ? "mercado_pago" : "paypal")
   const [status, setStatus] = useState<"idle" | "submitting">("idle")
   const [error, setError] = useState("")
+  const [activeReservation, setActiveReservation] = useState<ActiveReservationUi | null>(null)
+  const [reservationNowMs, setReservationNowMs] = useState(() => Date.now())
   const accountPasswordEval = evaluatePassword(auth.password)
 
   const items = useMemo(() => (buyNowItem ? [buyNowItem] : cartItems), [buyNowItem, cartItems])
@@ -269,6 +292,10 @@ export function CheckoutPageClient({
     ((provider === "mercado_pago" && providers.mercadoPago) || (provider === "paypal" && providers.paypal))
 
   const itemCount = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items])
+  const reservationLinesKey = useMemo(
+    () => buildCheckoutReservationLinesKey(items.map((item) => ({ id: item.id, quantity: item.quantity }))),
+    [items]
+  )
   const checkoutStateOptions = useMemo(() => buildMxStateOptions(form.state), [form.state])
   const checkoutPostalCodeStatus = useMemo(() => getPostalCodeHelper(form.postalCode, form.state), [form.postalCode, form.state])
   const checkoutPostalLookup = useMxPostalCodeLookup(form.postalCode)
@@ -291,6 +318,8 @@ export function CheckoutPageClient({
       ? "PayPal es ideal si quieres pagar con tu cuenta, tarjetas guardadas o flujo internacional."
       : "Mercado Pago es ideal para cobro directo en Mexico con tarjetas, saldo o metodos locales."
   const neighborhoodListId = useId()
+  const reservationRemainingMs = activeReservation ? Math.max(0, new Date(activeReservation.expiresAt).getTime() - reservationNowMs) : 0
+  const hasActiveReservation = Boolean(activeReservation && reservationRemainingMs > 0)
 
   useEffect(() => {
     if (checkoutPostalLookup.status !== "success") return
@@ -312,6 +341,96 @@ export function CheckoutPageClient({
       }
     })
   }, [checkoutPostalLookup])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function syncStoredReservation() {
+      if (!hasItems || !reservationLinesKey) {
+        setActiveReservation(null)
+        return
+      }
+
+      const stored = readActiveCheckoutReservation()
+      if (!stored) {
+        setActiveReservation(null)
+        return
+      }
+
+      const expiresAtMs = new Date(stored.expiresAt).getTime()
+      if (Number.isNaN(expiresAtMs) || expiresAtMs <= Date.now()) {
+        clearActiveCheckoutReservation(stored.orderId)
+        setActiveReservation(null)
+        return
+      }
+
+      if (stored.linesKey !== reservationLinesKey) {
+        setActiveReservation(null)
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/checkout/reservation?orderId=${encodeURIComponent(stored.orderId)}`, {
+          cache: "no-store"
+        })
+        const json = (await response.json().catch(() => null)) as
+          | {
+              ok?: boolean
+              active?: boolean
+              provider?: CheckoutProvider
+              reservationExpiresAt?: string | null
+            }
+          | null
+
+        if (!response.ok || !json?.ok || !json.active || !json.provider || !json.reservationExpiresAt) {
+          clearActiveCheckoutReservation(stored.orderId)
+          if (!cancelled) setActiveReservation(null)
+          return
+        }
+
+        if (!cancelled) {
+          setActiveReservation({
+            orderId: stored.orderId,
+            provider: json.provider,
+            expiresAt: json.reservationExpiresAt
+          })
+        }
+      } catch {
+        if (!cancelled) {
+          setActiveReservation({
+            orderId: stored.orderId,
+            provider: stored.provider,
+            expiresAt: stored.expiresAt
+          })
+        }
+      }
+    }
+
+    void syncStoredReservation()
+
+    return () => {
+      cancelled = true
+    }
+  }, [hasItems, reservationLinesKey])
+
+  useEffect(() => {
+    if (!activeReservation) return
+
+    const tick = window.setInterval(() => {
+      setReservationNowMs(Date.now())
+    }, 1000)
+
+    return () => {
+      window.clearInterval(tick)
+    }
+  }, [activeReservation])
+
+  useEffect(() => {
+    if (!activeReservation) return
+    if (reservationRemainingMs > 0) return
+    clearActiveCheckoutReservation(activeReservation.orderId)
+    setActiveReservation(null)
+  }, [activeReservation, reservationRemainingMs])
 
   async function authenticateCheckoutAccount() {
     if (customerAccount) return customerAccount
@@ -424,10 +543,19 @@ export function CheckoutPageClient({
         })
       })
 
-      const json = (await response.json().catch(() => null)) as { ok?: boolean; error?: string; url?: string } | null
-      if (!response.ok || !json?.ok || !json.url) {
+      const json = (await response.json().catch(() => null)) as
+        | { ok?: boolean; error?: string; url?: string; orderId?: string; reservationExpiresAt?: string }
+        | null
+      if (!response.ok || !json?.ok || !json.url || !json.orderId || !json.reservationExpiresAt) {
         throw new Error(json?.error || "No se pudo iniciar el checkout.")
       }
+
+      writeActiveCheckoutReservation({
+        orderId: json.orderId,
+        provider,
+        expiresAt: json.reservationExpiresAt,
+        linesKey: reservationLinesKey
+      })
 
       window.location.assign(json.url)
     } catch (submitError) {
@@ -489,6 +617,36 @@ export function CheckoutPageClient({
             )}
           </div>
         </div>
+
+        {hasItems ? (
+          <Card className="border-black/8 bg-gradient-to-r from-white to-ink-50/70 p-4 shadow-[0_16px_42px_rgba(10,10,10,0.04)] sm:p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-2">
+                <p className="text-xs tracking-section text-ink-500">RESERVA TEMPORAL</p>
+                <p className="text-sm leading-6 text-ink-700">
+                  {hasActiveReservation
+                    ? `Tu seleccion esta apartada temporalmente mientras completas el pago en ${
+                        activeReservation?.provider === "paypal" ? "PayPal" : "Mercado Pago"
+                      }.`
+                    : `Al continuar al pago, apartamos tu seleccion durante ${reservationWindowMinutes} minuto${
+                        reservationWindowMinutes === 1 ? "" : "s"
+                      } para reducir el riesgo de sobreventa.`}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="inline-flex rounded-full border border-black/8 bg-white/85 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-700">
+                  {hasActiveReservation ? "Reserva activa" : "Se activa al continuar"}
+                </span>
+                {hasActiveReservation ? (
+                  <div className="rounded-luxe border border-antiqueGold/25 bg-antiqueGold/10 px-4 py-3 text-right">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">Tiempo restante</p>
+                    <p className="mt-1 font-display text-2xl text-ink-950">{formatMinutesAndSeconds(reservationRemainingMs)}</p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </Card>
+        ) : null}
 
         {!hasItems ? (
           <Card className="overflow-hidden p-0 shadow-[0_16px_42px_rgba(10,10,10,0.04)]">

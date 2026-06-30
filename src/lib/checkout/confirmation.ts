@@ -1,9 +1,11 @@
 import { revalidatePath } from "next/cache"
 import { appendOrder, appendSale, readCheckoutOrders, readPerfumes, withCheckoutOrdersLock, withPerfumesLock, writeCheckoutOrders, writePerfumes } from "@/lib/perfumeStore"
+import { isCheckoutReservationActive } from "@/lib/checkout/reservations"
 import { sendAdminNewOrderNotificationEmail, sendCustomerPurchaseConfirmationEmail } from "@/lib/orderPurchaseEmail"
 import { availabilityFromStock } from "@/lib/perfume/parsers"
 import type { CheckoutProvider } from "@/lib/payments"
 import type { ConfirmedOrderRecord } from "@/lib/stores/orders"
+import { appendCheckoutOrderEventRecord } from "@/lib/stores/checkoutOrders"
 
 export function isSuccessfulPayment(provider: CheckoutProvider, status: string) {
   const normalized = status.trim().toLowerCase()
@@ -13,6 +15,12 @@ export function isSuccessfulPayment(provider: CheckoutProvider, status: string) 
 
 const inventoryRejectedMessage =
   "Recibimos el pago, pero la ultima pieza ya se asigno a otro checkout antes de confirmar esta compra. Bloqueamos la orden para evitar sobreventa. Contáctanos para darte seguimiento manual al pago."
+
+const latePaymentInventoryRejectedMessage =
+  "Recibimos el pago despues de que la reserva temporal ya habia vencido o se libero manualmente. Como la pieza ya no estaba disponible al confirmar, bloqueamos la orden para evitar sobreventa. Contáctanos para darte seguimiento manual al pago."
+
+const latePaymentInventoryAppliedMessage =
+  "Recibimos el pago fuera de la ventana de reserva, pero todavia habia stock disponible y la compra se confirmo correctamente."
 
 export async function applyConfirmedCheckout(input: {
   orderId: string
@@ -32,6 +40,7 @@ export async function applyConfirmedCheckout(input: {
 
     const currentOrder = orders[orderIndex]
     if (currentOrder.status === "completed") {
+      revalidatePath("/")
       revalidatePath("/catalog")
       revalidatePath("/catalog/[slug]", "page")
       return {
@@ -54,6 +63,8 @@ export async function applyConfirmedCheckout(input: {
         confirmedOrder: null as ConfirmedOrderRecord | null
       }
     }
+
+    const reservationWasActiveAtConfirmation = isCheckoutReservationActive(currentOrder)
 
     const stockResult = await withPerfumesLock(async () => {
       const perfumes = await readPerfumes()
@@ -92,20 +103,27 @@ export async function applyConfirmedCheckout(input: {
     })
 
     if (!stockResult.ok) {
+      const rejectionMessage = reservationWasActiveAtConfirmation
+        ? inventoryRejectedMessage
+        : latePaymentInventoryRejectedMessage
       const nextOrders = [...orders]
-      nextOrders[orderIndex] = {
+      nextOrders[orderIndex] = appendCheckoutOrderEventRecord({
         ...currentOrder,
         provider: input.provider,
         status: "inventory_rejected",
         paymentStatus: input.paymentStatus,
         paymentReference: input.paymentReference
-      }
+      }, {
+        type: "inventory_rejected",
+        at: new Date().toISOString(),
+        detail: rejectionMessage
+      })
       await writeCheckoutOrders(nextOrders)
 
       return {
         inventoryUpdated: false,
         inventoryRejected: true,
-        inventoryMessage: inventoryRejectedMessage,
+        inventoryMessage: rejectionMessage,
         orderId: currentOrder.id,
         completedAt: currentOrder.completedAt,
         confirmedOrder: null as ConfirmedOrderRecord | null
@@ -126,7 +144,7 @@ export async function applyConfirmedCheckout(input: {
 
     const nextOrders = [...orders]
     const completedAt = new Date().toISOString()
-    const completedOrder = {
+    const completedOrder = appendCheckoutOrderEventRecord({
       ...currentOrder,
       provider: input.provider,
       status: "completed" as const,
@@ -134,7 +152,13 @@ export async function applyConfirmedCheckout(input: {
       paymentStatus: input.paymentStatus,
       fulfillmentStatus: currentOrder.fulfillmentStatus,
       paymentReference: input.paymentReference
-    }
+    }, {
+      type: "payment_confirmed",
+      at: completedAt,
+      detail: reservationWasActiveAtConfirmation
+        ? `Pago confirmado en ${input.provider === "paypal" ? "PayPal" : "Mercado Pago"}.`
+        : latePaymentInventoryAppliedMessage
+    })
     nextOrders[orderIndex] = completedOrder
     await writeCheckoutOrders(nextOrders)
     const confirmedOrder: ConfirmedOrderRecord = {
@@ -157,12 +181,13 @@ export async function applyConfirmedCheckout(input: {
     await appendOrder(confirmedOrder)
 
     revalidatePath("/catalog")
+    revalidatePath("/")
     revalidatePath("/catalog/[slug]", "page")
 
     return {
       inventoryUpdated: true,
       inventoryRejected: false,
-      inventoryMessage: "Inventario y venta actualizados.",
+      inventoryMessage: reservationWasActiveAtConfirmation ? "Inventario y venta actualizados." : latePaymentInventoryAppliedMessage,
       orderId: completedOrder.id,
       completedAt,
       confirmedOrder

@@ -24,6 +24,21 @@ export type CheckoutOrderCustomer = {
   notes?: string
 }
 
+export type CheckoutOrderEventType =
+  | "reservation_created"
+  | "checkout_started"
+  | "reservation_released"
+  | "payment_confirmed"
+  | "inventory_rejected"
+  | "critical_alert_sent"
+  | "fulfillment_updated"
+
+export type CheckoutOrderEvent = {
+  type: CheckoutOrderEventType
+  at: string
+  detail?: string
+}
+
 export type CheckoutOrderRecord = {
   id: string
   provider: CheckoutProvider
@@ -31,6 +46,9 @@ export type CheckoutOrderRecord = {
   customerId?: string
   status: "pending" | "completed" | "inventory_rejected"
   createdAt: string
+  reservationExpiresAt?: string
+  reservationReleasedAt?: string
+  reservationReleaseReason?: "manual" | "expired_cleanup"
   completedAt?: string
   paymentStatus?: string
   fulfillmentStatus?: string
@@ -41,6 +59,7 @@ export type CheckoutOrderRecord = {
   shippingLabel?: string
   total: number
   items: CheckoutOrderItem[]
+  events?: CheckoutOrderEvent[]
 }
 
 const checkoutOrdersPath = dataFilePath("checkout-orders.json")
@@ -103,6 +122,59 @@ function normalizeCheckoutOrderCustomer(input: unknown): CheckoutOrderCustomer |
   }
 }
 
+function normalizeCheckoutOrderEvent(input: unknown): CheckoutOrderEvent | null {
+  if (!input || typeof input !== "object") return null
+  const event = input as Record<string, unknown>
+  const type =
+    event.type === "reservation_created" ||
+    event.type === "checkout_started" ||
+    event.type === "reservation_released" ||
+    event.type === "payment_confirmed" ||
+    event.type === "inventory_rejected" ||
+    event.type === "critical_alert_sent" ||
+    event.type === "fulfillment_updated"
+      ? event.type
+      : null
+  const at = typeof event.at === "string" ? event.at.trim() : ""
+  const detail = typeof event.detail === "string" && event.detail.trim() ? event.detail.trim() : undefined
+
+  if (!type || !at) return null
+
+  return {
+    type,
+    at,
+    detail
+  }
+}
+
+export function appendCheckoutOrderEventRecord(
+  record: CheckoutOrderRecord,
+  input: {
+    type: CheckoutOrderEventType
+    at?: string
+    detail?: string
+  }
+): CheckoutOrderRecord {
+  const at = input.at?.trim() || new Date().toISOString()
+  const detail = input.detail?.trim() || undefined
+  const nextEvent: CheckoutOrderEvent = {
+    type: input.type,
+    at,
+    detail
+  }
+  const existingEvents = Array.isArray(record.events) ? record.events : []
+  const isDuplicate = existingEvents.some(
+    (event) => event.type === nextEvent.type && event.at === nextEvent.at && (event.detail || "") === (nextEvent.detail || "")
+  )
+
+  if (isDuplicate) return record
+
+  return {
+    ...record,
+    events: [...existingEvents, nextEvent]
+  }
+}
+
 function normalizeCheckoutOrderRecord(input: unknown): CheckoutOrderRecord | null {
   if (!input || typeof input !== "object") return null
   const record = input as Record<string, unknown>
@@ -120,6 +192,12 @@ function normalizeCheckoutOrderRecord(input: unknown): CheckoutOrderRecord | nul
           ? "inventory_rejected"
           : null
   const createdAt = typeof record.createdAt === "string" ? record.createdAt : ""
+  const reservationExpiresAt = typeof record.reservationExpiresAt === "string" ? record.reservationExpiresAt : undefined
+  const reservationReleasedAt = typeof record.reservationReleasedAt === "string" ? record.reservationReleasedAt : undefined
+  const reservationReleaseReason =
+    record.reservationReleaseReason === "manual" || record.reservationReleaseReason === "expired_cleanup"
+      ? record.reservationReleaseReason
+      : undefined
   const completedAt = typeof record.completedAt === "string" ? record.completedAt : undefined
   const paymentStatus = typeof record.paymentStatus === "string" ? record.paymentStatus : undefined
   const fulfillmentStatus = typeof record.fulfillmentStatus === "string" ? record.fulfillmentStatus.trim() : undefined
@@ -132,6 +210,7 @@ function normalizeCheckoutOrderRecord(input: unknown): CheckoutOrderRecord | nul
   const total =
     typeof record.total === "number" && Number.isFinite(record.total) ? record.total : subtotal + shippingAmount
   const items = Array.isArray(record.items) ? record.items.map(normalizeCheckoutOrderItem).filter(Boolean) as CheckoutOrderItem[] : []
+  const events = Array.isArray(record.events) ? record.events.map(normalizeCheckoutOrderEvent).filter(Boolean) as CheckoutOrderEvent[] : []
 
   if (!id || !provider || !status || !createdAt || !customer || !(subtotal >= 0) || !(shippingAmount >= 0) || !(total >= 0) || !items.length) {
     return null
@@ -144,6 +223,9 @@ function normalizeCheckoutOrderRecord(input: unknown): CheckoutOrderRecord | nul
     customerId,
     status,
     createdAt,
+    reservationExpiresAt,
+    reservationReleasedAt,
+    reservationReleaseReason,
     completedAt,
     paymentStatus,
     fulfillmentStatus,
@@ -153,7 +235,8 @@ function normalizeCheckoutOrderRecord(input: unknown): CheckoutOrderRecord | nul
     shippingAmount,
     shippingLabel,
     total,
-    items
+    items,
+    events
   }
 }
 
@@ -176,6 +259,15 @@ export async function appendCheckoutOrder(order: CheckoutOrderRecord) {
   })
 }
 
+export async function removeCheckoutOrder(orderId: string) {
+  await withCheckoutOrdersLock(async () => {
+    const normalizedOrderId = orderId.trim()
+    if (!normalizedOrderId) return
+    const existing = await readCheckoutOrders()
+    await writeCheckoutOrders(existing.filter((entry) => entry.id !== normalizedOrderId))
+  })
+}
+
 export async function withCheckoutOrdersLock<T>(fn: () => Promise<T>): Promise<T> {
   return withStorageLock(checkoutOrdersPath, fn)
 }
@@ -186,13 +278,93 @@ export async function updateCheckoutOrderFulfillmentStatus(orderId: string, fulf
     const index = orders.findIndex((entry) => entry.id === orderId)
     if (index === -1) return null
     const normalizedStatus = fulfillmentStatus.trim()
-    const updated = {
+    const previousStatus = orders[index].fulfillmentStatus?.trim() || ""
+    let updated: CheckoutOrderRecord = {
       ...orders[index],
       fulfillmentStatus: normalizedStatus || undefined
+    }
+    if (normalizedStatus !== previousStatus) {
+      updated = appendCheckoutOrderEventRecord(updated, {
+        type: "fulfillment_updated",
+        detail: normalizedStatus ? `Estado logistico actualizado a ${normalizedStatus}.` : "Estado logistico limpiado."
+      })
     }
     const next = [...orders]
     next[index] = updated
     await writeCheckoutOrders(next)
     return updated
+  })
+}
+
+export async function releaseCheckoutOrderReservation(
+  orderId: string,
+  input: {
+    releasedAt?: string
+    reason?: "manual" | "expired_cleanup"
+  } = {}
+) {
+  return await withCheckoutOrdersLock(async () => {
+    const normalizedOrderId = orderId.trim()
+    if (!normalizedOrderId) return null
+
+    const orders = await readCheckoutOrders()
+    const index = orders.findIndex((entry) => entry.id === normalizedOrderId)
+    if (index === -1) return null
+
+    const current = orders[index]
+    if (current.status !== "pending") return current
+
+    const releasedAt = input.releasedAt || new Date().toISOString()
+    const releaseReason = input.reason || "manual"
+    const updated = appendCheckoutOrderEventRecord({
+      ...current,
+      reservationExpiresAt: releasedAt,
+      reservationReleasedAt: releasedAt,
+      reservationReleaseReason: releaseReason
+    }, {
+      type: "reservation_released",
+      at: releasedAt,
+      detail: releaseReason === "manual" ? "Reserva liberada manualmente desde admin." : "Reserva liberada en limpieza por expiracion."
+    })
+    const next = [...orders]
+    next[index] = updated
+    await writeCheckoutOrders(next)
+    return updated
+  })
+}
+
+export async function releaseExpiredCheckoutOrderReservations(releasedAt = new Date().toISOString()) {
+  return await withCheckoutOrdersLock(async () => {
+    const nowMs = new Date(releasedAt).getTime()
+    const orders = await readCheckoutOrders()
+    let releasedCount = 0
+
+    const next = orders.map((order) => {
+      if (order.status !== "pending") return order
+      const expiresAtMs = order.reservationExpiresAt ? new Date(order.reservationExpiresAt).getTime() : Number.NaN
+      if (Number.isNaN(expiresAtMs) || expiresAtMs > nowMs) return order
+      if (order.reservationReleasedAt) return order
+
+      releasedCount += 1
+      return appendCheckoutOrderEventRecord({
+        ...order,
+        reservationExpiresAt: order.reservationExpiresAt || releasedAt,
+        reservationReleasedAt: releasedAt,
+        reservationReleaseReason: "expired_cleanup" as const
+      }, {
+        type: "reservation_released",
+        at: releasedAt,
+        detail: "Reserva liberada en limpieza por expiracion."
+      })
+    })
+
+    if (releasedCount > 0) {
+      await writeCheckoutOrders(next)
+    }
+
+    return {
+      releasedCount,
+      orders: next
+    }
   })
 }

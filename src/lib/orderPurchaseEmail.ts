@@ -1,6 +1,7 @@
 import { siteConfig } from "@/config/site"
 import { formatCustomerOrderNumber } from "@/lib/orderPresentation"
 import type { ConfirmedOrderRecord } from "@/lib/stores/orders"
+import type { CheckoutOrderRecord } from "@/lib/stores/checkoutOrders"
 
 type EmailDeliveryResult =
   | { mode: "email" }
@@ -43,6 +44,18 @@ function buildAccountOrderUrl(orderId: string) {
 
 function buildItemsSummary(order: ConfirmedOrderRecord) {
   return order.items.map((item) => `${item.brand} ${item.name} ${item.sizeMl} ml x${item.quantity}`).join(" | ")
+}
+
+function buildReservationItemsSummary(order: CheckoutOrderRecord) {
+  return order.items.map((item) => `${item.brand} ${item.name} ${item.sizeMl} ml x${item.quantity}`).join(" | ")
+}
+
+function getReservationExpiresAtLabel(order: CheckoutOrderRecord) {
+  const explicit = order.reservationExpiresAt ? new Date(order.reservationExpiresAt).getTime() : Number.NaN
+  const createdAtMs = new Date(order.createdAt).getTime()
+  const fallback = Number.isNaN(createdAtMs) ? Date.now() : createdAtMs + 15 * 60_000
+  const targetMs = Number.isNaN(explicit) ? fallback : explicit
+  return formatDateLabel(new Date(targetMs).toISOString())
 }
 
 function resolveEmailConfig() {
@@ -177,6 +190,87 @@ function readAdminRecipients() {
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean)
+}
+
+export async function sendAdminCriticalReservationAlertEmail(orders: CheckoutOrderRecord[]): Promise<EmailDeliveryResult> {
+  const recipients = readAdminRecipients()
+  if (!recipients.length) {
+    return { mode: "skipped", reason: "No hay un correo interno configurado para reservas criticas." }
+  }
+  if (!orders.length) {
+    return { mode: "skipped", reason: "No hay reservas criticas para notificar." }
+  }
+
+  const subject =
+    orders.length === 1
+      ? `Reserva critica · ${formatCustomerOrderNumber(orders[0].id)} | ${siteConfig.name}`
+      : `${orders.length} reservas criticas | ${siteConfig.name}`
+  const text = [
+    orders.length === 1 ? "Una reserva entro a la ventana critica de 5 minutos." : `${orders.length} reservas entraron a la ventana critica de 5 minutos.`,
+    "",
+    ...orders.flatMap((order) => [
+      `Reserva: ${formatCustomerOrderNumber(order.id)}.`,
+      `Cliente: ${order.customer.fullName}.`,
+      `Correo: ${order.customer.email}.`,
+      `Telefono: ${order.customer.phone}.`,
+      `Proveedor: ${order.provider === "paypal" ? "PayPal" : "Mercado Pago"}.`,
+      `Vence: ${getReservationExpiresAtLabel(order)}.`,
+      `Productos: ${buildReservationItemsSummary(order)}.`,
+      ""
+    ])
+  ].join("\n")
+
+  const cards = orders
+    .map((order) => {
+      const orderNumber = escapeHtml(formatCustomerOrderNumber(order.id))
+      const customerName = escapeHtml(order.customer.fullName)
+      const customerEmail = escapeHtml(order.customer.email)
+      const customerPhone = escapeHtml(order.customer.phone)
+      const provider = escapeHtml(order.provider === "paypal" ? "PayPal" : "Mercado Pago")
+      const expiresAt = escapeHtml(getReservationExpiresAtLabel(order))
+      const itemsSummary = escapeHtml(buildReservationItemsSummary(order))
+
+      return `
+        <div style="margin:0 0 16px;border:1px solid rgba(17,17,17,0.08);border-radius:20px;background:#ffffff;padding:18px 18px 16px;">
+          <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#7a7267;">${orderNumber}</p>
+          <p style="margin:0;font-size:14px;line-height:1.8;color:#373737;"><strong>${customerName}</strong><br />${customerEmail}<br />${customerPhone}<br /><strong>Pago:</strong> ${provider}<br /><strong>Vence:</strong> ${expiresAt}</p>
+          <p style="margin:14px 0 0;font-size:13px;line-height:1.7;color:#111111;">${itemsSummary}</p>
+        </div>
+      `.trim()
+    })
+    .join("")
+
+  const html = `
+    <div style="font-family:Inter,Arial,sans-serif;background:#f3efe8;padding:32px 16px;color:#111111;">
+      <div style="max-width:620px;margin:0 auto;background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(249,246,240,0.98));border:1px solid rgba(17,17,17,0.08);border-radius:28px;overflow:hidden;box-shadow:0 22px 50px rgba(17,17,17,0.08);">
+        <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(188,149,79,0.72),transparent);"></div>
+        <div style="padding:14px 32px 0;">
+          <p style="margin:0;font-size:11px;letter-spacing:0.42em;text-transform:uppercase;color:#1d1d1d;">M A L O</p>
+          <p style="margin:6px 0 0;font-size:11px;letter-spacing:0.26em;text-transform:uppercase;color:#6b6256;">Fragances</p>
+        </div>
+        <div style="padding:28px 32px 32px;">
+          <p style="margin:0 0 10px;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#7a7267;">Reserva critica</p>
+          <h1 style="margin:0 0 16px;font-size:32px;line-height:1.08;font-weight:600;color:#111111;">${escapeHtml(
+            orders.length === 1 ? "Una reserva esta por expirar" : `${orders.length} reservas estan por expirar`
+          )}</h1>
+          <p style="margin:0 0 18px;font-size:15px;line-height:1.8;color:#373737;">Se detecto una reserva dentro de la ventana critica de 5 minutos. Revisa el panel admin para confirmar o liberar a tiempo.</p>
+          ${cards}
+        </div>
+      </div>
+    </div>
+  `.trim()
+
+  const result = await sendEmail({
+    to: recipients,
+    subject,
+    html,
+    text
+  })
+
+  if (result.mode === "preview") {
+    console.info(`[admin-critical-reservation-email] Preview for ${recipients.join(", ")}: ${resolveBaseUrl()}/admin`)
+  }
+  return result
 }
 
 export async function sendAdminNewOrderNotificationEmail(order: ConfirmedOrderRecord): Promise<EmailDeliveryResult> {

@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 import { Container } from "@/components/ui/Container"
 import { CatalogClient } from "@/components/catalog/CatalogClient"
-import { readPerfumes } from "@/lib/perfumeStore"
+import { readSellablePerfumes } from "@/lib/checkout/reservations"
 import type { PerfumeCardModel } from "@/components/perfume/PerfumeCard"
 import { Card } from "@/components/ui/Surface"
 import { SectionHeader } from "@/components/ui/SectionHeader"
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 }
 
 export default async function CatalogPage() {
-  const perfumes: PerfumeCardModel[] = (await readPerfumes()).map((p) => ({
+  const perfumes: PerfumeCardModel[] = (await readSellablePerfumes()).map((p) => ({
     id: p.id,
     slug: p.slug,
     name: p.name,

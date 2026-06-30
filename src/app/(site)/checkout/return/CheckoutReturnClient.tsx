@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/Button"
 import { Container } from "@/components/ui/Container"
 import { Card } from "@/components/ui/Surface"
 import { useCart } from "@/components/cart/CartProvider"
+import { clearActiveCheckoutReservation } from "@/lib/checkout/clientReservation"
 import { formatCustomerOrderNumber, fulfillmentStatusCustomerLabel, orderStatusCustomerLabel, orderStatusSupportingLabel } from "@/lib/orderPresentation"
 import type { CheckoutProvider } from "@/lib/payments"
 
@@ -51,6 +52,17 @@ function paymentProviderLabel(provider: CheckoutProvider | null) {
   if (provider === "paypal") return "PayPal"
   if (provider === "mercado_pago") return "Mercado Pago"
   return ""
+}
+
+function buildRetryDetail(input: { provider: CheckoutProvider | null; status: string }) {
+  const providerLabel = paymentProviderLabel(input.provider) || "el proveedor"
+  if (input.status === "cancelled") {
+    return `Cancelaste el flujo en ${providerLabel}. Si tu reserva temporal sigue activa, puedes volver al checkout e intentarlo otra vez sin empezar desde cero. Si dejas pasar la ventana, cualquier confirmacion posterior queda sujeta al stock real disponible.`
+  }
+  if (input.status === "failure") {
+    return `El pago no se completó en ${providerLabel}. Si tu reserva temporal sigue vigente, vuelve al checkout para reintentar antes de que expire. Despues de ese punto, cualquier pago tardio queda sujeto al stock real al momento de confirmar.`
+  }
+  return `El proveedor reporta este pago como pendiente. Si tu reserva temporal sigue activa, puedes volver al checkout, revisar el estado e intentar de nuevo si hace falta. Si la confirmacion llega tarde, la orden queda sujeta a disponibilidad real.`
 }
 
 function buildSuccessState(input: {
@@ -170,7 +182,7 @@ export function CheckoutReturnClient({
       setResult({
         kind: "error",
         title: status === "cancelled" ? "Pago cancelado" : "Pago no completado",
-        detail: "Puedes volver al checkout e intentarlo otra vez con el mismo perfume."
+        detail: buildRetryDetail({ provider, status })
       })
       return
     }
@@ -282,6 +294,7 @@ export function CheckoutReturnClient({
           const successProviderLabel = paymentProviderLabel(json.provider || provider)
           const successConfirmedAt = json.completedAt || ""
           const inventoryRejected = Boolean(json.inventoryRejected)
+          const resolvedOrderId = json.orderId || orderId || externalReference || ""
           if (sessionKey && isSuccess && !inventoryRejected) {
             window.sessionStorage.setItem(
               sessionKey,
@@ -296,6 +309,9 @@ export function CheckoutReturnClient({
                 purchasedItemIds: Array.isArray(json.purchasedItemIds) ? json.purchasedItemIds.filter(Boolean) : []
               } satisfies CachedReturnState)
             )
+          }
+          if ((isSuccess && !inventoryRejected) || inventoryRejected) {
+            clearActiveCheckoutReservation(resolvedOrderId)
           }
           setResult(
             isSuccess && !inventoryRejected
@@ -318,7 +334,9 @@ export function CheckoutReturnClient({
               : {
                   kind: "error",
                   title: "Pago pendiente",
-                  detail: `Estado reportado por ${provider === "paypal" ? "PayPal" : "Mercado Pago"}: ${json.status || status || "pendiente"}.`
+                  detail: `${buildRetryDetail({ provider, status: normalized || "pending" })} Estado reportado por ${
+                    provider === "paypal" ? "PayPal" : "Mercado Pago"
+                  }: ${json.status || status || "pendiente"}.`
                 }
           )
         }

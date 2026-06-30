@@ -6,6 +6,7 @@ import { Container } from "@/components/ui/Container"
 import { ButtonExternal } from "@/components/ui/Button"
 import { PurchaseActions } from "@/components/cart/PurchaseActions"
 import { availabilityLabel, buildWhatsAppLink, formatPerfumeWhatsAppMessage, formatPrice } from "@/lib/whatsapp"
+import { readSellablePerfumes } from "@/lib/checkout/reservations"
 import { readPerfumes, readPerfumesCached } from "@/lib/perfumeStore"
 import { LazyReveal } from "@/components/ui/LazyReveal"
 import { guessOlfactoryFamily, splitSentences } from "@/lib/editorialLogic"
@@ -241,7 +242,7 @@ function DetailsSection({
 
 export default async function PerfumeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug: rawSlug } = await params
-  const perfumes = await readPerfumesCached()
+  const perfumes = await readSellablePerfumes()
   const perfume = resolvePerfume(perfumes, rawSlug)
   if (!perfume) notFound()
 

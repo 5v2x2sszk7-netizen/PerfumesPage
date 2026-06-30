@@ -1,6 +1,6 @@
 import { jsonError, jsonNoStoreOk, readJsonBody } from "@/lib/apiResponse"
 import { normalizeCartItems, toCartItem, type CartItem } from "@/lib/cart"
-import { readPerfumesCached } from "@/lib/perfumeStore"
+import { readSellablePerfumes } from "@/lib/checkout/reservations"
 
 type SyncCartBody = {
   items?: CartItem[]
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     })
   }
 
-  const perfumes = await readPerfumesCached()
+  const perfumes = await readSellablePerfumes()
   let removedCount = 0
   let adjustedCount = 0
 

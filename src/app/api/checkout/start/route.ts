@@ -1,11 +1,14 @@
+import { revalidatePath } from "next/cache"
 import { jsonError, jsonNoStoreOk, readJsonBody } from "@/lib/apiResponse"
-import { appendCheckoutOrder, readPerfumesCached } from "@/lib/perfumeStore"
 import { createMercadoPagoCheckout, createPayPalCheckout, type CheckoutCustomer, type CheckoutProvider } from "@/lib/payments"
+import { getCheckoutReservationExpiresAt, toSellablePerfume } from "@/lib/checkout/reservations"
 import { toCartItem } from "@/lib/cart"
 import { customerCookieName } from "@/lib/customerAuth"
 import { mergeCustomerProfile, readCustomerFromSessionValue } from "@/lib/customerAccount"
 import { calculateShippingQuote } from "@/lib/shipping"
+import { appendCheckoutOrderEventRecord, readCheckoutOrders, removeCheckoutOrder, withCheckoutOrdersLock, writeCheckoutOrders } from "@/lib/stores/checkoutOrders"
 import { readCustomers, withCustomersLock, writeCustomers } from "@/lib/stores/customers"
+import { readPerfumes } from "@/lib/stores/perfumes"
 
 type CheckoutLineInput = {
   id?: string
@@ -27,6 +30,12 @@ function invalidCartMessage(input: { invalidCount: number; adjustedCount: number
     return "Tu carrito cambio: uno o mas perfumes ya no estan disponibles. Revisa tu seleccion antes de pagar."
   }
   return "Tu carrito cambio: una o mas cantidades ya no estan disponibles. Revisa tu seleccion antes de pagar."
+}
+
+function revalidateShopInventory() {
+  revalidatePath("/")
+  revalidatePath("/catalog")
+  revalidatePath("/catalog/[slug]", "page")
 }
 
 function readCookieValue(req: Request, name: string) {
@@ -80,6 +89,7 @@ export async function POST(req: Request) {
   if (body.provider !== "mercado_pago" && body.provider !== "paypal") {
     return jsonError("Metodo de pago invalido.", 400)
   }
+  const provider = body.provider
 
   const checkoutMode = body.checkoutMode === "account" ? "account" : "guest"
   const sessionValue = readCookieValue(req, customerCookieName)
@@ -101,55 +111,8 @@ export async function POST(req: Request) {
   const requestedItems = Array.isArray(body.items) ? body.items : []
   if (!requestedItems.length) return jsonError("Tu carrito esta vacio.", 400)
 
-  const perfumes = await readPerfumesCached()
-  let invalidCount = 0
-  let adjustedCount = 0
-  const orderItems = requestedItems.flatMap((line) => {
-    if (!line?.id || typeof line.id !== "string") return []
-    const perfume = perfumes.find((entry) => entry.id === line.id)
-    if (!perfume || perfume.price <= 0 || perfume.stock <= 0 || perfume.availability === "out_of_stock") {
-      invalidCount += 1
-      return []
-    }
-
-    const requestedQuantity = Math.max(1, Math.trunc(line.quantity ?? 1) || 1)
-    const quantity = Math.max(1, Math.min(perfume.stock, requestedQuantity))
-    if (quantity !== requestedQuantity) adjustedCount += 1
-    return [
-      {
-        cartItem: toCartItem(perfume, quantity),
-        orderItem: {
-          perfumeId: perfume.id,
-          brand: perfume.brand,
-          name: perfume.name,
-          sizeMl: perfume.sizeMl,
-          unitPrice: perfume.price,
-          unitCost: perfume.cost,
-          quantity
-        }
-      }
-    ]
-  })
-
-  if (invalidCount > 0 || adjustedCount > 0) {
-    return jsonError(invalidCartMessage({ invalidCount, adjustedCount }), 409)
-  }
-
-  if (!orderItems.length) return jsonError("No hay productos validos para cobrar.", 400)
-
-  const items = orderItems.map((entry) => entry.cartItem)
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shipping = calculateShippingQuote({
-    subtotal,
-    state: customer.state,
-    postalCode: customer.postalCode
-  })
-
-  if (!shipping.isReady) {
-    return jsonError("No se pudo calcular el envio para esta direccion. Revisa tu estado y codigo postal.", 400)
-  }
-
   const orderId = globalThis.crypto?.randomUUID?.() || `order-${Date.now()}`
+  const createdAt = new Date().toISOString()
 
   try {
     if (sessionCustomer && checkoutMode === "account") {
@@ -171,31 +134,155 @@ export async function POST(req: Request) {
       })
     }
 
-    const result =
-      body.provider === "mercado_pago"
-        ? await createMercadoPagoCheckout({ items, customer, orderId, pricing: shipping })
-        : await createPayPalCheckout({ items, customer, orderId, pricing: shipping })
+    const reservation = await withCheckoutOrdersLock(async () => {
+      const checkoutOrders = await readCheckoutOrders()
+      const perfumes = await readPerfumes()
+      const nowMs = Date.now()
+      let invalidCount = 0
+      let adjustedCount = 0
 
-    await appendCheckoutOrder({
-      id: orderId,
-      provider: body.provider,
-      checkoutMode,
-      customerId: checkoutMode === "account" ? sessionCustomer?.id : undefined,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-      customer,
-      subtotal,
-      shippingAmount: shipping.shippingAmount,
-      shippingLabel: shipping.shippingLabel,
-      total: shipping.total,
-      items: orderItems.map((entry) => entry.orderItem)
+      const orderItems = requestedItems.flatMap((line) => {
+        if (!line?.id || typeof line.id !== "string") return []
+        const perfume = perfumes.find((entry) => entry.id === line.id)
+        if (!perfume) {
+          invalidCount += 1
+          return []
+        }
+
+        const sellablePerfume = toSellablePerfume({
+          perfume,
+          checkoutOrders,
+          nowMs
+        })
+
+        if (sellablePerfume.price <= 0 || sellablePerfume.stock <= 0 || sellablePerfume.availability === "out_of_stock") {
+          invalidCount += 1
+          return []
+        }
+
+        const requestedQuantity = Math.max(1, Math.trunc(line.quantity ?? 1) || 1)
+        const quantity = Math.max(1, Math.min(sellablePerfume.stock, requestedQuantity))
+        if (quantity !== requestedQuantity) adjustedCount += 1
+
+        return [
+          {
+            cartItem: toCartItem(sellablePerfume, quantity),
+            orderItem: {
+              perfumeId: sellablePerfume.id,
+              brand: sellablePerfume.brand,
+              name: sellablePerfume.name,
+              sizeMl: sellablePerfume.sizeMl,
+              unitPrice: sellablePerfume.price,
+              unitCost: sellablePerfume.cost,
+              quantity
+            }
+          }
+        ]
+      })
+
+      if (invalidCount > 0 || adjustedCount > 0) {
+        return {
+          ok: false as const,
+          invalidCount,
+          adjustedCount
+        }
+      }
+
+      if (!orderItems.length) {
+        return {
+          ok: false as const,
+          invalidCount: 1,
+          adjustedCount: 0
+        }
+      }
+
+      const items = orderItems.map((entry) => entry.cartItem)
+      const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+      const shipping = calculateShippingQuote({
+        subtotal,
+        state: customer.state,
+        postalCode: customer.postalCode
+      })
+
+      if (!shipping.isReady) {
+        return {
+          ok: false as const,
+          shippingError: true
+        }
+      }
+
+      await writeCheckoutOrders([
+        appendCheckoutOrderEventRecord({
+          id: orderId,
+          provider,
+          checkoutMode,
+          customerId: checkoutMode === "account" ? sessionCustomer?.id : undefined,
+          status: "pending",
+          createdAt,
+          reservationExpiresAt: getCheckoutReservationExpiresAt(createdAt),
+          customer,
+          subtotal,
+          shippingAmount: shipping.shippingAmount,
+          shippingLabel: shipping.shippingLabel,
+          total: shipping.total,
+          items: orderItems.map((entry) => entry.orderItem)
+        }, {
+          type: "reservation_created",
+          at: createdAt,
+          detail: "Reserva temporal creada al iniciar checkout."
+        }),
+        ...checkoutOrders.filter((entry) => entry.id !== orderId)
+      ])
+
+      return {
+        ok: true as const,
+        items,
+        shipping,
+        reservationExpiresAt: getCheckoutReservationExpiresAt(createdAt)
+      }
+    })
+
+    if (!reservation.ok) {
+      if (reservation.shippingError) {
+        return jsonError("No se pudo calcular el envio para esta direccion. Revisa tu estado y codigo postal.", 400)
+      }
+      return jsonError(
+        invalidCartMessage({
+          invalidCount: reservation.invalidCount ?? 0,
+          adjustedCount: reservation.adjustedCount ?? 0
+        }),
+        409
+      )
+    }
+
+    revalidateShopInventory()
+
+    const result =
+      provider === "mercado_pago"
+        ? await createMercadoPagoCheckout({ items: reservation.items, customer, orderId, pricing: reservation.shipping })
+        : await createPayPalCheckout({ items: reservation.items, customer, orderId, pricing: reservation.shipping })
+
+    await withCheckoutOrdersLock(async () => {
+      const checkoutOrders = await readCheckoutOrders()
+      const next = checkoutOrders.map((entry) =>
+        entry.id === orderId
+          ? appendCheckoutOrderEventRecord(entry, {
+              type: "checkout_started",
+              detail: `Checkout externo listo en ${provider === "paypal" ? "PayPal" : "Mercado Pago"}.`
+            })
+          : entry
+      )
+      await writeCheckoutOrders(next)
     })
 
     return jsonNoStoreOk({
       url: result.checkoutUrl,
-      orderId
+      orderId,
+      reservationExpiresAt: reservation.reservationExpiresAt
     })
   } catch (error) {
+    await removeCheckoutOrder(orderId)
+    revalidateShopInventory()
     const message = error instanceof Error ? error.message : "No se pudo iniciar el pago."
     return jsonError(message, 500)
   }

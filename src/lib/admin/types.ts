@@ -78,6 +78,69 @@ export type ConfirmedOrderRecord = {
   items: ConfirmedOrderItem[]
 }
 
+export type CheckoutReservationRecord = {
+  id: string
+  provider: "mercado_pago" | "paypal"
+  checkoutMode?: "guest" | "account"
+  customerId?: string
+  status: "pending" | "completed" | "inventory_rejected"
+  createdAt: string
+  reservationExpiresAt?: string
+  reservationReleasedAt?: string
+  reservationReleaseReason?: "manual" | "expired_cleanup"
+  completedAt?: string
+  paymentStatus?: string
+  fulfillmentStatus?: string
+  paymentReference?: string
+  customer: ConfirmedOrderCustomer
+  subtotal: number
+  shippingAmount: number
+  shippingLabel?: string
+  total: number
+  items: ConfirmedOrderItem[]
+  events?: CheckoutReservationEvent[]
+}
+
+export type CheckoutReservationEvent = {
+  type:
+    | "reservation_created"
+    | "checkout_started"
+    | "reservation_released"
+    | "payment_confirmed"
+    | "inventory_rejected"
+    | "critical_alert_sent"
+    | "fulfillment_updated"
+  at: string
+  detail?: string
+}
+
+export type ReservationEventLogEntry = {
+  reservationId: string
+  provider: "mercado_pago" | "paypal"
+  reservationStatus: "pending" | "completed" | "inventory_rejected"
+  isReservationActive: boolean
+  customerName: string
+  customerEmail: string
+  event: CheckoutReservationEvent
+  itemsSummary: string
+}
+
+export type ReservationMetrics = {
+  total: number
+  active: number
+  expiringSoon: number
+  criticalAlertSent: number
+  criticalAlertPending: number
+  expiredPending: number
+  completed: number
+  inventoryRejected: number
+  manuallyReleased: number
+  cleanupReleased: number
+  conversionRate: number
+  expirationRate: number
+  rejectionRate: number
+}
+
 export type Review = StoreReview
 
 export type ReviewDraft = {
