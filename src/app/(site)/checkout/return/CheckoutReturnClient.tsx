@@ -270,6 +270,8 @@ export function CheckoutReturnClient({
               completedAt?: string
               fulfillmentStatus?: string
               purchasedItemIds?: string[]
+              inventoryRejected?: boolean
+              inventoryMessage?: string
             }
           | null
         if (!response.ok || !json?.ok) throw new Error(json?.error || "No se pudo confirmar el pago.")
@@ -279,7 +281,8 @@ export function CheckoutReturnClient({
           const isSuccess = ["approved", "completed"].includes(normalized)
           const successProviderLabel = paymentProviderLabel(json.provider || provider)
           const successConfirmedAt = json.completedAt || ""
-          if (sessionKey && isSuccess) {
+          const inventoryRejected = Boolean(json.inventoryRejected)
+          if (sessionKey && isSuccess && !inventoryRejected) {
             window.sessionStorage.setItem(
               sessionKey,
               JSON.stringify({
@@ -295,7 +298,7 @@ export function CheckoutReturnClient({
             )
           }
           setResult(
-            isSuccess
+            isSuccess && !inventoryRejected
               ? buildSuccessState({
                   orderNumber: json.orderId || "",
                   providerLabel: successProviderLabel,
@@ -304,6 +307,14 @@ export function CheckoutReturnClient({
                   fulfillmentStatus: json.fulfillmentStatus || "",
                   purchasedItemIds: Array.isArray(json.purchasedItemIds) ? json.purchasedItemIds.filter(Boolean) : []
                 })
+              : inventoryRejected
+                ? {
+                    kind: "error",
+                    title: "Pago recibido, inventario no disponible",
+                    detail:
+                      json.inventoryMessage ||
+                      "Recibimos tu pago, pero la ultima pieza ya no estaba disponible al confirmar. Te daremos seguimiento manual."
+                  }
               : {
                   kind: "error",
                   title: "Pago pendiente",

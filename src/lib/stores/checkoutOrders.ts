@@ -29,7 +29,7 @@ export type CheckoutOrderRecord = {
   provider: CheckoutProvider
   checkoutMode?: "guest" | "account"
   customerId?: string
-  status: "pending" | "completed"
+  status: "pending" | "completed" | "inventory_rejected"
   createdAt: string
   completedAt?: string
   paymentStatus?: string
@@ -111,7 +111,14 @@ function normalizeCheckoutOrderRecord(input: unknown): CheckoutOrderRecord | nul
   const provider = record.provider === "mercado_pago" || record.provider === "paypal" ? record.provider : null
   const checkoutMode = record.checkoutMode === "account" ? "account" : record.checkoutMode === "guest" ? "guest" : undefined
   const customerId = typeof record.customerId === "string" ? record.customerId.trim() : undefined
-  const status = record.status === "completed" ? "completed" : record.status === "pending" ? "pending" : null
+  const status =
+    record.status === "completed"
+      ? "completed"
+      : record.status === "pending"
+        ? "pending"
+        : record.status === "inventory_rejected"
+          ? "inventory_rejected"
+          : null
   const createdAt = typeof record.createdAt === "string" ? record.createdAt : ""
   const completedAt = typeof record.completedAt === "string" ? record.completedAt : undefined
   const paymentStatus = typeof record.paymentStatus === "string" ? record.paymentStatus : undefined

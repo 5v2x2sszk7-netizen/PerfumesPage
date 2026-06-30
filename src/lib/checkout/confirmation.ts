@@ -11,6 +11,9 @@ export function isSuccessfulPayment(provider: CheckoutProvider, status: string) 
   return normalized === "approved"
 }
 
+const inventoryRejectedMessage =
+  "Recibimos el pago, pero la ultima pieza ya se asigno a otro checkout antes de confirmar esta compra. Bloqueamos la orden para evitar sobreventa. Contáctanos para darte seguimiento manual al pago."
+
 export async function applyConfirmedCheckout(input: {
   orderId: string
   provider: CheckoutProvider
@@ -33,6 +36,7 @@ export async function applyConfirmedCheckout(input: {
       revalidatePath("/catalog/[slug]", "page")
       return {
         inventoryUpdated: true,
+        inventoryRejected: false,
         inventoryMessage: "Inventario ya aplicado previamente.",
         orderId: currentOrder.id,
         completedAt: currentOrder.completedAt,
@@ -40,15 +44,36 @@ export async function applyConfirmedCheckout(input: {
       }
     }
 
-    await withPerfumesLock(async () => {
+    if (currentOrder.status === "inventory_rejected") {
+      return {
+        inventoryUpdated: false,
+        inventoryRejected: true,
+        inventoryMessage: inventoryRejectedMessage,
+        orderId: currentOrder.id,
+        completedAt: currentOrder.completedAt,
+        confirmedOrder: null as ConfirmedOrderRecord | null
+      }
+    }
+
+    const stockResult = await withPerfumesLock(async () => {
       const perfumes = await readPerfumes()
       const nextPerfumes = [...perfumes]
 
       for (const line of currentOrder.items) {
         const perfumeIndex = nextPerfumes.findIndex((entry) => entry.id === line.perfumeId)
-        if (perfumeIndex === -1) continue
+        if (perfumeIndex === -1) {
+          return {
+            ok: false as const
+          }
+        }
 
         const currentPerfume = nextPerfumes[perfumeIndex]
+        if (currentPerfume.stock < line.quantity || currentPerfume.availability === "out_of_stock") {
+          return {
+            ok: false as const
+          }
+        }
+
         const nextStock = Math.max(0, currentPerfume.stock - line.quantity)
         const nextSold = Math.max(0, Math.floor(currentPerfume.sold) + line.quantity)
 
@@ -61,7 +86,31 @@ export async function applyConfirmedCheckout(input: {
       }
 
       await writePerfumes(nextPerfumes)
+      return {
+        ok: true as const
+      }
     })
+
+    if (!stockResult.ok) {
+      const nextOrders = [...orders]
+      nextOrders[orderIndex] = {
+        ...currentOrder,
+        provider: input.provider,
+        status: "inventory_rejected",
+        paymentStatus: input.paymentStatus,
+        paymentReference: input.paymentReference
+      }
+      await writeCheckoutOrders(nextOrders)
+
+      return {
+        inventoryUpdated: false,
+        inventoryRejected: true,
+        inventoryMessage: inventoryRejectedMessage,
+        orderId: currentOrder.id,
+        completedAt: currentOrder.completedAt,
+        confirmedOrder: null as ConfirmedOrderRecord | null
+      }
+    }
 
     for (const line of currentOrder.items) {
       await appendSale({
@@ -112,6 +161,7 @@ export async function applyConfirmedCheckout(input: {
 
     return {
       inventoryUpdated: true,
+      inventoryRejected: false,
       inventoryMessage: "Inventario y venta actualizados.",
       orderId: completedOrder.id,
       completedAt,

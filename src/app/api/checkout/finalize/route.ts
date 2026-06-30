@@ -23,6 +23,7 @@ type FinalizeCheckoutBody = {
 
 type FinalizeInventoryResult = {
   inventoryUpdated: boolean
+  inventoryRejected?: boolean
   inventoryMessage: string
   orderId?: string
   completedAt?: string
@@ -73,6 +74,7 @@ export async function POST(req: Request) {
         completedAt: inventory.completedAt,
         fulfillmentStatus: orderSummary.fulfillmentStatus,
         purchasedItemIds: orderSummary.purchasedItemIds,
+        inventoryRejected: inventory.inventoryRejected || false,
         inventoryUpdated: inventory.inventoryUpdated,
         inventoryMessage: inventory.inventoryMessage
       })
@@ -144,6 +146,7 @@ export async function POST(req: Request) {
         completedAt: inventory.completedAt,
         fulfillmentStatus: orderSummary.fulfillmentStatus,
         purchasedItemIds: orderSummary.purchasedItemIds,
+        inventoryRejected: inventory.inventoryRejected || false,
         inventoryUpdated: inventory.inventoryUpdated,
         inventoryMessage: inventory.inventoryMessage
       })
