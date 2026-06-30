@@ -9,11 +9,13 @@ export function buildWhatsAppLink(text: string, phoneDigits = siteConfig.whatsap
 
 export function formatPrice(price: number) {
   if (price <= 0) return "Consultar"
-  return new Intl.NumberFormat("es-MX", {
+  const formatted = new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: siteConfig.currency,
+    currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 0
   }).format(price)
+  return `${siteConfig.currency} ${formatted}`
 }
 
 export const availabilityLabel = {

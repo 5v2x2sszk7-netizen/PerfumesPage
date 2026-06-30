@@ -282,7 +282,7 @@ export function CheckoutPageClient({
       }),
     [form.postalCode, shippingState, subtotal]
   )
-  const heroTotal = hasItems ? formatPrice(shippingQuote.isReady ? shippingQuote.total : subtotal) : "$0"
+  const heroTotal = hasItems ? formatPrice(shippingQuote.isReady ? shippingQuote.total : subtotal) : "MXN $0"
   const heroMethod = hasItems ? (provider === "paypal" ? "PayPal" : "Mercado Pago") : "Pendiente"
   const providerLabel = provider === "paypal" ? "PayPal" : "Mercado Pago"
   const providerActionLabel = provider === "paypal" ? "Pagar con PayPal" : "Pagar con Mercado Pago"

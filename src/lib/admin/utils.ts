@@ -14,11 +14,13 @@ export function fromCsv(value: string) {
 }
 
 export function formatMoney(value: number) {
-  return new Intl.NumberFormat("es-MX", {
+  const formatted = new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: siteConfig.currency,
+    currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 0
   }).format(value)
+  return `${siteConfig.currency} ${formatted}`
 }
 
 export function uniqueNormalized(values: string[]) {
