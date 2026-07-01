@@ -17,30 +17,30 @@ export function HomeFeaturedSection({ featured }: { featured: Perfume[] }) {
             kickerClassName="tracking-brand"
             titleClassName="mt-4 text-2xl"
           />
+        </div>
 
-          <div className="mt-8">
-            <div className="scrollbar-none flex max-w-full snap-x snap-mandatory gap-4 overflow-x-auto pb-1 pr-6">
-              {featured.map((p, idx) => (
-                <LazyReveal
-                  key={p.id}
-                  className="w-[min(328px,86vw)] shrink-0 snap-start sm:w-[360px]"
-                  delayMs={idx * 120}
-                >
-                  <PerfumeCard perfume={p} variant="featured" className="w-full" />
-                </LazyReveal>
-              ))}
-            </div>
+        <div className="mt-8">
+          <div className="scrollbar-none flex max-w-full snap-x snap-mandatory gap-4 overflow-x-auto pb-1 pr-6 md:grid md:snap-none md:grid-cols-2 md:overflow-visible md:pr-0 lg:grid-cols-3 xl:grid-cols-4">
+            {featured.map((p, idx) => (
+              <LazyReveal
+                key={p.id}
+                className="w-[min(328px,86vw)] shrink-0 snap-start sm:w-[360px] md:w-full md:shrink md:snap-none"
+                delayMs={idx * 120}
+              >
+                <PerfumeCard perfume={p} variant="featured" className="w-full" />
+              </LazyReveal>
+            ))}
           </div>
+        </div>
 
-          <div className="mt-8 flex justify-start">
-            <ButtonLink
-              href="/catalog"
-              variant="soft"
-              className="bg-ink-50/80 text-ink-950 ring-black/10 shadow-sm hover:bg-white hover:shadow-home-soft-hover"
-            >
-              Ver todo
-            </ButtonLink>
-          </div>
+        <div className="mt-8 flex justify-start">
+          <ButtonLink
+            href="/catalog"
+            variant="soft"
+            className="bg-ink-50/80 text-ink-950 ring-black/10 shadow-sm hover:bg-white hover:shadow-home-soft-hover"
+          >
+            Ver todo
+          </ButtonLink>
         </div>
       </Container>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-home-section-bottom-fade" />
