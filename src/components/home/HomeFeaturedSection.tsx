@@ -18,12 +18,18 @@ export function HomeFeaturedSection({ featured }: { featured: Perfume[] }) {
             titleClassName="mt-4 text-2xl"
           />
 
-          <div className="mt-8 grid grid-cols-1 gap-4">
-            {featured.map((p, idx) => (
-              <LazyReveal key={p.id} className="w-full" delayMs={idx * 120}>
-                <PerfumeCard perfume={p} variant="featured" />
-              </LazyReveal>
-            ))}
+          <div className="mt-8">
+            <div className="scrollbar-none flex max-w-full snap-x snap-mandatory gap-4 overflow-x-auto pb-1 pr-6">
+              {featured.map((p, idx) => (
+                <LazyReveal
+                  key={p.id}
+                  className="w-[min(328px,86vw)] shrink-0 snap-start sm:w-[360px]"
+                  delayMs={idx * 120}
+                >
+                  <PerfumeCard perfume={p} variant="featured" className="w-full" />
+                </LazyReveal>
+              ))}
+            </div>
           </div>
 
           <div className="mt-8 flex justify-start">
