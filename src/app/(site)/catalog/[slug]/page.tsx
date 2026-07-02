@@ -150,22 +150,30 @@ function AvailabilityPanel({
   stockLabel: string
 }) {
   return (
-    <div className="w-full max-w-full overflow-hidden rounded-luxe border border-black/8 bg-white px-5 py-5 shadow-panel sm:px-7 sm:py-7">
+    <div className="w-full max-w-full overflow-hidden rounded-luxe border border-black/8 bg-white px-4 py-4 shadow-panel sm:px-5 sm:py-5">
       <p className="text-ui-xs font-medium tracking-section text-ink-500">DISPONIBILIDAD</p>
-      <p className="mt-3 font-display text-[2rem] leading-[1.02] text-ink-950 sm:text-2xl sm:leading-display">{availabilityEditorial}</p>
-      <p className="mt-2 text-[15px] tracking-wide text-ink-700 sm:text-sm">
-        {perfume.sizeMl} ml <span className="text-ink-400">·</span> {concentration}
-      </p>
-
-      <div className="mt-6 sm:mt-7">
-        <p className="text-ui-xs font-medium tracking-section text-ink-500">PRECIO</p>
-        <p className="mt-2 font-display text-[2.3rem] leading-[1.02] text-ink-950 sm:text-3xl sm:leading-display">{formatPrice(perfume.price)}</p>
-      </div>
-
-      <div className="mt-6 sm:mt-7">
-        <Badge size="md" className="px-4 py-2 text-[13px] tracking-[0.04em] text-ink-950 sm:px-5 sm:py-2.5 sm:text-sm sm:tracking-wide">
+      <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-display text-[1.6rem] leading-[1.02] text-ink-950 sm:text-[1.9rem] sm:leading-[1.02]">
+            {availabilityEditorial}
+          </p>
+          <p className="mt-1 text-[13px] tracking-wide text-ink-700 sm:text-[13px]">
+            {perfume.sizeMl} ml <span className="text-ink-400">·</span> {concentration}
+          </p>
+        </div>
+        <Badge
+          size="sm"
+          className="shrink-0 px-3 py-1.5 text-[11px] tracking-[0.04em] text-ink-950 sm:px-3.5 sm:py-1.5 sm:text-[11px]"
+        >
           {stockLabel}
         </Badge>
+      </div>
+
+      <div className="mt-4 border-t border-black/6 pt-3">
+        <p className="text-[10px] font-medium tracking-section text-ink-500">PRECIO</p>
+        <p className="mt-1 font-display text-[1.9rem] leading-[1.02] text-ink-950 sm:text-[2.15rem] sm:leading-[1.02]">
+          {formatPrice(perfume.price)}
+        </p>
       </div>
     </div>
   )
