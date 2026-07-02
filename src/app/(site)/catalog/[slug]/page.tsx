@@ -294,6 +294,13 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                   </div>
                 </div>
 
+                <AvailabilityPanel
+                  perfume={perfume}
+                  concentration={concentration}
+                  availabilityEditorial={availabilityEditorial}
+                  stockLabel={stockLabel}
+                />
+
                 <div className="space-y-3">
                   <PurchaseActions perfume={perfume} />
 
@@ -323,13 +330,6 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                   ) : null}
                   {rest ? <p className="mt-3 max-w-xl break-words text-[14px] leading-7 text-ink-700 [overflow-wrap:anywhere] sm:text-sm sm:leading-body">{rest}</p> : null}
                 </div>
-
-                <AvailabilityPanel
-                  perfume={perfume}
-                  concentration={concentration}
-                  availabilityEditorial={availabilityEditorial}
-                  stockLabel={stockLabel}
-                />
               </div>
             </LazyReveal>
           </div>
