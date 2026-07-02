@@ -10,6 +10,15 @@ export function HomeFeaturedCarousel({ featured }: { featured: Perfume[] }) {
   const itemRefs = useRef<Array<HTMLDivElement | null>>([])
   const [, setActiveIndex] = useState(0)
 
+  function scrollToCard(index: number, behavior: ScrollBehavior) {
+    const scroller = scrollerRef.current
+    const target = itemRefs.current[index]
+    if (!scroller || !target) return
+
+    // Mueve solo el carrusel horizontal, sin afectar el scroll vertical de la pagina.
+    scroller.scrollTo({ left: target.offsetLeft, behavior })
+  }
+
   useEffect(() => {
     itemRefs.current = itemRefs.current.slice(0, featured.length)
   }, [featured.length])
@@ -54,7 +63,7 @@ export function HomeFeaturedCarousel({ featured }: { featured: Perfume[] }) {
       intervalId = window.setInterval(() => {
         setActiveIndex((current) => {
           const next = (current + 1) % featured.length
-          itemRefs.current[next]?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" })
+          scrollToCard(next, "smooth")
           return next
         })
       }, 3600)
@@ -75,7 +84,7 @@ export function HomeFeaturedCarousel({ featured }: { featured: Perfume[] }) {
 
       stopAutoPlay()
       setActiveIndex(0)
-      scrollerRef.current?.scrollTo({ left: 0, behavior: "smooth" })
+      scrollToCard(0, "smooth")
     }
 
     startAutoPlay()
