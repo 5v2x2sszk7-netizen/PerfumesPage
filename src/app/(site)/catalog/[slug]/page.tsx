@@ -292,13 +292,6 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                     <Badge className="max-w-full whitespace-normal px-3 py-1 text-center text-[10px] leading-tight tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{perfume.sizeMl} ml</Badge>
                     <Badge tone={availabilityBadgeTone(perfume.availability)} className="max-w-full whitespace-normal px-3 py-1 text-center text-[10px] leading-tight tracking-[0.12em] sm:px-4 sm:py-1.5 sm:text-ui-2xs sm:tracking-kicker">{availabilityLabel[perfume.availability]}</Badge>
                   </div>
-
-                  {headline ? (
-                    <p className="mt-4 max-w-xl break-words font-display text-[1.7rem] leading-[1.05] text-ink-950 [overflow-wrap:anywhere] sm:mt-6 sm:text-2xl sm:leading-display">
-                      {headline}
-                    </p>
-                  ) : null}
-                  {rest ? <p className="mt-3 max-w-xl break-words text-[14px] leading-7 text-ink-700 [overflow-wrap:anywhere] sm:text-sm sm:leading-body">{rest}</p> : null}
                 </div>
 
                 <div className="space-y-3">
@@ -320,6 +313,15 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                       </span>
                     </ButtonExternal>
                   </div>
+                </div>
+
+                <div>
+                  {headline ? (
+                    <p className="max-w-xl break-words font-display text-[1.7rem] leading-[1.05] text-ink-950 [overflow-wrap:anywhere] sm:text-2xl sm:leading-display">
+                      {headline}
+                    </p>
+                  ) : null}
+                  {rest ? <p className="mt-3 max-w-xl break-words text-[14px] leading-7 text-ink-700 [overflow-wrap:anywhere] sm:text-sm sm:leading-body">{rest}</p> : null}
                 </div>
 
                 <AvailabilityPanel
