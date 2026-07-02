@@ -47,12 +47,6 @@ export function Header() {
               Catálogo
             </Link>
             <Link
-              href="/catalog"
-              className="text-ui-sm text-ink-600 transition-colors duration-luxe-fast ease-luxe hover:text-ink-950"
-            >
-              Colecciones
-            </Link>
-            <Link
               href="/account"
               className="text-ui-sm text-ink-600 transition-colors duration-luxe-fast ease-luxe hover:text-ink-950"
             >
