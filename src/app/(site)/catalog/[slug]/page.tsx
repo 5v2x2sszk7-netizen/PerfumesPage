@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import type { ReactNode } from "react"
 import { Container } from "@/components/ui/Container"
 import { ButtonExternal } from "@/components/ui/Button"
 import { PurchaseActions } from "@/components/cart/PurchaseActions"
@@ -15,90 +14,6 @@ import type { Perfume } from "@/types/perfume"
 import { PerfumeImageGallery } from "@/components/perfume/PerfumeImageGallery"
 
 export const revalidate = 60
-
-function renderInlineBold(text: string): ReactNode[] {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean)
-  return parts.map((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
-      return (
-        <strong key={idx} className="font-semibold text-ink-950">
-          {part.slice(2, -2)}
-        </strong>
-      )
-    }
-    return <span key={idx}>{part}</span>
-  })
-}
-
-function PerfumeDescription({ value }: { value: string }) {
-  const raw = value?.trim()
-  if (!raw) return null
-
-  const blocks = raw
-    .split(/\n\s*\n/g)
-    .map((b) => b.trim())
-    .filter(Boolean)
-
-  const isSingleDenseBlock = blocks.length === 1 && raw.includes("\n") && !raw.includes("\n\n")
-
-  return (
-    <div className="mt-4 max-w-prose space-y-4 text-ui-body leading-body text-ink-700 [overflow-wrap:anywhere]">
-      {(isSingleDenseBlock ? blocks[0].split("\n").map((l) => l.trim()).filter(Boolean) : blocks).map(
-        (block, idx) => {
-          const lines = block
-            .split("\n")
-            .map((l) => l.trim())
-            .filter(Boolean)
-
-          const items = isSingleDenseBlock ? [block] : lines
-          const isBullets = items.every((l) => l.startsWith("- ") || l.startsWith("• "))
-          if (isBullets) {
-            return (
-              <ul key={idx} className="list-inside list-disc space-y-1 pl-1 marker:text-ink-400">
-                {items.map((l, li) => (
-                  <li key={li}>{renderInlineBold(l.replace(/^(-|•)\s+/, ""))}</li>
-                ))}
-              </ul>
-            )
-          }
-
-          const single = items.join(" ")
-          if (isSingleDenseBlock && idx === 0 && !single.includes(":")) {
-            return (
-              <p key={idx} className="max-w-full break-words font-display text-xl leading-display text-ink-950 [overflow-wrap:anywhere]">
-                {renderInlineBold(single)}
-              </p>
-            )
-          }
-
-          if (single.endsWith(":")) {
-            return (
-              <p key={idx} className="font-semibold text-ink-950">
-                {single.slice(0, -1)}
-              </p>
-            )
-          }
-
-          const colonAt = single.indexOf(":")
-          const canLabel = colonAt > 0 && colonAt <= 24
-
-          if (canLabel) {
-            const label = single.slice(0, colonAt).trim()
-            const rest = single.slice(colonAt + 1).trim()
-            return (
-              <p key={idx}>
-                <strong className="font-semibold text-ink-950">{label}:</strong>{" "}
-                {renderInlineBold(rest)}
-              </p>
-            )
-          }
-
-          return <p key={idx} className="max-w-full break-words [overflow-wrap:anywhere]">{renderInlineBold(single)}</p>
-        }
-      )}
-    </div>
-  )
-}
 
 function resolvePerfume(perfumes: Perfume[], rawSlug: string) {
   const slug = decodeURIComponent(rawSlug).trim()
@@ -233,13 +148,6 @@ function DetailsSection({
                   <p className="text-sm text-ink-800">{perfume.notes?.base?.join(" · ") || "—"}</p>
                 </div>
               </div>
-            </div>
-          </LazyReveal>
-
-          <LazyReveal delayMs={240} className="min-w-0 lg:col-span-3">
-            <div className="w-full max-w-full overflow-hidden rounded-luxe-xl border border-black/8 bg-white px-6 py-10 shadow-panel-lg sm:px-9 sm:py-12">
-              <p className="text-xs tracking-section text-ink-500">HISTORIA</p>
-              <PerfumeDescription value={perfume.description} />
             </div>
           </LazyReveal>
         </div>
