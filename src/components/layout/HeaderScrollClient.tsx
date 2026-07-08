@@ -4,6 +4,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { clearActiveCheckoutReservation, onActiveCheckoutReservationChange, readActiveCheckoutReservation } from "@/lib/checkout/clientReservation"
+import { shippingFreeThreshold } from "@/lib/shipping"
+import { formatPrice } from "@/lib/whatsapp"
 
 function splitTokens(value: string) {
   return value.split(/\s+/g).map((v) => v.trim()).filter(Boolean)
@@ -169,6 +171,7 @@ export function HeaderScrollClient({
 
   const shouldShowBanner = Boolean(reservation && remainingMs > 0 && !pathname.startsWith("/checkout"))
   const providerLabel = reservation?.provider === "paypal" ? "PayPal" : "Mercado Pago"
+  const freeShippingLabel = formatPrice(shippingFreeThreshold())
 
   return shouldShowBanner ? (
     <div className="border-b border-black/6 bg-white/72 backdrop-blur-sm">
@@ -184,5 +187,19 @@ export function HeaderScrollClient({
         </div>
       </div>
     </div>
-  ) : null
+  ) : (
+    <div className="border-b border-black/6 bg-white/72 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-700">
+          Envio gratis desde {freeShippingLabel}
+        </p>
+        <div className="flex items-center gap-3 text-xs text-ink-600">
+          <span className="hidden sm:inline">Metropolitana y centro desde MXN 250 · Nacional desde MXN 350.</span>
+          <Link href="/catalog" className="font-medium text-ink-950 underline decoration-black/20 underline-offset-4 hover:decoration-black/40">
+            Ver catalogo
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
 }
