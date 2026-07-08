@@ -102,7 +102,7 @@ export function CartPageClient() {
                       </div>
 
                       <div className="shrink-0 text-left sm:text-right">
-                        <p className="text-sm text-ink-500">Subtotal</p>
+                        <p className="text-sm text-ink-500">Importe</p>
                         <p className="mt-1 text-lg font-semibold text-ink-950">{formatPrice(item.price * item.quantity)}</p>
                       </div>
                     </div>
@@ -118,11 +118,11 @@ export function CartPageClient() {
                   <h2 className="mt-2 font-display text-2xl text-ink-950">Pedido</h2>
                 </div>
                 <div className="flex items-center justify-between text-sm text-ink-700">
-                  <span>Articulos</span>
+                  <span>Piezas</span>
                   <span>{itemCount}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm text-ink-700">
-                  <span>Perfumes</span>
+                  <span>Subtotal</span>
                   <span className="font-medium text-ink-950">{formatPrice(subtotal)}</span>
                 </div>
                 {qualifiesForFreeShipping ? (
