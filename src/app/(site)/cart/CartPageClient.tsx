@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react"
 import { Button, ButtonLink } from "@/components/ui/Button"
 import { Container } from "@/components/ui/Container"
 import { Card } from "@/components/ui/Surface"
@@ -11,12 +12,18 @@ import { shippingFreeThreshold, shippingRatePreview } from "@/lib/shipping"
 
 export function CartPageClient() {
   const { items, subtotal, isReady, syncNotice, updateQuantity, removeItem, clearCart } = useCart()
+  const [shippingSelection, setShippingSelection] = useState<"metro_center" | "national">("metro_center")
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
   const freeShippingThreshold = shippingFreeThreshold()
   const shippingRates = shippingRatePreview()
   const qualifiesForFreeShipping = subtotal >= freeShippingThreshold
-  const estimatedTotalMetro = subtotal + (qualifiesForFreeShipping ? 0 : shippingRates.metro)
-  const estimatedTotalNational = subtotal + (qualifiesForFreeShipping ? 0 : shippingRates.national)
+  const selectedShippingAmount = qualifiesForFreeShipping
+    ? 0
+    : shippingSelection === "national"
+      ? shippingRates.national
+      : shippingRates.metro
+  const selectedShippingLabel = shippingSelection === "national" ? "Cobertura nacional" : "Metropolitano / centro"
+  const totalWithShipping = subtotal + selectedShippingAmount
 
   return (
     <Container className="py-10 sm:py-14">
@@ -121,11 +128,11 @@ export function CartPageClient() {
                 {qualifiesForFreeShipping ? (
                   <>
                     <div className="flex items-center justify-between text-sm text-ink-700">
-                      <span>Envio</span>
+                      <span>Envío</span>
                       <span className="font-medium text-ink-950">Gratis</span>
                     </div>
                     <div className="rounded-luxe-lg border border-antiqueGold/20 bg-antiqueGold/10 px-4 py-3 text-xs leading-5 text-ink-700">
-                      Tu pedido ya supera {formatPrice(freeShippingThreshold)} y alcanza envio gratis.
+                      Tu pedido ya supera {formatPrice(freeShippingThreshold)} y alcanza envío gratis.
                     </div>
                     <div className="flex items-center justify-between text-base font-semibold text-ink-950">
                       <span>Total</span>
@@ -135,30 +142,61 @@ export function CartPageClient() {
                 ) : (
                   <>
                     <div className="rounded-luxe-lg border border-black/8 bg-ink-50/60 px-4 py-4 text-sm text-ink-700">
-                      <div className="flex items-center justify-between gap-4">
-                        <span>Envio metropolitana / centro</span>
-                        <span className="font-medium text-ink-950">{formatPrice(shippingRates.metro)}</span>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between gap-4">
-                        <span>Envio nacional</span>
-                        <span className="font-medium text-ink-950">{formatPrice(shippingRates.national)}</span>
-                      </div>
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">Tipo de envío</p>
+                      <label className="mt-3 flex cursor-pointer items-start justify-between gap-4 rounded-luxe border border-black/8 bg-white px-4 py-3 transition hover:border-black/12">
+                        <span className="min-w-0">
+                          <span className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="shipping-selection"
+                              checked={shippingSelection === "metro_center"}
+                              onChange={() => setShippingSelection("metro_center")}
+                              className="mt-0.5 h-4 w-4 border-black/15 text-ink-950 focus:ring-ink-950"
+                            />
+                            <span className="font-medium text-ink-950">Metropolitano / centro</span>
+                          </span>
+                          <span className="mt-1 block pl-7 text-xs leading-5 text-ink-500">
+                            Ciudad de México, Estado de México y zona centro.
+                          </span>
+                        </span>
+                        <span className="shrink-0 font-medium text-ink-950">{formatPrice(shippingRates.metro)}</span>
+                      </label>
+                      <label className="mt-3 flex cursor-pointer items-start justify-between gap-4 rounded-luxe border border-black/8 bg-white px-4 py-3 transition hover:border-black/12">
+                        <span className="min-w-0">
+                          <span className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="shipping-selection"
+                              checked={shippingSelection === "national"}
+                              onChange={() => setShippingSelection("national")}
+                              className="mt-0.5 h-4 w-4 border-black/15 text-ink-950 focus:ring-ink-950"
+                            />
+                            <span className="font-medium text-ink-950">Cobertura nacional</span>
+                          </span>
+                          <span className="mt-1 block pl-7 text-xs leading-5 text-ink-500">
+                            Para el resto del país.
+                          </span>
+                        </span>
+                        <span className="shrink-0 font-medium text-ink-950">{formatPrice(shippingRates.national)}</span>
+                      </label>
                       <p className="mt-3 text-xs leading-5 text-ink-500">
-                        Envio gratis desde {formatPrice(freeShippingThreshold)}.
+                        Envío gratis desde {formatPrice(freeShippingThreshold)}.
                       </p>
                     </div>
                     <div className="flex items-center justify-between text-sm text-ink-700">
-                      <span>Total estimado desde</span>
-                      <span className="font-medium text-ink-950">{formatPrice(estimatedTotalMetro)}</span>
+                      <span>Envío</span>
+                      <span className="font-medium text-ink-950">
+                        {formatPrice(selectedShippingAmount)} <span className="text-ink-500">· {selectedShippingLabel}</span>
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-base font-semibold text-ink-950">
-                      <span>Total estimado nacional</span>
-                      <span>{formatPrice(estimatedTotalNational)}</span>
+                      <span>Total</span>
+                      <span>{formatPrice(totalWithShipping)}</span>
                     </div>
                   </>
                 )}
                 <div className="text-xs leading-5 text-ink-500">
-                  El envio exacto se confirma en checkout segun tu estado y codigo postal.
+                  El envío exacto se confirma en checkout según tu estado y código postal.
                 </div>
                 <ButtonLink href="/checkout" variant="gold" className="w-full">
                   Ir al checkout

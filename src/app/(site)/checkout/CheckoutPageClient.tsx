@@ -1184,7 +1184,7 @@ export function CheckoutPageClient({
                     <span className="font-medium text-ink-950">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="mt-3 flex items-center justify-between text-sm text-ink-700">
-                    <span>{shippingQuote.isReady ? shippingQuote.shippingLabel : "Envio"}</span>
+                    <span>{shippingQuote.isReady ? shippingQuote.shippingLabel : "Envío"}</span>
                     <span className="font-medium text-ink-950">
                       {shippingQuote.isReady
                         ? shippingQuote.shippingAmount > 0

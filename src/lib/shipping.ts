@@ -34,11 +34,15 @@ export type ShippingQuote = {
 }
 
 function normalizeStateName(value: string) {
-  return value
+  const normalized = value
     .trim()
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+
+  if (normalized === "mexico") return "estado de mexico"
+  if (normalized === "cdmx") return "ciudad de mexico"
+  return normalized
 }
 
 function roundMoney(value: number) {
