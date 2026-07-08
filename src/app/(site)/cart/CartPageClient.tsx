@@ -7,9 +7,16 @@ import { Container } from "@/components/ui/Container"
 import { Card } from "@/components/ui/Surface"
 import { useCart } from "@/components/cart/CartProvider"
 import { formatPrice } from "@/lib/whatsapp"
+import { shippingFreeThreshold, shippingRatePreview } from "@/lib/shipping"
 
 export function CartPageClient() {
   const { items, subtotal, isReady, syncNotice, updateQuantity, removeItem, clearCart } = useCart()
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
+  const freeShippingThreshold = shippingFreeThreshold()
+  const shippingRates = shippingRatePreview()
+  const qualifiesForFreeShipping = subtotal >= freeShippingThreshold
+  const estimatedTotalMetro = subtotal + (qualifiesForFreeShipping ? 0 : shippingRates.metro)
+  const estimatedTotalNational = subtotal + (qualifiesForFreeShipping ? 0 : shippingRates.national)
 
   return (
     <Container className="py-10 sm:py-14">
@@ -105,11 +112,53 @@ export function CartPageClient() {
                 </div>
                 <div className="flex items-center justify-between text-sm text-ink-700">
                   <span>Articulos</span>
-                  <span>{items.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                  <span>{itemCount}</span>
                 </div>
-                <div className="flex items-center justify-between text-base font-semibold text-ink-950">
-                  <span>Total</span>
-                  <span>{formatPrice(subtotal)}</span>
+                <div className="flex items-center justify-between text-sm text-ink-700">
+                  <span>Perfumes</span>
+                  <span className="font-medium text-ink-950">{formatPrice(subtotal)}</span>
+                </div>
+                {qualifiesForFreeShipping ? (
+                  <>
+                    <div className="flex items-center justify-between text-sm text-ink-700">
+                      <span>Envio</span>
+                      <span className="font-medium text-ink-950">Gratis</span>
+                    </div>
+                    <div className="rounded-luxe-lg border border-antiqueGold/20 bg-antiqueGold/10 px-4 py-3 text-xs leading-5 text-ink-700">
+                      Tu pedido ya supera {formatPrice(freeShippingThreshold)} y alcanza envio gratis.
+                    </div>
+                    <div className="flex items-center justify-between text-base font-semibold text-ink-950">
+                      <span>Total</span>
+                      <span>{formatPrice(subtotal)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="rounded-luxe-lg border border-black/8 bg-ink-50/60 px-4 py-4 text-sm text-ink-700">
+                      <div className="flex items-center justify-between gap-4">
+                        <span>Envio metropolitana / centro</span>
+                        <span className="font-medium text-ink-950">{formatPrice(shippingRates.metro)}</span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between gap-4">
+                        <span>Envio nacional</span>
+                        <span className="font-medium text-ink-950">{formatPrice(shippingRates.national)}</span>
+                      </div>
+                      <p className="mt-3 text-xs leading-5 text-ink-500">
+                        Envio gratis desde {formatPrice(freeShippingThreshold)}.
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-ink-700">
+                      <span>Total estimado desde</span>
+                      <span className="font-medium text-ink-950">{formatPrice(estimatedTotalMetro)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-base font-semibold text-ink-950">
+                      <span>Total estimado nacional</span>
+                      <span>{formatPrice(estimatedTotalNational)}</span>
+                    </div>
+                  </>
+                )}
+                <div className="text-xs leading-5 text-ink-500">
+                  El envio exacto se confirma en checkout segun tu estado y codigo postal.
                 </div>
                 <ButtonLink href="/checkout" variant="gold" className="w-full">
                   Ir al checkout

@@ -1,4 +1,7 @@
-const FREE_SHIPPING_THRESHOLD = 4000
+const FREE_SHIPPING_THRESHOLD = 4999
+const METRO_SHIPPING_AMOUNT = 250
+const CENTER_SHIPPING_AMOUNT = 250
+const NATIONAL_SHIPPING_AMOUNT = 350
 
 const METRO_STATES = new Set(["ciudad de mexico", "estado de mexico"])
 
@@ -46,6 +49,14 @@ export function shippingFreeThreshold() {
   return FREE_SHIPPING_THRESHOLD
 }
 
+export function shippingRatePreview() {
+  return {
+    metro: METRO_SHIPPING_AMOUNT,
+    center: CENTER_SHIPPING_AMOUNT,
+    national: NATIONAL_SHIPPING_AMOUNT
+  }
+}
+
 export function resolveShippingZone(state: string): ShippingZone | null {
   const normalizedState = normalizeStateName(state)
   if (!normalizedState) return null
@@ -54,7 +65,7 @@ export function resolveShippingZone(state: string): ShippingZone | null {
     return {
       id: "metro",
       label: "Zona metropolitana",
-      amount: 250
+      amount: METRO_SHIPPING_AMOUNT
     }
   }
 
@@ -62,14 +73,14 @@ export function resolveShippingZone(state: string): ShippingZone | null {
     return {
       id: "center",
       label: "Zona centro",
-      amount: 250
+      amount: CENTER_SHIPPING_AMOUNT
     }
   }
 
   return {
     id: "national",
     label: "Cobertura nacional",
-    amount: 350
+    amount: NATIONAL_SHIPPING_AMOUNT
   }
 }
 
