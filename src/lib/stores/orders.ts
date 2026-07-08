@@ -1,4 +1,5 @@
 import { dataFilePath, readJsonArrayResult, withStorageLock, writeJson } from "@/lib/storage/jsonFile"
+import { normalizeOrderShippingDetails, type OrderShippingDetails } from "@/lib/orderShipping"
 import type { CheckoutOrderCustomer, CheckoutOrderItem } from "@/lib/stores/checkoutOrders"
 import type { CheckoutProvider } from "@/lib/payments"
 
@@ -18,7 +19,7 @@ export type ConfirmedOrderRecord = {
   shippingLabel?: string
   total: number
   items: CheckoutOrderItem[]
-}
+} & OrderShippingDetails
 
 const ordersPath = dataFilePath("orders.json")
 
@@ -43,6 +44,7 @@ function normalizeConfirmedOrderRecord(input: unknown): ConfirmedOrderRecord | n
     typeof record.total === "number" && Number.isFinite(record.total) ? record.total : subtotal + shippingAmount
   const customer = record.customer
   const items = record.items
+  const shippingDetails = normalizeOrderShippingDetails(record)
 
   if (!id || !provider || !createdAt || !completedAt || !paymentStatus || !paymentReference || !(subtotal >= 0)) return null
   if (!(shippingAmount >= 0) || !(total >= 0)) return null
@@ -64,7 +66,8 @@ function normalizeConfirmedOrderRecord(input: unknown): ConfirmedOrderRecord | n
     shippingAmount,
     shippingLabel,
     total,
-    items: items as CheckoutOrderItem[]
+    items: items as CheckoutOrderItem[],
+    ...shippingDetails
   }
 }
 
@@ -103,6 +106,38 @@ export async function updateOrderFulfillmentStatus(orderId: string, fulfillmentS
     const updated = {
       ...orders[index],
       fulfillmentStatus: normalizedStatus || undefined
+    }
+    const next = [...orders]
+    next[index] = updated
+    await writeOrders(next)
+    return updated
+  })
+}
+
+export async function updateOrderShippingDetails(
+  orderId: string,
+  input: {
+    fulfillmentStatus?: string
+    carrier?: string
+    trackingNumber?: string
+    trackingUrl?: string
+    shippedAt?: string
+    shippingStatus?: OrderShippingDetails["shippingStatus"]
+  }
+) {
+  return await withStorageLock(ordersPath, async () => {
+    const orders = await readOrders()
+    const index = orders.findIndex((entry) => entry.id === orderId)
+    if (index === -1) return null
+
+    const updated: ConfirmedOrderRecord = {
+      ...orders[index],
+      fulfillmentStatus: input.fulfillmentStatus?.trim() || undefined,
+      carrier: input.carrier?.trim() || undefined,
+      trackingNumber: input.trackingNumber?.trim() || undefined,
+      trackingUrl: input.trackingUrl?.trim() || undefined,
+      shippedAt: input.shippedAt?.trim() || undefined,
+      shippingStatus: input.shippingStatus
     }
     const next = [...orders]
     next[index] = updated

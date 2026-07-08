@@ -70,9 +70,20 @@ export async function sendOrderStatusUpdateEmail(input: {
   const safePreviousStatus = escapeHtml(previousStatusLabel)
   const updatedAtLabel = formatDateLabel(new Date().toISOString())
   const safeUpdatedAtLabel = escapeHtml(updatedAtLabel)
+  const safeCarrier = escapeHtml(input.order.carrier?.trim() || "")
+  const safeTrackingNumber = escapeHtml(input.order.trackingNumber?.trim() || "")
+  const safeTrackingUrl = input.order.trackingUrl ? escapeHtml(input.order.trackingUrl) : ""
+  const safeShippedAtLabel = input.order.shippedAt ? escapeHtml(formatDateLabel(input.order.shippedAt)) : ""
   const itemsSummary = input.order.items
     .map((item) => `${item.brand} ${item.name} ${item.sizeMl} ml x${item.quantity}`)
     .join(" | ")
+  const hasTrackingDetails = Boolean(input.order.carrier?.trim() && input.order.trackingNumber?.trim())
+  const trackingIntro =
+    input.order.fulfillmentStatus?.trim() === "shipped"
+      ? "Tu pedido ya fue despachado y puedes seguirlo con la guía compartida abajo."
+      : input.order.fulfillmentStatus?.trim() === "delivered"
+        ? "Te compartimos nuevamente los datos de rastreo de tu pedido."
+        : ""
 
   const subject = `${safeOrderNumber} · ${safeFulfillmentLabel} | ${siteConfig.name}`
   const text = [
@@ -82,6 +93,16 @@ export async function sendOrderStatusUpdateEmail(input: {
     `Estado anterior: ${previousStatusLabel}.`,
     `Estado actual: ${currentStatusLabel}.`,
     `Actualizado el ${updatedAtLabel}.`,
+    ...(hasTrackingDetails
+      ? [
+          "",
+          trackingIntro || "Datos de rastreo:",
+          `Paquetería: ${input.order.carrier}.`,
+          `Número de guía: ${input.order.trackingNumber}.`,
+          ...(input.order.shippedAt ? [`Despachado el: ${formatDateLabel(input.order.shippedAt)}.`] : []),
+          ...(input.order.trackingUrl ? [`Rastrea aquí: ${input.order.trackingUrl}`] : [])
+        ]
+      : []),
     "",
     "Resumen del pedido:",
     itemsSummary,
@@ -107,8 +128,16 @@ export async function sendOrderStatusUpdateEmail(input: {
             <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#7a7267;">Seguimiento</p>
             <p style="margin:0;font-size:14px;line-height:1.8;color:#373737;"><strong>Antes:</strong> ${safePreviousStatus}<br /><strong>Ahora:</strong> ${safeCurrentStatus}<br /><strong>Actualizado:</strong> ${safeUpdatedAtLabel}</p>
           </div>
+          ${hasTrackingDetails ? `
+          <div style="margin:0 0 24px;border:1px solid rgba(188,149,79,0.22);border-radius:20px;background:rgba(188,149,79,0.08);padding:18px 18px 16px;">
+            <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#7a7267;">Guía de envío</p>
+            <p style="margin:0 0 12px;font-size:14px;line-height:1.8;color:#373737;">${escapeHtml(trackingIntro || "Ya puedes consultar el avance de tu pedido con la información siguiente.")}</p>
+            <p style="margin:0;font-size:14px;line-height:1.9;color:#373737;"><strong>Paquetería:</strong> ${safeCarrier}<br /><strong>Número de guía:</strong> ${safeTrackingNumber}${safeShippedAtLabel ? `<br /><strong>Despachado:</strong> ${safeShippedAtLabel}` : ""}</p>
+          </div>
+          ` : ""}
           <div style="margin:0 0 24px;">
-            <a href="${safeOrderUrl}" style="display:inline-block;padding:14px 24px;border-radius:999px;background:#bc954f;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;box-shadow:0 12px 24px rgba(188,149,79,0.24);">Ver mi pedido</a>
+            ${safeTrackingUrl ? `<a href="${safeTrackingUrl}" style="display:inline-block;padding:14px 24px;border-radius:999px;background:#bc954f;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;box-shadow:0 12px 24px rgba(188,149,79,0.24);margin-right:10px;">Rastrear mi pedido</a>` : ""}
+            <a href="${safeOrderUrl}" style="display:inline-block;padding:14px 24px;border-radius:999px;background:${safeTrackingUrl ? "#ffffff" : "#bc954f"};color:${safeTrackingUrl ? "#111111" : "#ffffff"};text-decoration:none;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;box-shadow:0 12px 24px rgba(17,17,17,0.08);border:${safeTrackingUrl ? "1px solid rgba(17,17,17,0.08)" : "none"};">Ver mi pedido</a>
           </div>
           <p style="margin:0 0 8px;font-size:13px;line-height:1.7;color:#666666;">Resumen:</p>
           <p style="margin:0;padding:14px 16px;border-radius:18px;background:#ffffff;border:1px solid rgba(17,17,17,0.08);font-size:13px;line-height:1.7;word-break:break-word;color:#111111;">${escapeHtml(itemsSummary)}</p>

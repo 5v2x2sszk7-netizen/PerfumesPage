@@ -9,7 +9,7 @@ import { Button, ButtonLink } from "@/components/ui/Button"
 import { Pill } from "@/components/ui/Pill"
 import { useMxPostalCodeLookup } from "@/hooks/useMxPostalCodeLookup"
 import { buildMxStateOptions, getPostalCodeHelper, normalizePostalCodeInput } from "@/lib/mxAddress"
-import { formatCustomerOrderNumber, orderStatusCustomerLabel, orderStatusSupportingLabel } from "@/lib/orderPresentation"
+import { formatCustomerOrderNumber, orderStatusCustomerLabel, orderStatusSupportingLabel, shippingStatusCustomerLabel } from "@/lib/orderPresentation"
 import { resolveStoredOrderTotal } from "@/lib/shipping"
 import { formatPrice } from "@/lib/whatsapp"
 import { evaluatePassword, passwordPolicyHint } from "@/lib/passwordPolicy"
@@ -81,6 +81,11 @@ type OrderRecord = {
   shippingLabel?: string
   total: number
   items: OrderItem[]
+  carrier?: string
+  trackingNumber?: string
+  trackingUrl?: string
+  shippedAt?: string
+  shippingStatus?: "pending" | "shipped" | "delivered"
 }
 
 type AccountResponse = {
@@ -285,6 +290,7 @@ export function AccountPageClient({
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
   const [status, setStatus] = useState<"idle" | "auth" | "profile" | "logout" | "social">("idle")
+  const [copiedTrackingOrderId, setCopiedTrackingOrderId] = useState("")
   const [highlightedOrderId, setHighlightedOrderId] = useState("")
   const [expandedOrderId, setExpandedOrderId] = useState("")
 
@@ -345,6 +351,19 @@ export function AccountPageClient({
     const query = params.toString()
     return query ? `/account/recover?${query}` : "/account/recover"
   }, [auth.email])
+
+  const copyTrackingNumber = useCallback(async (orderId: string, trackingNumber: string) => {
+    if (!trackingNumber.trim()) return
+    try {
+      await navigator.clipboard.writeText(trackingNumber)
+      setCopiedTrackingOrderId(orderId)
+      window.setTimeout(() => {
+        setCopiedTrackingOrderId((current) => (current === orderId ? "" : current))
+      }, 1800)
+    } catch {
+      setError("No se pudo copiar la guía.")
+    }
+  }, [])
 
   const refreshAccount = useCallback(async () => {
     const response = await fetch("/api/account/me", { cache: "no-store" })
@@ -1335,6 +1354,39 @@ export function AccountPageClient({
                           </div>
                           {expandedOrderId === featuredOrder.id ? (
                             <div className="mt-4 space-y-3 border-t border-black/6 pt-4">
+                              {featuredOrder.trackingNumber ? (
+                                <div className="rounded-luxe border border-antiqueGold/18 bg-antiqueGold/8 px-4 py-3">
+                                  <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">Seguimiento</p>
+                                  <p className="mt-1 text-sm font-medium text-ink-950">
+                                    {shippingStatusCustomerLabel(featuredOrder.shippingStatus) || orderStatusCustomerLabel(featuredOrder)}
+                                  </p>
+                                  <p className="mt-2 text-sm text-ink-700">
+                                    {featuredOrder.carrier || "Paquetería"} · {featuredOrder.trackingNumber}
+                                  </p>
+                                  {featuredOrder.shippedAt ? (
+                                    <p className="mt-1 text-sm text-ink-600">Despachado el {formatDate(featuredOrder.shippedAt)}</p>
+                                  ) : null}
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => void copyTrackingNumber(featuredOrder.id, featuredOrder.trackingNumber || "")}
+                                      className="inline-flex items-center rounded-full border border-black/10 bg-white px-3 py-2 text-[12px] font-medium tracking-[0.08em] text-ink-700 transition hover:border-black/16 hover:text-ink-950"
+                                    >
+                                      {copiedTrackingOrderId === featuredOrder.id ? "Guía copiada" : "Copiar guía"}
+                                    </button>
+                                    {featuredOrder.trackingUrl ? (
+                                      <a
+                                        href={featuredOrder.trackingUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center rounded-full bg-ink-950 px-3 py-2 text-[12px] font-medium tracking-[0.08em] text-white transition hover:opacity-90"
+                                      >
+                                        Rastrear pedido
+                                      </a>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              ) : null}
                               <div className="rounded-luxe border border-black/8 bg-white/80 px-4 py-3">
                                 <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">Entrega</p>
                                 <p className="mt-1 text-sm text-ink-950">{orderDestinationLabel(featuredOrder)}</p>
@@ -1424,6 +1476,39 @@ export function AccountPageClient({
                               </div>
                               {expandedOrderId === order.id ? (
                                 <div className="mt-4 space-y-3 border-t border-black/6 pt-4">
+                                  {order.trackingNumber ? (
+                                    <div className="rounded-luxe border border-antiqueGold/18 bg-antiqueGold/8 px-4 py-3">
+                                      <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">Seguimiento</p>
+                                      <p className="mt-1 text-sm font-medium text-ink-950">
+                                        {shippingStatusCustomerLabel(order.shippingStatus) || orderStatusCustomerLabel(order)}
+                                      </p>
+                                      <p className="mt-2 text-sm text-ink-700">
+                                        {order.carrier || "Paquetería"} · {order.trackingNumber}
+                                      </p>
+                                      {order.shippedAt ? (
+                                        <p className="mt-1 text-sm text-ink-600">Despachado el {formatDate(order.shippedAt)}</p>
+                                      ) : null}
+                                      <div className="mt-3 flex flex-wrap gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => void copyTrackingNumber(order.id, order.trackingNumber || "")}
+                                          className="inline-flex items-center rounded-full border border-black/10 bg-white px-3 py-2 text-[12px] font-medium tracking-[0.08em] text-ink-700 transition hover:border-black/16 hover:text-ink-950"
+                                        >
+                                          {copiedTrackingOrderId === order.id ? "Guía copiada" : "Copiar guía"}
+                                        </button>
+                                        {order.trackingUrl ? (
+                                          <a
+                                            href={order.trackingUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center rounded-full bg-ink-950 px-3 py-2 text-[12px] font-medium tracking-[0.08em] text-white transition hover:opacity-90"
+                                          >
+                                            Rastrear pedido
+                                          </a>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  ) : null}
                                   <div className="rounded-luxe border border-black/8 bg-white/82 px-4 py-3">
                                     <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">Entrega</p>
                                     <p className="mt-1 text-sm text-ink-950">{orderDestinationLabel(order)}</p>

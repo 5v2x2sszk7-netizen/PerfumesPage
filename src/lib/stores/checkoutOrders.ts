@@ -1,6 +1,7 @@
 import type { CheckoutProvider } from "@/lib/payments"
 import { dataFilePath, readJsonArrayResult, withStorageLock, writeJson } from "@/lib/storage/jsonFile"
 import { getCheckoutReservationExpiresAtMs } from "@/lib/checkout/reservations"
+import { normalizeOrderShippingDetails, type OrderShippingDetails } from "@/lib/orderShipping"
 
 export type CheckoutOrderItem = {
   perfumeId: string
@@ -62,7 +63,7 @@ export type CheckoutOrderRecord = {
   total: number
   items: CheckoutOrderItem[]
   events?: CheckoutOrderEvent[]
-}
+} & OrderShippingDetails
 
 const checkoutOrdersPath = dataFilePath("checkout-orders.json")
 
@@ -215,6 +216,7 @@ function normalizeCheckoutOrderRecord(input: unknown): CheckoutOrderRecord | nul
     typeof record.total === "number" && Number.isFinite(record.total) ? record.total : subtotal + shippingAmount
   const items = Array.isArray(record.items) ? record.items.map(normalizeCheckoutOrderItem).filter(Boolean) as CheckoutOrderItem[] : []
   const events = Array.isArray(record.events) ? record.events.map(normalizeCheckoutOrderEvent).filter(Boolean) as CheckoutOrderEvent[] : []
+  const shippingDetails = normalizeOrderShippingDetails(record)
 
   if (!id || !provider || !status || !createdAt || !customer || !(subtotal >= 0) || !(shippingAmount >= 0) || !(total >= 0) || !items.length) {
     return null
@@ -241,7 +243,8 @@ function normalizeCheckoutOrderRecord(input: unknown): CheckoutOrderRecord | nul
     shippingLabel,
     total,
     items,
-    events
+    events,
+    ...shippingDetails
   }
 }
 
@@ -299,6 +302,38 @@ export async function updateCheckoutOrderFulfillmentStatus(orderId: string, fulf
         type: "fulfillment_updated",
         detail: normalizedStatus ? `Estado logistico actualizado a ${normalizedStatus}.` : "Estado logistico limpiado."
       })
+    }
+    const next = [...orders]
+    next[index] = updated
+    await writeCheckoutOrders(next)
+    return updated
+  })
+}
+
+export async function updateCheckoutOrderShippingDetails(
+  orderId: string,
+  input: {
+    fulfillmentStatus?: string
+    carrier?: string
+    trackingNumber?: string
+    trackingUrl?: string
+    shippedAt?: string
+    shippingStatus?: OrderShippingDetails["shippingStatus"]
+  }
+) {
+  return await withCheckoutOrdersLock(async () => {
+    const orders = await readCheckoutOrders()
+    const index = orders.findIndex((entry) => entry.id === orderId)
+    if (index === -1) return null
+
+    const updated: CheckoutOrderRecord = {
+      ...orders[index],
+      fulfillmentStatus: input.fulfillmentStatus?.trim() || undefined,
+      carrier: input.carrier?.trim() || undefined,
+      trackingNumber: input.trackingNumber?.trim() || undefined,
+      trackingUrl: input.trackingUrl?.trim() || undefined,
+      shippedAt: input.shippedAt?.trim() || undefined,
+      shippingStatus: input.shippingStatus
     }
     const next = [...orders]
     next[index] = updated

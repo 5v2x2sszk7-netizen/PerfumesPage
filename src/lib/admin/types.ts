@@ -76,6 +76,11 @@ export type ConfirmedOrderRecord = {
   shippingLabel?: string
   total: number
   items: ConfirmedOrderItem[]
+  carrier?: string
+  trackingNumber?: string
+  trackingUrl?: string
+  shippedAt?: string
+  shippingStatus?: "pending" | "shipped" | "delivered"
 }
 
 export type CheckoutReservationRecord = {
@@ -99,6 +104,11 @@ export type CheckoutReservationRecord = {
   total: number
   items: ConfirmedOrderItem[]
   events?: CheckoutReservationEvent[]
+  carrier?: string
+  trackingNumber?: string
+  trackingUrl?: string
+  shippedAt?: string
+  shippingStatus?: "pending" | "shipped" | "delivered"
 }
 
 export type CheckoutReservationEvent = {

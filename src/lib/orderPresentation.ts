@@ -79,3 +79,11 @@ export function orderStatusSupportingLabel(input: { paymentStatus: string; fulfi
 
   return status
 }
+
+export function shippingStatusCustomerLabel(value?: string) {
+  const normalized = value?.trim().toLowerCase()
+  if (normalized === "shipped") return "Enviado"
+  if (normalized === "delivered") return "Entregado"
+  if (normalized === "pending") return "Pendiente"
+  return ""
+}

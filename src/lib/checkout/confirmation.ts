@@ -176,7 +176,12 @@ export async function applyConfirmedCheckout(input: {
       shippingAmount: completedOrder.shippingAmount,
       shippingLabel: completedOrder.shippingLabel,
       total: completedOrder.total,
-      items: completedOrder.items
+      items: completedOrder.items,
+      carrier: completedOrder.carrier,
+      trackingNumber: completedOrder.trackingNumber,
+      trackingUrl: completedOrder.trackingUrl,
+      shippedAt: completedOrder.shippedAt,
+      shippingStatus: completedOrder.shippingStatus
     }
     await appendOrder(confirmedOrder)
 

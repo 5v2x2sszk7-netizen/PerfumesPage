@@ -13,7 +13,7 @@ import type {
   ReservationEventLogEntry,
   ReservationMetrics
 } from "@/lib/admin/types"
-import { fulfillmentStatusCustomerLabel, orderStatusCustomerLabel } from "@/lib/orderPresentation"
+import { fulfillmentStatusCustomerLabel, orderStatusCustomerLabel, shippingStatusCustomerLabel } from "@/lib/orderPresentation"
 import { resolveStoredOrderTotal } from "@/lib/shipping"
 import { AdminPanel } from "@/features/admin/components/AdminPanel"
 
@@ -153,6 +153,22 @@ function reservationContextActionLabel(entry: Pick<ReservationEventLogEntry, "re
 
 type ReservationEventPreset = "all" | "critical_watch" | "retry_followup" | "payments_today" | "inventory_incidents"
 
+type LogisticsDraft = {
+  fulfillmentStatus: string
+  carrier: string
+  trackingNumber: string
+  trackingUrl: string
+}
+
+function buildLogisticsDraft(order: ConfirmedOrderRecord): LogisticsDraft {
+  return {
+    fulfillmentStatus: order.fulfillmentStatus || "",
+    carrier: order.carrier || "",
+    trackingNumber: order.trackingNumber || "",
+    trackingUrl: order.trackingUrl || ""
+  }
+}
+
 const RESERVATION_EVENT_PRESET_STORAGE_KEY = "admin:last-reservation-event-preset"
 
 export function OrdersSection({ orders, checkoutOrders, reservationMetrics, reservationEventLog, refresh }: Props) {
@@ -166,6 +182,7 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
   const [toDate, setToDate] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [expandedOrderIds, setExpandedOrderIds] = useState<string[]>([])
+  const [orderDrafts, setOrderDrafts] = useState<Record<string, LogisticsDraft>>({})
   const [pendingOrderId, setPendingOrderId] = useState("")
   const [pendingReservationId, setPendingReservationId] = useState("")
   const [pendingBulkReservationAction, setPendingBulkReservationAction] = useState("")
@@ -212,6 +229,12 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
     { value: "shipped", label: "Enviado" },
     { value: "delivered", label: "Entregado" }
   ]
+
+  useEffect(() => {
+    setOrderDrafts(
+      Object.fromEntries(orders.map((order) => [order.id, buildLogisticsDraft(order)]))
+    )
+  }, [orders])
 
   const filteredOrders = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
@@ -661,18 +684,30 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
     setCurrentPage(1)
   }
 
-  async function updateFulfillmentStatus(orderId: string, fulfillmentStatus: string) {
+  function updateOrderDraft(orderId: string, patch: Partial<LogisticsDraft>) {
+    setOrderDrafts((current) => ({
+      ...current,
+      [orderId]: {
+        ...(current[orderId] || { fulfillmentStatus: "", carrier: "", trackingNumber: "", trackingUrl: "" }),
+        ...patch
+      }
+    }))
+  }
+
+  async function saveOrderLogistics(orderId: string) {
+    const draft = orderDrafts[orderId]
+    if (!draft) return
     setPendingOrderId(orderId)
     setUpdateError("")
     try {
       await api(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fulfillmentStatus })
+        body: JSON.stringify(draft)
       })
       await refresh()
     } catch (error) {
-      setUpdateError(error instanceof Error ? error.message : "No se pudo actualizar el estado logistico.")
+      setUpdateError(error instanceof Error ? error.message : "No se pudo actualizar la logistica de la orden.")
     } finally {
       setPendingOrderId("")
     }
@@ -2331,6 +2366,8 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
               const totalOrderUnits = order.items.reduce((sum, item) => sum + item.quantity, 0)
               const isExpanded = expandedOrderIds.includes(order.id)
               const previewItems = order.items.slice(0, 2)
+              const logisticsDraft = orderDrafts[order.id] || buildLogisticsDraft(order)
+              const shippingLabel = shippingStatusCustomerLabel(order.shippingStatus)
               return (
                 <Card
                   id={`confirmed-order-${order.id}`}
@@ -2428,6 +2465,10 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                           <p className="mt-1 text-sm font-medium text-ink-950">{orderStatusCustomerLabel(order)}</p>
                         </div>
                         <div className="rounded-luxe-lg border border-black/8 bg-ink-50/35 px-4 py-4">
+                          <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Seguimiento</p>
+                          <p className="mt-1 text-sm font-medium text-ink-950">{shippingLabel || "Pendiente"}</p>
+                        </div>
+                        <div className="rounded-luxe-lg border border-black/8 bg-ink-50/35 px-4 py-4">
                           <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Subtotal</p>
                           <p className="mt-1 text-sm font-medium text-ink-950">{formatMoney(order.subtotal)}</p>
                         </div>
@@ -2442,14 +2483,14 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                           <p className="mt-1 text-sm font-medium text-ink-950">{formatMoney(resolveStoredOrderTotal(order))}</p>
                         </div>
                         <div className="rounded-luxe-lg border border-black/8 bg-ink-50/35 px-4 py-4 sm:col-span-2">
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                            <div className="min-w-0 flex-1">
-                              <Label htmlFor={`fulfillment-${order.id}`}>Estado logistico</Label>
+                          <div className="grid gap-4 lg:grid-cols-2">
+                            <div className="min-w-0">
+                              <Label htmlFor={`fulfillment-${order.id}`}>Estado logístico</Label>
                               <Select
                                 id={`fulfillment-${order.id}`}
                                 className="mt-2"
-                                value={order.fulfillmentStatus || ""}
-                                onChange={(e) => void updateFulfillmentStatus(order.id, e.target.value)}
+                                value={logisticsDraft.fulfillmentStatus}
+                                onChange={(e) => updateOrderDraft(order.id, { fulfillmentStatus: e.target.value })}
                                 disabled={pendingOrderId === order.id}
                               >
                                 {fulfillmentStatuses.map((statusOption) => (
@@ -2459,9 +2500,67 @@ export function OrdersSection({ orders, checkoutOrders, reservationMetrics, rese
                                 ))}
                               </Select>
                             </div>
-                            <p className="text-xs leading-5 text-ink-500">
-                              Cuando exista estado logistico, el badge del cliente cambia de forma automatica.
-                            </p>
+                            <div className="min-w-0">
+                              <Label htmlFor={`carrier-${order.id}`}>Paquetería</Label>
+                              <Input
+                                id={`carrier-${order.id}`}
+                                className="mt-2"
+                                placeholder="FedEx, DHL, Estafeta..."
+                                value={logisticsDraft.carrier}
+                                onChange={(e) => updateOrderDraft(order.id, { carrier: e.target.value })}
+                                disabled={pendingOrderId === order.id}
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <Label htmlFor={`tracking-number-${order.id}`}>Número de guía</Label>
+                              <Input
+                                id={`tracking-number-${order.id}`}
+                                className="mt-2"
+                                placeholder="Ej. 1Z999AA10123456784"
+                                value={logisticsDraft.trackingNumber}
+                                onChange={(e) => updateOrderDraft(order.id, { trackingNumber: e.target.value })}
+                                disabled={pendingOrderId === order.id}
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <Label htmlFor={`tracking-url-${order.id}`}>URL de rastreo</Label>
+                              <Input
+                                id={`tracking-url-${order.id}`}
+                                className="mt-2"
+                                placeholder="https://..."
+                                value={logisticsDraft.trackingUrl}
+                                onChange={(e) => updateOrderDraft(order.id, { trackingUrl: e.target.value })}
+                                disabled={pendingOrderId === order.id}
+                              />
+                            </div>
+                          </div>
+                          <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="space-y-1 text-xs leading-5 text-ink-500">
+                              <p>Cuando guardes la logística, el estado del cliente se actualiza automáticamente.</p>
+                              {order.shippedAt ? <p>Despachado el {formatDateTime(order.shippedAt)}.</p> : null}
+                              {order.trackingNumber ? <p>Guía actual: {order.carrier || "Paquetería"} · {order.trackingNumber}</p> : null}
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                              {order.trackingUrl ? (
+                                <a
+                                  href={order.trackingUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-[12px] font-medium tracking-[0.08em] text-ink-700 transition hover:border-black/16 hover:text-ink-950"
+                                >
+                                  Abrir rastreo
+                                </a>
+                              ) : null}
+                              <Button
+                                type="button"
+                                variant="gold"
+                                className="text-sm"
+                                onClick={() => void saveOrderLogistics(order.id)}
+                                disabled={pendingOrderId === order.id}
+                              >
+                                {pendingOrderId === order.id ? "Guardando..." : "Guardar logística"}
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
