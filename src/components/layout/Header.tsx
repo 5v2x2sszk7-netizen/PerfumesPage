@@ -38,7 +38,7 @@ export function Header() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <nav className="hidden items-center gap-8 text-sm font-medium tracking-ui text-ink-700 md:flex">
             <Link
               href="/catalog"
@@ -54,13 +54,25 @@ export function Header() {
             </Link>
           </nav>
 
+          <ButtonLink
+            href="/catalog"
+            variant="outline"
+            className="md:hidden px-4 py-2 text-sm shadow-sm transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0"
+          >
+            Catálogo
+          </ButtonLink>
+
           <HeaderCartButton />
 
           <ButtonLink
             href="/account"
-            className="md:hidden px-4 py-2 shadow-header-cta transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:shadow-header-cta-hover active:translate-y-0"
+            aria-label="Cuenta"
+            className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-ink-950 px-0 py-0 text-white shadow-sm transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:bg-black hover:shadow-header-cta-hover active:translate-y-0"
           >
-            Cuenta
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
+              <path d="M18 20a6 6 0 0 0-12 0" />
+              <circle cx="12" cy="8" r="3.25" />
+            </svg>
           </ButtonLink>
         </div>
       </Container>
