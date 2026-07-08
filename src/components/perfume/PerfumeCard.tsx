@@ -69,7 +69,7 @@ export function PerfumeCard({
     <Link
       href={`/catalog/${perfume.slug}`}
       className={cn(
-        "group relative block [transform:translateZ(0)] overflow-hidden rounded-luxe-lg bg-white no-underline shadow-card ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:-translate-y-1 hover:ring-black/10 hover:shadow-perfume-hover",
+        "group relative flex h-full [transform:translateZ(0)] overflow-hidden rounded-luxe-lg bg-white no-underline shadow-card ring-1 ring-inset ring-black/8 transition-luxe duration-luxe ease-luxe hover:-translate-y-1 hover:ring-black/10 hover:shadow-perfume-hover",
         focusRing,
         className
       )}
@@ -77,7 +77,7 @@ export function PerfumeCard({
       <div className="pointer-events-none absolute inset-0 bg-perfume-hover-gold opacity-0 transition-opacity duration-luxe-slow ease-luxe group-hover:opacity-100" />
       <div className="pointer-events-none absolute inset-0 bg-perfume-hover-white opacity-0 transition-opacity duration-luxe-fast ease-luxe group-hover:opacity-100" />
 
-      <div className="relative p-4 sm:p-5">
+      <div className="relative flex h-full w-full flex-col p-4 sm:p-5">
         <div className="relative overflow-hidden rounded-luxe-md bg-ink-50 ring-1 ring-inset ring-black/8">
           <div className="pointer-events-none absolute inset-0 bg-perfume-media-glow opacity-25 transition-opacity duration-luxe ease-luxe group-hover:opacity-70" />
           <div className="relative aspect-[4/5]">
@@ -117,13 +117,18 @@ export function PerfumeCard({
           </div>
         </div>
 
-        <div className="mt-5 space-y-2">
+        <div className="mt-5 flex flex-1 flex-col space-y-2">
           <p className="text-ui-xs tracking-kicker text-ink-500">{perfume.brand}</p>
-          <h3 className={cn("font-display text-xl leading-tight text-ink-950", isOut ? "text-ink-700" : "")}>
+          <h3
+            className={cn(
+              "min-h-[3.5rem] text-balance font-display text-lg leading-tight text-ink-950 sm:min-h-[4rem] sm:text-xl",
+              isOut ? "text-ink-700" : ""
+            )}
+          >
             {perfume.name}
           </h3>
 
-          <div className="pt-2">
+          <div className="mt-auto pt-2">
             <div className="flex items-baseline justify-between gap-4">
               <p className={cn("text-sm text-ink-700", isOut ? "text-ink-600" : "")}>
                 {perfume.sizeMl} ml
