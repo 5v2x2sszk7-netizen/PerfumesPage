@@ -67,11 +67,20 @@ export function Header() {
           <ButtonLink
             href="/account"
             aria-label="Cuenta"
-            className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-ink-950 px-0 py-0 text-white shadow-sm transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:bg-black hover:shadow-header-cta-hover active:translate-y-0"
+            className="md:hidden inline-flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-ink-950 px-0 py-0 text-white shadow-sm transition-luxe duration-luxe-fast ease-luxe hover:-translate-y-0.5 hover:bg-black hover:shadow-header-cta-hover active:translate-y-0"
           >
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
-              <path d="M18 20a6 6 0 0 0-12 0" />
-              <circle cx="12" cy="8" r="3.25" />
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-5 w-5"
+            >
+              <path d="M5 19.25C6.67 16.78 9.14 15.5 12 15.5s5.33 1.28 7 3.75" />
+              <circle cx="12" cy="9" r="3.5" />
             </svg>
           </ButtonLink>
         </div>
