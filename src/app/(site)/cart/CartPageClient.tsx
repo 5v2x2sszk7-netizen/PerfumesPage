@@ -132,7 +132,7 @@ export function CartPageClient() {
                       <span className="font-medium text-ink-950">Gratis</span>
                     </div>
                     <div className="rounded-luxe-lg border border-antiqueGold/20 bg-antiqueGold/10 px-4 py-3 text-xs leading-5 text-ink-700">
-                      Tu pedido ya supera {formatPrice(freeShippingThreshold)} y alcanza envío gratis.
+                      Felicidades. Tu pedido supera los {formatPrice(freeShippingThreshold)} y califica para envío gratis.
                     </div>
                     <div className="flex items-center justify-between text-base font-semibold text-ink-950">
                       <span>Total</span>
@@ -195,9 +195,11 @@ export function CartPageClient() {
                     </div>
                   </>
                 )}
-                <div className="text-xs leading-5 text-ink-500">
-                  El envío exacto se confirma en checkout según tu estado y código postal.
-                </div>
+                {!qualifiesForFreeShipping ? (
+                  <div className="text-xs leading-5 text-ink-500">
+                    El envío exacto se confirma en checkout según tu estado y código postal.
+                  </div>
+                ) : null}
                 <ButtonLink href="/checkout" variant="gold" className="w-full">
                   Ir al checkout
                 </ButtonLink>
