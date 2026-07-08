@@ -72,15 +72,10 @@ export function Header() {
             <svg
               aria-hidden="true"
               viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-5 w-5"
+              fill="currentColor"
+              className="h-6 w-6"
             >
-              <path d="M5 19.25C6.67 16.78 9.14 15.5 12 15.5s5.33 1.28 7 3.75" />
-              <circle cx="12" cy="9" r="3.5" />
+              <path d="M12 12.35a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2Zm0 1.95c-3.7 0-6.83 2.08-7.97 5.18-.11.3-.07.63.12.9.19.27.49.42.82.42h14.06c.33 0 .64-.15.82-.42.19-.27.23-.6.12-.9-1.14-3.1-4.27-5.18-7.97-5.18Z" />
             </svg>
           </ButtonLink>
         </div>
